@@ -3,8 +3,9 @@ camera_name,,,,,slayer mobile
 sensor_dimensions,4000,3000,,,
 lens_name,,,,,native
 zoom_factor,,,,,1
-settings_notes,,,,,
-image_dimensions,4000,2250,,,
+settings_notes,,,,,Nothing to say
+cal_image_dimensions,4000,2250,,,
+pixel_map_type,,,,,3d_degree_poly_fit_abs_from_center
 orientation,,,,,portrait
 quadrant,,,,,LB
 targets_diameter,,,,,1
