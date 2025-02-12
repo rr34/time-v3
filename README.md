@@ -1,3 +1,14 @@
+# Notes
+- Overlayed a sun on an image using SVG that aligns to the image and stays there through scaling up and down.
+- todonext: standardize awim tag to use the largest pixel dimensions, never change, and only check that aspect ratio matches. Get the dimensions directly from the camera awim tag and base all pixel measurements off that, including pixel angular sizes.
+- This project will be based on image sizes of 4K = 3840 x 2160. That will be the SVG size I use. Rather than communicate the image size to awim API, the awim API will always respond with pixel positions based on the size in the tag, which will always be the underlying camera pixel tag dimensions. The answer can be adjusted by just about any software / language since simly scaling the image is linear. I'm not drawing directly on the image really anyway. I'm drawing with an SVG canvas that does not necessarily match the image size. It only matches aspect ratio and gets scaled to the same size. awim doesn't need to care about that or handle that scaling.
+- todo: connect this app to the back-end awim to position the sun in the correct position based on time.
+- todo: resurrect functions from the old clock and integrate into awim project as appropriate to be able to retrieve pixel positions.
+- todo: animate the sun based on a series of times.
+- todo: standardize the text representation of the time, starting with the representation I used in the previous version of this clock.
+- todo: Expand sun to include moon, planets, stars, moon phase.
+- todo: Standard glockenspiel animations.
+
 # React + TypeScript + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
