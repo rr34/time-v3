@@ -11,7 +11,7 @@ node_modules
 dist
 dist-ssr
 *.local
-clock_images
+src/assets/clock_images
 
 # Editor directories and files
 .vscode/*
