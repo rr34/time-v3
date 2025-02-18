@@ -7,9 +7,9 @@ useEffect(() => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ title: 'React Hooks POST Request Example' })
     };
-    fetch('http://localhost:8080/testpost', requestOptions)
+    fetch('http://localhost:8000/testpost', requestOptions)
         .then(response => response.json())
-        .then(data => setPostId(data.id));
+        // .then(data => setPostId(data.id));
 
 // empty dependency array means this effect will only run once (like componentDidMount in classes)
 }, []);
