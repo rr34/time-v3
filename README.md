@@ -43,7 +43,7 @@ todonext: retrieve an array of 300 time strings from the awim API.
   - 2 hours in an 8-second animation.
   - 4 hours in a 16-second animation. **Let's use this one because it's minus 1 hour to plus 3 hours.**
   - 6 hours in a 24-second animation.
-  - full 24-hour day in a 96-second animation (certainly too long to show all the time.
+  - full 24-hour day in a 96-second animation (certainly too long of an animation to show all the time).
 
 # Done
 - Overlayed a sun on an image using SVG that aligns to the image and stays there through scaling up and down.
