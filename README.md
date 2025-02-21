@@ -45,6 +45,14 @@ todonext: retrieve an array of 300 time strings from the awim API.
   - 6 hours in a 24-second animation.
   - full 24-hour day in a 96-second animation (certainly too long of an animation to show all the time).
 
+# Example Time String
+4:16 since midnight, 0:22 until sunrise.
+14:42 day length, 9:17 night length.
+4 days, 1:00 until new moon. 20 percent illuminated.
+1:26 since moonrise.
+Thursday 26 May 2022
+[05:45 EDT (-4 hours) Industrial Time]
+
 # Done
 - Overlayed a sun on an image using SVG that aligns to the image and stays there through scaling up and down.
 
