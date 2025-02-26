@@ -24,26 +24,26 @@ def calculate_astro_risesandsets(earth_latlng, moment_now, elevation=0):
     sun_daily[0] = first_sunrise.datetime64 # 1st sunrise
     astropy_temp = clock_astroplan_observer.noon(time=first_sunrise, which='next', n_grid_points=gridpts)
     sun_daily[1] = astropy_temp.datetime64 # 1st noon
-    astropy_temp = clock_astroplan_observer.sun_set_time(time=astropy_temp, which='next', n_grid_points=gridpts)
+    astropy_temp = clock_astroplan_observer.sun_set_time(time=astropy_temp, which='next', horizon=-0.833*u.deg, n_grid_points=gridpts)
     sun_daily[2] = astropy_temp.datetime64 # 1st sunset
     sun_daily[3] = first_midnight.datetime64 # 1st midnight, already calculated
-    astropy_temp = clock_astroplan_observer.sun_rise_time(time=first_midnight, which='next', n_grid_points=gridpts) # second sunrise is the next instead of previous sunrise
+    astropy_temp = clock_astroplan_observer.sun_rise_time(time=first_midnight, which='next', horizon=-0.833*u.deg, n_grid_points=gridpts) # second sunrise is the next instead of previous sunrise
     sun_daily[4] = astropy_temp.datetime64 # 2nd sunrise
     astropy_temp = clock_astroplan_observer.noon(time=astropy_temp, which='next', n_grid_points=gridpts)
     sun_daily[5] = astropy_temp.datetime64
-    astropy_temp = clock_astroplan_observer.sun_set_time(time=astropy_temp, which='next', n_grid_points=gridpts)
+    astropy_temp = clock_astroplan_observer.sun_set_time(time=astropy_temp, which='next', horizon=-0.833*u.deg, n_grid_points=gridpts)
     sun_daily[6] = astropy_temp.datetime64
     astropy_temp = clock_astroplan_observer.midnight(time=astropy_temp, which='next', n_grid_points=gridpts)
     sun_daily[7] = astropy_temp.datetime64 # 2nd midnight. The clock could crawl just past this point if moment now were just before midnight because would calculate so far back.
-    astropy_temp = clock_astroplan_observer.sun_rise_time(time=astropy_temp, which='next', n_grid_points=gridpts)
+    astropy_temp = clock_astroplan_observer.sun_rise_time(time=astropy_temp, which='next', horizon=-0.833*u.deg, n_grid_points=gridpts)
     sun_daily[8] = astropy_temp.datetime64 # 2nd sunrise
     astropy_temp = clock_astroplan_observer.noon(time=astropy_temp, which='next', n_grid_points=gridpts)
     sun_daily[9] = astropy_temp.datetime64
-    astropy_temp = clock_astroplan_observer.sun_set_time(time=astropy_temp, which='next', n_grid_points=gridpts)
+    astropy_temp = clock_astroplan_observer.sun_set_time(time=astropy_temp, which='next', horizon=-0.833*u.deg, n_grid_points=gridpts)
     sun_daily[10] = astropy_temp.datetime64
     astropy_temp = clock_astroplan_observer.midnight(time=astropy_temp, which='next', n_grid_points=gridpts)
     sun_daily[11] = astropy_temp.datetime64 # 3rd and final midnight. 3 of each event.
-    astropy_temp = clock_astroplan_observer.sun_rise_time(time=astropy_temp, which='next', n_grid_points=gridpts)
+    astropy_temp = clock_astroplan_observer.sun_rise_time(time=astropy_temp, which='next', horizon=-0.833*u.deg, n_grid_points=gridpts)
     sun_daily[12] = astropy_temp.datetime64 # 4th sunrise to calculate night length in unlikely event clock crawls past 2nd sunrise
 
     print('calculating moon daily events')
