@@ -6,9 +6,7 @@ def get_time_strings(location, elevation_msl, currenttime):
     # nowmoments = formatters.format_datetime(nowmoments, direction='from list of ISO 8601 strings')
     # nowmoments = np.array(nowmoments).astype('datetime64[ns]')
     sundaily, moondaily = clockmath.calculate_astro_risesandsets(location, currenttime, elevation_msl) # todo: cache these results because they take time to calculate.
-    # daynightlengths = clockmath.calculate_astro_daynightlength(nowmoments, sundaily)
-    # print('stophere')
-    # todo: nearest sunrise sunset noon midnight strings, nearest moon phase event strings, nearest moonrise and moonset strings
+    nearest_new_moon, nearest_full_moon, moon_illumination_percent = clockmath.calculate_astro_moon_phase(currenttime)
     response_dict = {}
     response_dict['sundaily'] = formatters.format_datetime(sundaily, 'to string for AWIMtag')
     response_dict['moondaily'] = formatters.format_datetime(moondaily, 'to string for AWIMtag')
