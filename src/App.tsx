@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useEffect } from "react";
 import ClockScreen from './components/ClockScreen';
-import UpdateClockStrings from "./Functions";
+import { UpdateClockStrings } from "./Functions";
+import { UpdateDayNightLengthString } from "./Functions";
 
 import './App.css';
 import ClockString from "./components/ClockString";
@@ -14,22 +15,24 @@ function App() {
 
   // initialize state variables
   let newdate = new Date();
-  newdate.setSeconds(0,0);
+  let addhours = -96;
+  newdate = new Date(newdate.getTime() + addhours*1000*60*60);
+
   const [CurrentTime, setCurrentTime] = useState(newdate);
   const [SunDaily, setSunDaily] = useState<Date[]>([]);
   const [MoonDaily, setMoonDaily] = useState<Date[]>([]);
 
   // initialize clock string state variables
+  const [SunIndex, setSunIndex] = useState(0);
   const [SunEventsString, setSunEventsString] = useState('current sun events');
   const [DayNightLengthsString, setDayNightLengthsString] = useState('day and night lengths');
   const [MoonPhaseString, setMoonPhaseString] = useState('moon phase string');
   const [MoonEventString, setMoonEventString] = useState('moon events');
-  const [DateString, setDateString] = useState('date string');
-  const [IndustrialTimeString, setIndustrialTimeString] = useState('industrial time');
+  const [IndustrialDTString, setIndustrialDTString] = useState('industrial time');
 
   useEffect(() => {
     const interval = setInterval(() => {
-      UpdateClockStrings(SunDaily, setCurrentTime, setSunEventsString, setDayNightLengthsString, setMoonPhaseString, setMoonEventString, setDateString, setIndustrialTimeString);
+      UpdateClockStrings(SunDaily, SunIndex, MoonDaily, setSunIndex, setCurrentTime, setSunEventsString, setMoonPhaseString, setMoonEventString, setIndustrialDTString);
     }, 1*1000);
 
     return () => clearInterval(interval);
@@ -37,11 +40,15 @@ function App() {
 
   // don't need the following until I start animating SVG
   const NowMoments: string[] = [];
-  var MomentsCount = 300;
+  let MomentsCount = 300;
   for (let i=-60; i<MomentsCount-60; i++) { // generates times from an hour prior to CurrentTime until 4 hours after CurrentTime
     let idate = new Date(CurrentTime.getTime());
     NowMoments.push(idate.toISOString());
   }
+
+  useEffect(() => {
+    UpdateDayNightLengthString(SunDaily, SunIndex, setDayNightLengthsString)
+  }, [SunIndex]); // I can put variables in the dependency array and this will run whenever the variables change value.
 
   useEffect(() => {
       const requestOptions = {
@@ -74,7 +81,7 @@ function App() {
     <div>
       {/* <ClockScreen /> */}
       <p>{CurrentTime.toISOString()}</p>
-      <ClockString suneventsstring={SunEventsString} daynightlengthsstring={DayNightLengthsString} moonphasestring={MoonPhaseString} mooneventstring={MoonEventString} datestring={DateString} industrialtimestring={IndustrialTimeString} />
+      <ClockString suneventsstring={SunEventsString} daynightlengthsstring={DayNightLengthsString} moonphasestring={MoonPhaseString} mooneventstring={MoonEventString} industrialdttimestring={IndustrialDTString} />
       {/* <p>{SunDaily}</p> */}
     </div>
   );

@@ -46,7 +46,7 @@ todonext: retrieve an array of 300 time strings from the awim API.
   - full 24-hour day in a 96-second animation (certainly too long of an animation to show all the time).
 
 # Example Time String
-4:16 since midnight, 0:22 until sunrise.
+DONE 4:16 since midnight, 0:22 until sunrise.
 14:42 day length, 9:17 night length.
 4 days, 1:00 until new moon. 20 percent illuminated.
 1:26 since moonrise.
