@@ -12,8 +12,11 @@ function msToTime(duration: number, include_seconds = true) {
     else {
         var seconds_str = "";
     }
-    if (days >= 1) {
+    if (days > 1) {
         var days_str = days + " days, ";
+    }
+    else if (days == 1) {
+        var days_str = days + " day, ";
     }
     else {
         var days_str = "";
@@ -23,10 +26,10 @@ function msToTime(duration: number, include_seconds = true) {
   }
 
 
-export function UpdateClockStrings(SunDaily: Date[], SunIndex: number, MoonDaily: Date[], setSunIndex: Function, setCurrentTime: Function, setSunEventsString: Function, setMoonPhaseString: Function, setMoonEventString: Function, setIndustrialDTString: Function) {
+export function UpdateClockStrings(SunDaily: Date[], SunIndex: number, MoonDaily: Date[], NearestNew, NearestNewAngle, NearestFull, NearestFullAngle, setSunIndex: Function, setCurrentTime: Function, setSunEventsString: Function, setMoonPhaseString: Function, setMoonEventString: Function, setIndustrialDTString: Function) {
     console.log('ran update clock strings function')
     let newdate = new Date();
-    let addhours = -96;
+    let addhours = 8*24;
     newdate = new Date(newdate.getTime() + addhours*1000*60*60);
     setCurrentTime(newdate);
     let options: Intl.DateTimeFormatOptions = {
@@ -65,8 +68,6 @@ export function UpdateClockStrings(SunDaily: Date[], SunIndex: number, MoonDaily
         setSunEventsString(msToTime(since_ms) + " since sunset. " + msToTime(until_ms) + " until midnight.")
     }
     
-    setMoonPhaseString('successs, set moon phase string');
-    
     let moon_index = MoonDaily.findIndex((date, i) => newdate < date);
     if (moon_index === 2 || moon_index === 4) {
         let since_ms = newdate.getTime() - MoonDaily[moon_index - 1].getTime();
@@ -77,6 +78,27 @@ export function UpdateClockStrings(SunDaily: Date[], SunIndex: number, MoonDaily
         let since_ms = newdate.getTime() - MoonDaily[moon_index - 1].getTime();
         let until_ms = MoonDaily[moon_index].getTime() - newdate.getTime();
         setMoonEventString(msToTime(since_ms) + " since moonrise. " + msToTime(until_ms) + " until moonset.")
+    }
+
+    if (NearestNew && NearestFull) {
+        let timedelta_new = newdate.getTime() - NearestNew.getTime();
+        let timedelta_full = newdate.getTime() - NearestFull.getTime();
+        if (Math.abs(timedelta_new) < Math.abs(timedelta_full) && Math.sign(timedelta_new) > 0) {
+            let timedelta_str: string = msToTime(Math.abs(timedelta_new));
+            setMoonPhaseString(timedelta_str + ' since new moon at ' + NearestNewAngle.toString() + ' phase angle.');
+        }
+        else if (Math.abs(timedelta_new) < Math.abs(timedelta_full) && Math.sign(timedelta_new) < 0) {
+            let timedelta_str: string = msToTime(Math.abs(timedelta_new));
+            setMoonPhaseString(timedelta_str + ' until new moon at ' + NearestNewAngle.toString() + ' phase angle.');
+        }
+        else if (Math.abs(timedelta_new) > Math.abs(timedelta_full) && Math.sign(timedelta_full) > 0) {
+            let timedelta_str: string = msToTime(Math.abs(timedelta_full));
+            setMoonPhaseString(timedelta_str + ' since full moon at ' + NearestFullAngle.toString() + ' phase angle.');
+        }
+        else if (Math.abs(timedelta_new) > Math.abs(timedelta_full) && Math.sign(timedelta_full) < 0) {
+            let timedelta_str: string = msToTime(Math.abs(timedelta_full));
+            setMoonPhaseString(timedelta_str + ' until full moon at ' + NearestFullAngle.toString() + ' phase angle.');
+        }
     }
 }
 
