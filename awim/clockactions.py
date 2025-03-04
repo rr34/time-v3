@@ -1,14 +1,26 @@
 import numpy as np
 import clockmath, formatters
 
-def get_time_strings(location, elevation_msl, currenttime):
+def get_events(location, elevation_msl, currenttime):
     currenttime = np.datetime64(currenttime)
     # nowmoments = formatters.format_datetime(nowmoments, direction='from list of ISO 8601 strings')
     # nowmoments = np.array(nowmoments).astype('datetime64[ns]')
     sundaily, moondaily = clockmath.calculate_astro_risesandsets(location, currenttime, elevation_msl) # todo: cache these results because they take time to calculate.
-    nearest_new_moon, nearest_full_moon, moon_illumination_percent = clockmath.calculate_astro_moon_phase(currenttime)
+    newmoon_time, newmoon_angle, fullmoon_time, fullmoon_angle = clockmath.calculate_astro_newfullmoon(currenttime)
     response_dict = {}
     response_dict['sundaily'] = formatters.format_datetime(sundaily, 'to string for AWIMtag')
     response_dict['moondaily'] = formatters.format_datetime(moondaily, 'to string for AWIMtag')
+    if newmoon_time and newmoon_angle:
+        response_dict['newmoon time'] = formatters.format_datetime(newmoon_time, 'to string for AWIMtag')
+        response_dict['newmoon angle'] = str(newmoon_angle)
+    else:
+        response_dict['newmoon time'] = 'false'
+        response_dict['newmoon angle'] = 'false'
+    if fullmoon_time and fullmoon_angle:
+        response_dict['fullmoon time'] = formatters.format_datetime(fullmoon_time, 'to string for AWIMtag')
+        response_dict['fullmoon angle'] = str(fullmoon_angle)
+    else:
+        response_dict['fullmoon time'] = 'false'
+        response_dict['fullmoon angle'] = 'false'
 
     return response_dict

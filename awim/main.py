@@ -16,15 +16,14 @@ app.add_middleware(
 )
 
 
-@app.post('/timestringdata')
-async def timestringdata(request: Request):
-    print('get here?')
+@app.post('/getevents')
+async def getevents(request: Request):
     try:
         request_dict = await request.json()
     except:
         print('some error on the post request attempt')
 
-    response_dict = clockactions.get_time_strings(request_dict['location'], request_dict['elevation'], request_dict['currenttime'])
+    response_dict = clockactions.get_events(request_dict['location'], request_dict['elevation'], request_dict['currenttime'])
     response_dict_json = json.dumps(response_dict) # TODO: maybe use orjson at some point? because faster
 
     return response_dict_json

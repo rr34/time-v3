@@ -64,75 +64,123 @@ def calculate_astro_risesandsets(earth_latlng, moment_now, elevation=0):
     return sun_daily, moon_daily
 
 
-# I don't know why this doesn't return exactly a full/new moon - differs by ~30 minutes? Why? phase is different from "ecliptic longitude different by 180°?" - but since I did it here it is...
+# I don't know why this doesn't return exactly a full/new moon matching online sources - differs by up to ~30 minutes? Why? phase is different from "ecliptic longitude different by 180°?" - but since I did it here it is...
 # This function is good enough for now because I only really care about the single new or full moon that is the closest. I don't ever care about a full moon 14 days past or future because the new moon would be within a day so obviously closer.
 # TODO calculate the 180deg ecliptic longitude difference full moon and see if different
-# TODO calculate previous and next new and full moons and see which ones are closest.
-# TODO improve this function's interating method.
-def calculate_astro_moon_phase(moment_now, discretize=30):
-    moment_now_astropy = Time(moment_now)
-    moon_illumination_percent = astroplan.moon_illumination(moment_now_astropy) * 100
-    moon_phase_angle = astroplan.moon_phase_angle(moment_now_astropy).to_value() * 180 / math.pi
-    print(moon_phase_angle)
-    
-    if moon_phase_angle < -90:
-        print('we are in 1st quarter moon')
-        pass
-
-    # get the nearest full moon, which is the minimum phase angle for the period.
-    check_period = np.timedelta64(30, 'D')
-    check_discretization = check_period / discretize
-    moments_check_array = np.arange(moment_now-check_period/2, moment_now+check_period/2, check_discretization)
+def calculate_astro_newfullmoon(moment_now, discretize=90):
+    print('calculating moon phase events')
+    # lunar_cycle_average = np.timedelta64(29.53, 'D') # not used but here it is
+    # moment_now_astropy = Time(moment_now)
+    # moon_illumination_percent = astroplan.moon_illumination(moment_now_astropy) * 100
+    check_period = 29 # days. I want to make sure I get maximum one of either new or full moon. If start close to one, will not find the other because outside the range.
+    check_period = np.timedelta64(check_period*24*60*60, 's')
+    # 1st iteration
+    step_size = check_period / discretize
+    moments_check_array = np.arange(moment_now-check_period/2, moment_now+check_period/2, step_size)
     moments_check_astropy = Time(moments_check_array)
     moon_phase_check = astroplan.moon_phase_angle(moments_check_astropy).to_value()
+    maxmin = np.diff(np.sign(np.diff(moon_phase_check)))
+    newmoon = np.where(maxmin <= -1, True, False) # finds max, which is new moon
+    fullmoon = np.where(maxmin >= 1, True, False) # finds min, which is full moon
 
-    check_period_start = moments_check_array[np.argmin(moon_phase_check)]
-    check_period = np.timedelta64(2, 'D') # because I use subtract and add with it later
-    check_discretization = np.timedelta64(1, 'h')
-    moments_check_array = np.arange(check_period_start-check_period/2, check_period_start+check_period/2, check_discretization)
-    moments_check_astropy = Time(moments_check_array)
-    moon_phase_check = astroplan.moon_phase_angle(moments_check_astropy).to_value()
+    # new moon calculation finding the maximum phase angle.
+    if newmoon.sum() == 1:
+        newmoon_time = True
+        newmoon = np.where(newmoon == True)[0][0] + 1
+        # 2nd interation
+        step_size_new = step_size / (discretize / 2) # the period is divided by only half the discretize
+        moments_check_array_new = np.arange(moments_check_array[newmoon-1] - step_size_new, moments_check_array[newmoon+1] + step_size_new, step_size_new)
+        moments_check_astropy = Time(moments_check_array_new)
+        moon_phase_check = astroplan.moon_phase_angle(moments_check_astropy).to_value()
+        maxmin = np.diff(np.sign(np.diff(moon_phase_check)))
+        newmoon = np.where(maxmin <= -1, True, False)
+    elif newmoon.sum() == 0:
+        newmoon_time = False
+        newmoon_angle = False
+        print('no new moon in the period')
+    else:
+        newmoon_time = False
+        print('multiple new moons in period, which I didnt think was possible')
 
-    check_period_start = moments_check_array[np.argmin(moon_phase_check)]
-    check_period = np.timedelta64(2, 'h') # because I subtract and add later
-    check_discretization = np.timedelta64(5, 'm')
-    moments_check_array = np.arange(check_period_start-check_period/2, check_period_start+check_period/2, check_discretization)
-    moments_check_astropy = Time(moments_check_array)
-    moon_phase_check = astroplan.moon_phase_angle(moments_check_astropy).to_value()
-    phase_percent = (math.pi - moon_phase_check) / math.pi
+    if newmoon.sum() == 1 and newmoon_time:
+        newmoon = np.where(newmoon == True)[0][0] + 1
+        # 3rd interation
+        step_size_new = step_size_new / (discretize / 2) # the period is divided by only half the discretize
+        moments_check_array_new = np.arange(moments_check_array_new[newmoon-1] - step_size_new, moments_check_array_new[newmoon+1] + step_size_new, step_size_new)
+        moments_check_astropy = Time(moments_check_array_new)
+        moon_phase_check = astroplan.moon_phase_angle(moments_check_astropy).to_value()
+        maxmin = np.diff(np.sign(np.diff(moon_phase_check)))
+        newmoon = np.where(maxmin <= -1, True, False)
+    elif newmoon.sum() == 0:
+        newmoon_time = False
+        print('unexpected result')
+    else:
+        newmoon_time = False
+        print('unexpected result')
 
-    nearest_full_moon = moments_check_array[np.argmin(moon_phase_check)]
+    if newmoon.sum() == 1 and newmoon_time:
+        newmoon = np.where(newmoon == True)[0][0] + 1
+        newmoon_time = moments_check_array_new[newmoon] # result is the check of the 3rd iteration
+        newmoon_angle = moon_phase_check[newmoon] * 180/math.pi
+    elif newmoon.sum() == 0:
+        newmoon_time = False
+        print('unexpected result')
+    else:
+        newmoon_time = False
+        print('unexpected result')
 
-    # get the nearest new moon, which for astroplan is pi / maximum for some UNEXPLAINED reason.
-    check_period = np.timedelta64(30, 'D')
-    check_discretization = np.timedelta64(1, 'D')
-    moments_check_array = np.arange(moment_now-check_period/2, moment_now+check_period/2, check_discretization)
-    moments_check_astropy = Time(moments_check_array)
-    moon_phase_check = astroplan.moon_phase_angle(moments_check_astropy).to_value()
+    # full moon calculation finding the minimum phase angle.
+    if fullmoon.sum() == 1:
+        fullmoon_time = True
+        fullmoon = np.where(fullmoon == True)[0][0] + 1
+        # 2nd interation
+        step_size_full = step_size / (discretize / 2) # the period is divided by only half the discretize
+        moments_check_array_full = np.arange(moments_check_array[fullmoon-1] - step_size_full, moments_check_array[fullmoon+1] + step_size_full, step_size_full)
+        moments_check_astropy = Time(moments_check_array_full)
+        moon_phase_check = astroplan.moon_phase_angle(moments_check_astropy).to_value()
+        maxmin = np.diff(np.sign(np.diff(moon_phase_check)))
+        fullmoon = np.where(maxmin >= 1, True, False)
+    elif fullmoon.sum() == 0:
+        fullmoon_time = False
+        fullmoon_angle = False
+        print('no full moon in the period')
+    else:
+        fullmoon_time = False
+        print('multiple full moons in period, which I didnt think was possible')
 
-    check_period_start = moments_check_array[np.argmax(moon_phase_check)]
-    check_period = np.timedelta64(2, 'D') # because I use subtract and add with it later
-    check_discretization = np.timedelta64(1, 'h')
-    moments_check_array = np.arange(check_period_start-check_period/2, check_period_start+check_period/2, check_discretization)
-    moments_check_astropy = Time(moments_check_array)
-    moon_phase_check = astroplan.moon_phase_angle(moments_check_astropy).to_value()
+    if fullmoon.sum() == 1 and fullmoon_time:
+        fullmoon = np.where(fullmoon == True)[0][0] + 1
+        fullmoon_time = moments_check_array_full[fullmoon]
+        # 3rd interation
+        step_size_full = step_size_full / (discretize / 2) # the period is divided by only half the discretize
+        moments_check_array_full = np.arange(moments_check_array_full[fullmoon-1] - step_size_full, moments_check_array_full[fullmoon+1] + step_size_full, step_size_full)
+        moments_check_astropy = Time(moments_check_array_full)
+        moon_phase_check = astroplan.moon_phase_angle(moments_check_astropy).to_value()
+        maxmin = np.diff(np.sign(np.diff(moon_phase_check)))
+        fullmoon = np.where(maxmin >= 1, True, False)
+    elif fullmoon.sum() == 0:
+        fullmoon_time = False
+        print('unexpected result')
+    else:
+        fullmoon_time = False
+        print('unexpected result')
 
-    check_period_start = moments_check_array[np.argmax(moon_phase_check)]
-    check_period = np.timedelta64(2, 'h') # because I subtract and add later
-    check_discretization = np.timedelta64(5, 'm')
-    moments_check_array = np.arange(check_period_start-check_period/2, check_period_start+check_period/2, check_discretization)
-    moments_check_astropy = Time(moments_check_array)
-    moon_phase_check = astroplan.moon_phase_angle(moments_check_astropy).to_value()
-    phase_percent = (math.pi - moon_phase_check) / math.pi
+    if fullmoon.sum() == 1 and fullmoon_time:
+        fullmoon = np.where(fullmoon == True)[0][0] + 1
+        fullmoon_time = moments_check_array_full[fullmoon] # result is the check of the 3rd iteration
+        fullmoon_angle = moon_phase_check[fullmoon] * 180/math.pi
+    elif fullmoon.sum() == 0:
+        fullmoon_time = False
+        print('unexpected result')
+    else:
+        fullmoon_time = False
+        print('unexpected result')
 
-    nearest_new_moon = moments_check_array[np.argmax(moon_phase_check)]
-
-    return nearest_new_moon, nearest_full_moon, moon_illumination_percent
+    return newmoon_time, newmoon_angle, fullmoon_time, fullmoon_angle
 
 
 # TODO make this accurate to the minute and accept matrix like the sun daily events
 def get_moon_nearest(moment_now, nearest_new_moon, nearest_full_moon):
-    # lunar_cycle_average = np.timedelta64(29.53, 'D') # not used but here it is
     delta_newmoon = abs(moment_now - nearest_new_moon)
     delta_fullmoon = abs(moment_now - nearest_full_moon)
     if (delta_newmoon < delta_fullmoon) and (moment_now <= nearest_new_moon):
