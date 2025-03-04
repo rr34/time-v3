@@ -195,8 +195,20 @@ def AdobeXML_to_dict(AdobeXML):
     return metadata_dict
 
 
-def parse_brightstar_text(brightstar_text):
-    pass
+def brightstar_text_to_dataframe(brightstar_text):
+    lines_list = brightstar_text.split('\n')
+    constellation_abbrev_dict = {}
+    for line in lines_list[18324:18412]:
+        abbrev = line.split(',')[1]
+        constellation_name = line.split(',')[0]
+        constellation_abbrev_dict[abbrev] = constellation_name
+    # for line in lines_list[13:9123]:
+    for line in lines_list[13:113]:
+        HR_number = int(line[0:4])
+        name = line[6:15]
+        print(HR_number)
+        print(name)
+    print('stop here')
 
 
 # works 11 Oct 2022: todorename formats each individual exif value

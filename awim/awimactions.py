@@ -158,7 +158,7 @@ def parse_brightstar_text():
     image_path = os.path.join(workingpath, 'V_50.txt')
     with open(image_path, 'r') as text_file:
         brightstar_str = text_file.read()
-    brightstars_df =  formatters.parse_brightstar_text(brightstar_str)
+    brightstars_df =  formatters.brightstar_text_to_dataframe(brightstar_str)
 
 
 # ----- unknown below this line -----
