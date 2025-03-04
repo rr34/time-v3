@@ -4,32 +4,32 @@ function msToTime(duration: number, include_seconds = true) {
       hours = Math.floor((duration / (1000 * 60 * 60)) % 24),
       days = Math.floor(duration / (1000 * 60 * 60 * 24));
   
-    let hours_str = hours.toString(),
-    minutes_str = (minutes < 10) ? "0" + minutes : minutes.toString();
-    if (include_seconds) {
-        var seconds_str = (seconds < 10) ? ":0" + seconds : ":" + seconds.toString();
-    }
-    else {
-        var seconds_str = "";
-    }
     if (days > 1) {
-        var days_str = days + " days, ";
+        var days_str = days.toString() + " days, ";
     }
     else if (days == 1) {
-        var days_str = days + " day, ";
+        var days_str = days.toString() + " day, ";
     }
     else {
         var days_str = "";
     }
+    let hours_str = hours.toString() + ":",
+    minutes_str = (minutes < 10) ? "0" + minutes.toString() : minutes.toString();
+    if (include_seconds) {
+        var seconds_str = (seconds < 10) ? ":0" + seconds.toString() : ":" + seconds.toString();
+    }
+    else {
+        var seconds_str = "";
+    }
   
-    return days_str + hours_str + ":" + minutes_str + seconds_str;
+    return days_str + hours_str + minutes_str + seconds_str;
   }
 
 
-export function UpdateClockStrings(SunDaily: Date[], SunIndex: number, MoonDaily: Date[], NearestNew, NearestNewAngle, NearestFull, NearestFullAngle, setSunIndex: Function, setCurrentTime: Function, setSunEventsString: Function, setMoonPhaseString: Function, setMoonEventString: Function, setIndustrialDTString: Function) {
+export function UpdateClockStrings(SunDaily: Date[], SunIndex: number, MoonDaily: Date[], NearestNew: Date, NearestNewAngle: number, NearestFull: Date, NearestFullAngle: number, setSunIndex: Function, setCurrentTime: Function, setSunEventsString: Function, setMoonPhaseString: Function, setMoonEventString: Function, setIndustrialDTString: Function) {
     console.log('ran update clock strings function')
     let newdate = new Date();
-    let addhours = 8*24;
+    let addhours = 0;
     newdate = new Date(newdate.getTime() + addhours*1000*60*60);
     setCurrentTime(newdate);
     let options: Intl.DateTimeFormatOptions = {
@@ -80,25 +80,27 @@ export function UpdateClockStrings(SunDaily: Date[], SunIndex: number, MoonDaily
         setMoonEventString(msToTime(since_ms) + " since moonrise. " + msToTime(until_ms) + " until moonset.")
     }
 
-    if (NearestNew && NearestFull) {
-        let timedelta_new = newdate.getTime() - NearestNew.getTime();
-        let timedelta_full = newdate.getTime() - NearestFull.getTime();
-        if (Math.abs(timedelta_new) < Math.abs(timedelta_full) && Math.sign(timedelta_new) > 0) {
-            let timedelta_str: string = msToTime(Math.abs(timedelta_new));
-            setMoonPhaseString(timedelta_str + ' since new moon at ' + NearestNewAngle.toString() + ' phase angle.');
-        }
-        else if (Math.abs(timedelta_new) < Math.abs(timedelta_full) && Math.sign(timedelta_new) < 0) {
-            let timedelta_str: string = msToTime(Math.abs(timedelta_new));
-            setMoonPhaseString(timedelta_str + ' until new moon at ' + NearestNewAngle.toString() + ' phase angle.');
-        }
-        else if (Math.abs(timedelta_new) > Math.abs(timedelta_full) && Math.sign(timedelta_full) > 0) {
-            let timedelta_str: string = msToTime(Math.abs(timedelta_full));
-            setMoonPhaseString(timedelta_str + ' since full moon at ' + NearestFullAngle.toString() + ' phase angle.');
-        }
-        else if (Math.abs(timedelta_new) > Math.abs(timedelta_full) && Math.sign(timedelta_full) < 0) {
-            let timedelta_str: string = msToTime(Math.abs(timedelta_full));
-            setMoonPhaseString(timedelta_str + ' until full moon at ' + NearestFullAngle.toString() + ' phase angle.');
-        }
+    let timedelta_new = newdate.getTime() - NearestNew.getTime();
+    let timedelta_full = newdate.getTime() - NearestFull.getTime();
+    if (Math.abs(timedelta_new) < Math.abs(timedelta_full) && Math.sign(timedelta_new) > 0) {
+        let timedelta_str: string = msToTime(Math.abs(timedelta_new));
+        let eclipse_string: string = (NearestNewAngle > 178.5) ? ' Phase angle greater than ~~178.5° means solar eclipse.' : '';
+        setMoonPhaseString(timedelta_str + ' since new moon at ' + NearestNewAngle.toString() + '° phase angle.' + eclipse_string);
+    }
+    else if (Math.abs(timedelta_new) < Math.abs(timedelta_full) && Math.sign(timedelta_new) < 0) {
+        let timedelta_str: string = msToTime(Math.abs(timedelta_new));
+        let eclipse_string: string = (NearestNewAngle > 178.5) ? ' Phase angle greater than ~~178.5° means solar eclipse.' : '';
+        setMoonPhaseString(timedelta_str + ' until new moon at ' + NearestNewAngle.toString() + '° phase angle.' + eclipse_string);
+    }
+    else if (Math.abs(timedelta_new) > Math.abs(timedelta_full) && Math.sign(timedelta_full) > 0) {
+        let timedelta_str: string = msToTime(Math.abs(timedelta_full));
+        let eclipse_string: string = (NearestFullAngle < 1.5) ? ' Phase angle less than ~1.5° means lunar eclipse.' : '';
+        setMoonPhaseString(timedelta_str + ' since full moon at ' + NearestFullAngle.toString() + '° phase angle.' + eclipse_string);
+    }
+    else if (Math.abs(timedelta_new) > Math.abs(timedelta_full) && Math.sign(timedelta_full) < 0) {
+        let timedelta_str: string = msToTime(Math.abs(timedelta_full));
+        let eclipse_string: string = (NearestFullAngle < 1.5) ? ' Phase angle less than ~1.5° means lunar eclipse.' : '';
+        setMoonPhaseString(timedelta_str + ' until full moon at ' + NearestFullAngle.toString() + '° phase angle.' + eclipse_string);
     }
 }
 

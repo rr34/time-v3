@@ -15,16 +15,16 @@ function App() {
 
   // initialize state variables
   let newdate = new Date();
-  let addhours = 8*24;
+  let addhours = 0;
   newdate = new Date(newdate.getTime() + addhours*1000*60*60);
 
   const [CurrentTime, setCurrentTime] = useState(newdate);
   const [SunDaily, setSunDaily] = useState<Date[]>([]);
   const [MoonDaily, setMoonDaily] = useState<Date[]>([]);
-  const [NearestNew, setNearestNew] = useState<Date | false>(false);
-  const [NearestNewAngle, setNearestNewAngle] = useState<number | false>(false);
-  const [NearestFull, setNearestFull] = useState<Date | false>(false);
-  const [NearestFullAngle, setNearestFullAngle] = useState<number | false>(false);
+  const [NearestNew, setNearestNew] = useState<Date>(newdate);
+  const [NearestNewAngle, setNearestNewAngle] = useState<number>(0);
+  const [NearestFull, setNearestFull] = useState<Date>(newdate);
+  const [NearestFullAngle, setNearestFullAngle] = useState<number>(0);
 
   // initialize clock string state variables
   const [SunIndex, setSunIndex] = useState(0);
@@ -80,16 +80,12 @@ function App() {
             setMoonDaily(moondaily_dates);
             let newmoon_time: string = JSON.parse(data)['newmoon time'];
             let newmoon_angle: number = Math.round(JSON.parse(data)['newmoon angle']*100) / 100;
-            if (newmoon_time !== 'false') {
-              setNearestNew(new Date(newmoon_time))
-              setNearestNewAngle(newmoon_angle)
-            }
+            setNearestNew(new Date(newmoon_time))
+            setNearestNewAngle(newmoon_angle)
             let fullmoon_time: string = JSON.parse(data)['fullmoon time'];
             let fullmoon_angle: number = Math.round(JSON.parse(data)['fullmoon angle']*100) / 100;
-            if (fullmoon_time !== 'false') {
-              setNearestFull(new Date(fullmoon_time))
-              setNearestFullAngle(fullmoon_angle)
-            }
+            setNearestFull(new Date(fullmoon_time))
+            setNearestFullAngle(fullmoon_angle)
           })
   }, []); // I can put variables in the dependency array and this will run whenever the variables change value.
 
