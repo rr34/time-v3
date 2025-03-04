@@ -10,17 +10,9 @@ def get_events(location, elevation_msl, currenttime):
     response_dict = {}
     response_dict['sundaily'] = formatters.format_datetime(sundaily, 'to string for AWIMtag')
     response_dict['moondaily'] = formatters.format_datetime(moondaily, 'to string for AWIMtag')
-    if newmoon_time and newmoon_angle:
-        response_dict['newmoon time'] = formatters.format_datetime(newmoon_time, 'to string for AWIMtag')
-        response_dict['newmoon angle'] = str(newmoon_angle)
-    else:
-        response_dict['newmoon time'] = 'false'
-        response_dict['newmoon angle'] = 'false'
-    if fullmoon_time and fullmoon_angle:
-        response_dict['fullmoon time'] = formatters.format_datetime(fullmoon_time, 'to string for AWIMtag')
-        response_dict['fullmoon angle'] = str(fullmoon_angle)
-    else:
-        response_dict['fullmoon time'] = 'false'
-        response_dict['fullmoon angle'] = 'false'
+    response_dict['newmoon time'] = formatters.format_datetime(newmoon_time, 'to string for AWIMtag')
+    response_dict['newmoon angle'] = str(newmoon_angle)
+    response_dict['fullmoon time'] = formatters.format_datetime(fullmoon_time, 'to string for AWIMtag')
+    response_dict['fullmoon angle'] = str(fullmoon_angle)
 
     return response_dict

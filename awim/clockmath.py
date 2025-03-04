@@ -67,25 +67,31 @@ def calculate_astro_risesandsets(earth_latlng, moment_now, elevation=0):
 # I don't know why this doesn't return exactly a full/new moon matching online sources - differs by up to ~30 minutes? Why? phase is different from "ecliptic longitude different by 180°?" - but since I did it here it is...
 # This function is good enough for now because I only really care about the single new or full moon that is the closest. I don't ever care about a full moon 14 days past or future because the new moon would be within a day so obviously closer.
 # TODO calculate the 180deg ecliptic longitude difference full moon and see if different
-def calculate_astro_newfullmoon(moment_now, discretize=90):
+def calculate_astro_newfullmoon(moment_now, discretize=150):
     print('calculating moon phase events')
     # lunar_cycle_average = np.timedelta64(29.53, 'D') # not used but here it is
     # moment_now_astropy = Time(moment_now)
     # moon_illumination_percent = astroplan.moon_illumination(moment_now_astropy) * 100
-    check_period = 29 # days. I want to make sure I get maximum one of either new or full moon. If start close to one, will not find the other because outside the range.
-    check_period = np.timedelta64(check_period*24*60*60, 's')
+    check_period = 31 # days. Better to get two than zero of a new or full moon.
+    check_period = np.timedelta64(check_period*24*60*60*1000, 'ms')
     # 1st iteration
     step_size = check_period / discretize
     moments_check_array = np.arange(moment_now-check_period/2, moment_now+check_period/2, step_size)
     moments_check_astropy = Time(moments_check_array)
     moon_phase_check = astroplan.moon_phase_angle(moments_check_astropy).to_value()
     maxmin = np.diff(np.sign(np.diff(moon_phase_check)))
-    newmoon = np.where(maxmin <= -1, True, False) # finds max, which is new moon
-    fullmoon = np.where(maxmin >= 1, True, False) # finds min, which is full moon
+    newmoon = np.where(maxmin == -2, True, False) # finds max, which is new moon
+    fullmoon = np.where(maxmin == 2, True, False) # finds min, which is full moon
 
     # new moon calculation finding the maximum phase angle.
+    if newmoon.sum() == 2: # if two new moons are found, keep only the closer one.
+        newmoon1 = np.where(newmoon == True)[0][0] + 1
+        newmoon2 = np.where(newmoon == True)[0][1] + 1
+        if np.abs(moments_check_array[newmoon1] - moment_now) < np.abs(moments_check_array[newmoon2] - moment_now):
+            newmoon[newmoon2 - 1] = False
+        elif np.abs(moments_check_array[newmoon2] - moment_now) < np.abs(moments_check_array[newmoon1] - moment_now):
+            newmoon[newmoon1 - 1] = False
     if newmoon.sum() == 1:
-        newmoon_time = True
         newmoon = np.where(newmoon == True)[0][0] + 1
         # 2nd interation
         step_size_new = step_size / (discretize / 2) # the period is divided by only half the discretize
@@ -94,15 +100,12 @@ def calculate_astro_newfullmoon(moment_now, discretize=90):
         moon_phase_check = astroplan.moon_phase_angle(moments_check_astropy).to_value()
         maxmin = np.diff(np.sign(np.diff(moon_phase_check)))
         newmoon = np.where(maxmin <= -1, True, False)
-    elif newmoon.sum() == 0:
-        newmoon_time = False
-        newmoon_angle = False
-        print('no new moon in the period')
     else:
         newmoon_time = False
-        print('multiple new moons in period, which I didnt think was possible')
+        newmoon_angle = False
+        print('some error look here')
 
-    if newmoon.sum() == 1 and newmoon_time:
+    if newmoon.sum() == 1:
         newmoon = np.where(newmoon == True)[0][0] + 1
         # 3rd interation
         step_size_new = step_size_new / (discretize / 2) # the period is divided by only half the discretize
@@ -111,27 +114,29 @@ def calculate_astro_newfullmoon(moment_now, discretize=90):
         moon_phase_check = astroplan.moon_phase_angle(moments_check_astropy).to_value()
         maxmin = np.diff(np.sign(np.diff(moon_phase_check)))
         newmoon = np.where(maxmin <= -1, True, False)
-    elif newmoon.sum() == 0:
-        newmoon_time = False
-        print('unexpected result')
     else:
         newmoon_time = False
-        print('unexpected result')
+        newmoon_angle = False
+        print('some error look here')
 
-    if newmoon.sum() == 1 and newmoon_time:
+    if newmoon.sum() == 1:
         newmoon = np.where(newmoon == True)[0][0] + 1
         newmoon_time = moments_check_array_new[newmoon] # result is the check of the 3rd iteration
         newmoon_angle = moon_phase_check[newmoon] * 180/math.pi
-    elif newmoon.sum() == 0:
-        newmoon_time = False
-        print('unexpected result')
     else:
         newmoon_time = False
-        print('unexpected result')
+        newmoon_angle = False
+        print('some error look here')
 
     # full moon calculation finding the minimum phase angle.
+    if fullmoon.sum() == 2: # if two full moons are found, keep only the closer one.
+        fullmoon1 = np.where(fullmoon == True)[0][0] + 1
+        fullmoon2 = np.where(fullmoon == True)[0][1] + 1
+        if np.abs(moments_check_array[fullmoon1] - moment_now) < np.abs(moments_check_array[fullmoon2] - moment_now):
+            fullmoon[fullmoon2 - 1] = False
+        elif np.abs(moments_check_array[fullmoon2] - moment_now) < np.abs(moments_check_array[fullmoon1] - moment_now):
+            fullmoon[fullmoon1 - 1] = False
     if fullmoon.sum() == 1:
-        fullmoon_time = True
         fullmoon = np.where(fullmoon == True)[0][0] + 1
         # 2nd interation
         step_size_full = step_size / (discretize / 2) # the period is divided by only half the discretize
@@ -140,17 +145,13 @@ def calculate_astro_newfullmoon(moment_now, discretize=90):
         moon_phase_check = astroplan.moon_phase_angle(moments_check_astropy).to_value()
         maxmin = np.diff(np.sign(np.diff(moon_phase_check)))
         fullmoon = np.where(maxmin >= 1, True, False)
-    elif fullmoon.sum() == 0:
-        fullmoon_time = False
-        fullmoon_angle = False
-        print('no full moon in the period')
     else:
         fullmoon_time = False
-        print('multiple full moons in period, which I didnt think was possible')
+        fullmoon_angle = False
+        print('some error look here')
 
-    if fullmoon.sum() == 1 and fullmoon_time:
+    if fullmoon.sum() == 1:
         fullmoon = np.where(fullmoon == True)[0][0] + 1
-        fullmoon_time = moments_check_array_full[fullmoon]
         # 3rd interation
         step_size_full = step_size_full / (discretize / 2) # the period is divided by only half the discretize
         moments_check_array_full = np.arange(moments_check_array_full[fullmoon-1] - step_size_full, moments_check_array_full[fullmoon+1] + step_size_full, step_size_full)
@@ -158,23 +159,19 @@ def calculate_astro_newfullmoon(moment_now, discretize=90):
         moon_phase_check = astroplan.moon_phase_angle(moments_check_astropy).to_value()
         maxmin = np.diff(np.sign(np.diff(moon_phase_check)))
         fullmoon = np.where(maxmin >= 1, True, False)
-    elif fullmoon.sum() == 0:
-        fullmoon_time = False
-        print('unexpected result')
     else:
         fullmoon_time = False
-        print('unexpected result')
+        fullmoon_angle = False
+        print('some error look here')
 
-    if fullmoon.sum() == 1 and fullmoon_time:
+    if fullmoon.sum() == 1:
         fullmoon = np.where(fullmoon == True)[0][0] + 1
         fullmoon_time = moments_check_array_full[fullmoon] # result is the check of the 3rd iteration
         fullmoon_angle = moon_phase_check[fullmoon] * 180/math.pi
-    elif fullmoon.sum() == 0:
-        fullmoon_time = False
-        print('unexpected result')
     else:
         fullmoon_time = False
-        print('unexpected result')
+        fullmoon_angle = False
+        print('some error look here')
 
     return newmoon_time, newmoon_angle, fullmoon_time, fullmoon_angle
 
