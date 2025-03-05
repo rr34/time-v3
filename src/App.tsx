@@ -34,6 +34,15 @@ function App() {
   const [MoonEventString, setMoonEventString] = useState('moon events');
   const [IndustrialDTString, setIndustrialDTString] = useState('industrial time');
 
+  // don't need the following until I start animating SVG
+  const NowMoments: string[] = [];
+  let MomentsCount: number = 300;
+  for (let i=-60; i<MomentsCount-60; i++) { // generates times from an hour prior to CurrentTime until 4 hours after CurrentTime
+    let idate = new Date(CurrentTime.getTime());
+    NowMoments.push(idate.toISOString());
+  }
+  
+  // update the clock strings every second
   useEffect(() => {
     const interval = setInterval(() => {
       UpdateClockStrings(SunDaily, SunIndex, MoonDaily, NearestNew, NearestNewAngle, NearestFull, NearestFullAngle, setSunIndex, setCurrentTime, setSunEventsString, setMoonPhaseString, setMoonEventString, setIndustrialDTString);
@@ -42,14 +51,7 @@ function App() {
     return () => clearInterval(interval);
   });
 
-  // don't need the following until I start animating SVG
-  const NowMoments: string[] = [];
-  let MomentsCount = 300;
-  for (let i=-60; i<MomentsCount-60; i++) { // generates times from an hour prior to CurrentTime until 4 hours after CurrentTime
-    let idate = new Date(CurrentTime.getTime());
-    NowMoments.push(idate.toISOString());
-  }
-
+  // update the day and night length string whenever the sun index changes, which means we passed a daily sun event
   useEffect(() => {
     UpdateDayNightLengthString(SunDaily, SunIndex, setDayNightLengthsString)
   }, [SunIndex]); // I can put variables in the dependency array and this will run whenever the variables change value.
@@ -91,10 +93,9 @@ function App() {
 
   return (
     <div>
-      {/* <ClockScreen /> */}
-      <p>{CurrentTime.toISOString()}</p>
+      <ClockScreen />
       <ClockString suneventsstring={SunEventsString} daynightlengthsstring={DayNightLengthsString} moonphasestring={MoonPhaseString} mooneventstring={MoonEventString} industrialdttimestring={IndustrialDTString} />
-      {/* <p>{SunDaily}</p> */}
+      <p>{CurrentTime.toISOString()}</p>
     </div>
   );
 }

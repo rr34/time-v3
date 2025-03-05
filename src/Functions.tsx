@@ -44,7 +44,7 @@ export function UpdateClockStrings(SunDaily: Date[], SunIndex: number, MoonDaily
         timeZone: 'US/Eastern',
         timeZoneName: 'shortOffset',
     };
-    setIndustrialDTString(new Intl.DateTimeFormat("en-GB", options).format(newdate) + ' industrial time');
+    setIndustrialDTString('Industrial Time: ' + new Intl.DateTimeFormat("en-GB", options).format(newdate));
 
     setSunIndex(SunDaily.findIndex((date, i) => newdate < date));
     if (SunIndex === 4 || SunIndex === 8) {
