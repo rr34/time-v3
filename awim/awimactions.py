@@ -158,8 +158,21 @@ def parse_brightstar_text():
     image_path = os.path.join(workingpath, 'V_50.txt')
     with open(image_path, 'r') as text_file:
         brightstar_str = text_file.read()
-    brightstars_df =  formatters.brightstar_text_to_dataframe(brightstar_str)
+    brightstars_df = formatters.brightstar_text_to_dataframe(brightstar_str)
 
+    save_path = os.path.join(workingpath, 'V_50 stars.csv')
+    brightstars_df.to_csv(save_path, index=False)
+
+    remarks_df = formatters.brightstar_remarks_to_dataframe(brightstar_str)
+    save_path = os.path.join(workingpath, 'V_50 remarks.csv')
+    remarks_df.to_csv(save_path, index=False)
+
+def db_update():
+    constellation_names = [('Andromeda','And'),('Antlia','Ant'),('Apus','Aps'),('Aquarius','Aqr'),('Aquila','Aql'),('Ara','Ara'),('Aries','Ari'),('Auriga','Aur'),('Bootes','Boo'),('Caelum','Cae'),('Camelopardalis','Cam'),('Cancer','Cnc'),('Canes Venatici','CVn'),('Canis Major','CMa'),('Canis Minor','CMi'),('Capricornus','Cap'),('Carina','Car'),('Cassiopeia','Cas'),('Centaurus','Cen'),('Cepheus','Cep'),('Cetus','Cet'),('Chamaeleon','Cha'),('Circinus','Cir'),('Columba','Col'),('Coma Berenices','Com'),('Corona Australis','CrA'),('Corona Borealis','CrB'),('Corvus','Crv'),('Crater','Crt'),('Crux','Cru'),('Cygnus','Cyg'),('Delphinus','Del'),('Dorado','Dor'),('Draco','Dra'),('Equuleus','Equ'),('Eridanus','Eri'),('Fornax','For'),('Gemini','Gem'),('Grus','Gru'),('Hercules','Her'),('Horologium','Hor'),('Hydra','Hya'),('Hydrus','Hyi'),('Indus','Ind'),('Lacerta','Lac'),('Leo','Leo'),('Leo Minor','LMi'),('Lepus','Lep'),('Libra','Lib'),('Lupus','Lup'),('Lynx','Lyn'),('Lyra','Lyr'),('Mensa','Men'),('Microscopium','Mic'),('Monoceros','Mon'),('Musca','Mus'),('Norma','Nor'),('Octans','Oct'),('Ophiuchus','Oph'),('Orion','Ori'),('Pavo','Pav'),('Pegasus','Peg'),('Perseus','Per'),('Phoenix','Phe'),('Pictor','Pic'),('Pisces','Psc'),('Piscis Austrinus','PsA'),('Puppis','Pup'),('Pyxis','Pyx'),('Reticulum','Ret'),('Sagitta','Sge'),('Sagittarius','Sgr'),('Scorpius','Sco'),('Sculptor','Scl'),('Scutum','Sct'),('Serpens','Ser'),('Sextans','Sex'),('Taurus','Tau'),('Telescopium','Tel'),('Triangulum','Tri'),('Triangulum Australe','TrA'),('Tucana','Tuc'),('Ursa Major','UMa'),('Ursa Minor','UMi'),('Vela','Vel'),('Virgo','Vir'),('Volans','Vol'),('Vulpecula','Vul')]
+    for qms in constellation_names:
+        qms = (qms[1],qms[0])
+        print(qms)
+        DBsqlstatements.db_temp(qms)
 
 # ----- unknown below this line -----
 # Would be nice to make this function work again to see the angular shape of lenses.

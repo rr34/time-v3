@@ -21,3 +21,17 @@ WHERE ShootID = ? ;
 """, qms_tuple, result_type='listsinglefield')
 
     return results
+
+
+def get_stars(how_many):
+    pass
+
+
+def db_temp(qms_tuple):
+    results = DBfunctions.sql_execute("""
+UPDATE bright_star_catalogue
+SET ConstellationAbbreviation = ?
+where bright_star_catalogue.ConstellationFullName  = ?;
+""", qms_tuple, result_type='updatedb')
+
+    return results

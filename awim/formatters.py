@@ -5,6 +5,7 @@ from collections.abc import MutableMapping
 import json
 import PIL.TiffImagePlugin as piltiff
 import xmltodict # xmltodict is maintained by an individual. Very widespread, but not a mainstream library.
+import pandas as pd
 
 
 def AWIMtag_rounding_digits():
@@ -202,13 +203,57 @@ def brightstar_text_to_dataframe(brightstar_text):
         abbrev = line.split(',')[1]
         constellation_name = line.split(',')[0]
         constellation_abbrev_dict[abbrev] = constellation_name
-    # for line in lines_list[13:9123]:
-    for line in lines_list[13:113]:
+    result_df = pd.DataFrame(columns=['HR','Constellation Place Greek Letter','Constellation Abbreviation','Full Name Text','SAO','RA','Dec','Visual Magnitude'])
+    for line in lines_list[13:9123]:
         HR_number = int(line[0:4])
-        name = line[6:15]
         print(HR_number)
-        print(name)
-    print('stop here')
+        const_greek = line[8:11]
+        const_abbrev = line[12:15]
+        fullname = line[5:15]
+        try:
+            SAO_number = int(line[35:41])
+        except:
+            SAO_number = 0
+        try:
+            RA_hours = float(line[95:96])
+            RA_minutes = float(line[98:99])
+            RA_seconds = float(line[101:104])
+            RA = RA_hours + RA_minutes/60 + RA_seconds/3600
+            Dec_sign = line[105]
+            if Dec_sign == '+':
+                Dec_sign = 1
+            elif Dec_sign == '-':
+                Dec_sign = -1
+            Dec_deg = float(line[106:108])
+            Dec_minutes = float(line[109:111])
+            Dec_seconds = float(line[112:114])
+            Dec = Dec_sign * (Dec_deg + Dec_minutes/60 + Dec_seconds/3600)
+        except:
+            RA = 0
+            Dec = 0
+        try:
+            V_mag = float(line[129:134])
+        except:
+            V_mag = -100
+        new_row = [HR_number,const_greek,const_abbrev,fullname,SAO_number,RA,Dec,V_mag]
+        result_df.loc[len(result_df)] = new_row
+
+    return result_df
+
+
+def brightstar_remarks_to_dataframe(text):
+    lines_list = text.split('\n') 
+    result_df = pd.DataFrame(columns=['HR','Count','Category','Remark'])
+    for line in lines_list[9130:18320]:
+        HR_number = int(line[0:4])
+        print(HR_number)
+        count = line[5:7]
+        category = line[8:12]
+        remark = line[13:]
+        new_row = [HR_number,count,category,remark]
+        result_df.loc[len(result_df)] = new_row
+
+    return result_df
 
 
 # works 11 Oct 2022: todorename formats each individual exif value
