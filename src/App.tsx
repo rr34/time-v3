@@ -1,11 +1,11 @@
+import './App.css';
 import { useState } from "react";
 import { useEffect } from "react";
-import ClockScreen from './components/ClockScreen';
 import { UpdateClockStrings } from "./Functions";
 import { UpdateDayNightLengthString } from "./Functions";
-
-import './App.css';
 import ClockString from "./components/ClockString";
+
+import ClockScreen from './components/ClockScreen';
 
 function App() {
 
@@ -46,7 +46,7 @@ function App() {
   useEffect(() => {
     const interval = setInterval(() => {
       UpdateClockStrings(SunDaily, SunIndex, MoonDaily, NearestNew, NearestNewAngle, NearestFull, NearestFullAngle, setSunIndex, setCurrentTime, setSunEventsString, setMoonPhaseString, setMoonEventString, setIndustrialDTString);
-    }, 1*1000);
+    }, 5*1000);
 
     return () => clearInterval(interval);
   });
@@ -94,8 +94,8 @@ function App() {
   return (
     <div>
       <ClockScreen />
-      <ClockString suneventsstring={SunEventsString} daynightlengthsstring={DayNightLengthsString} moonphasestring={MoonPhaseString} mooneventstring={MoonEventString} industrialdttimestring={IndustrialDTString} />
-      <p>{CurrentTime.toISOString()}</p>
+      {/* <ClockString suneventsstring={SunEventsString} daynightlengthsstring={DayNightLengthsString} moonphasestring={MoonPhaseString} mooneventstring={MoonEventString} industrialdttimestring={IndustrialDTString} />
+      <p>{CurrentTime.toISOString()}</p> */}
     </div>
   );
 }
