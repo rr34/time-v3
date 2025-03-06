@@ -1,38 +1,24 @@
 import './App.css';
 import { useState } from "react";
 import { useEffect } from "react";
-import { UpdateClockStrings } from "./Functions";
-import { UpdateDayNightLengthString } from "./Functions";
-import ClockString from "./components/ClockString";
+import ClockStrings from "./components/ClockStrings";
 
 import ClockScreen from './components/ClockScreen';
 
 function App() {
-
-  // initialize variables
+  // initialize location variables
   const clockLatLong = [40.229,-83.2092];
   const clockMSL = 280;
 
   // initialize state variables
-  let newdate = new Date();
-  let addhours = 0;
-  newdate = new Date(newdate.getTime() + addhours*1000*60*60);
+  const [SunIndex, setSunIndex] = useState(0);
 
-  const [CurrentTime, setCurrentTime] = useState(newdate);
   const [SunDaily, setSunDaily] = useState<Date[]>([]);
   const [MoonDaily, setMoonDaily] = useState<Date[]>([]);
-  const [NearestNew, setNearestNew] = useState<Date>(newdate);
+  const [NearestNew, setNearestNew] = useState<Date>(new Date());
   const [NearestNewAngle, setNearestNewAngle] = useState<number>(0);
-  const [NearestFull, setNearestFull] = useState<Date>(newdate);
+  const [NearestFull, setNearestFull] = useState<Date>(new Date());
   const [NearestFullAngle, setNearestFullAngle] = useState<number>(0);
-
-  // initialize clock string state variables
-  const [SunIndex, setSunIndex] = useState(0);
-  const [SunEventsString, setSunEventsString] = useState('current sun events');
-  const [DayNightLengthsString, setDayNightLengthsString] = useState('day and night lengths');
-  const [MoonPhaseString, setMoonPhaseString] = useState('moon phase string');
-  const [MoonEventString, setMoonEventString] = useState('moon events');
-  const [IndustrialDTString, setIndustrialDTString] = useState('industrial time');
 
   // don't need the following until I start animating SVG
   const NowMoments: string[] = [];
@@ -41,15 +27,6 @@ function App() {
     let idate = new Date(CurrentTime.getTime());
     NowMoments.push(idate.toISOString());
   }
-  
-  // update the clock strings every second
-  useEffect(() => {
-    const interval = setInterval(() => {
-      UpdateClockStrings(SunDaily, SunIndex, MoonDaily, NearestNew, NearestNewAngle, NearestFull, NearestFullAngle, setSunIndex, setCurrentTime, setSunEventsString, setMoonPhaseString, setMoonEventString, setIndustrialDTString);
-    }, 5*1000);
-
-    return () => clearInterval(interval);
-  });
 
   // update the day and night length string whenever the sun index changes, which means we passed a daily sun event
   useEffect(() => {
@@ -93,9 +70,9 @@ function App() {
 
   return (
     <div>
-      <ClockScreen />
-      {/* <ClockString suneventsstring={SunEventsString} daynightlengthsstring={DayNightLengthsString} moonphasestring={MoonPhaseString} mooneventstring={MoonEventString} industrialdttimestring={IndustrialDTString} />
-      <p>{CurrentTime.toISOString()}</p> */}
+      {/* <ClockScreen /> */}
+      <ClockStrings suneventsstring={SunEventsString} daynightlengthsstring={DayNightLengthsString} moonphasestring={MoonPhaseString} mooneventstring={MoonEventString} industrialdttimestring={IndustrialDTString} />
+      <p>{}</p>
     </div>
   );
 }
