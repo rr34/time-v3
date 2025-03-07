@@ -27,14 +27,14 @@ async def getevents(request: Request):
 
     return response_dict_json
 
-@app.post('/getsun')
-async def getsun(request: Request):
+@app.post('/celestialinphoto')
+async def celestialinphoto(request: Request):
     try:
         request_dict = await request.json()
     except:
         print('some error on the post request attempt')
 
-    response_dict = clockactions.get_events(request_dict['location'], request_dict['elevation'], request_dict['currenttime'])
+    response_dict = clockactions.get_celestialinphoto(request_dict['awim'], request_dict['momentsarray'], request_dict['elevation'], request_dict['requestlist'])
     response_dict_json = json.dumps(response_dict) # TODO: maybe use orjson at some point? because faster
 
     return response_dict_json

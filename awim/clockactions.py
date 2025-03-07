@@ -16,3 +16,25 @@ def get_events(location, elevation_msl, currenttime):
     response_dict['fullmoon angle'] = str(fullmoon_angle)
 
     return response_dict
+
+
+def get_celestialinphoto(awim_dict, momentsarray, elevation, requestlist):
+    momentsarray = np.array([np.datetime64(moment) for moment in momentsarray])
+    requests_expanded = []
+    for request in requestlist:
+        if request == 'sun':
+            requests_expanded.append('sun')
+        elif request == 'moon':
+            requests_expanded.append('moon')
+        elif request == 'planets':
+            planetslist = ['mercury', 'venus', 'mars', 'jupiter', 'saturn', 'uranus', 'neptune']
+            for planet in planetslist:
+                requests_expanded.append(planet)
+        elif request == 'stars':
+
+    response_dict = {}
+    for request in requestlist:
+        if request == 'sun':
+
+            print('get sun')
+            response_dict['sun'] = 'something'

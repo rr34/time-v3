@@ -176,26 +176,6 @@ def calculate_astro_newfullmoon(moment_now, discretize=150):
     return newmoon_time, newmoon_angle, fullmoon_time, fullmoon_angle
 
 
-# TODO make this accurate to the minute and accept matrix like the sun daily events
-def get_moon_nearest(moment_now, nearest_new_moon, nearest_full_moon):
-    delta_newmoon = abs(moment_now - nearest_new_moon)
-    delta_fullmoon = abs(moment_now - nearest_full_moon)
-    if (delta_newmoon < delta_fullmoon) and (moment_now <= nearest_new_moon):
-        moon_tuple = (np.timedelta64(delta_newmoon, 'D').astype(int), np.timedelta64(delta_newmoon, 'h').astype(int)%24)
-        moon_phase_str = '%i days, %i hours until new moon' % moon_tuple
-    elif (delta_newmoon < delta_fullmoon) and (moment_now >= nearest_new_moon):
-        moon_tuple = (np.timedelta64(delta_newmoon, 'D').astype(int), np.timedelta64(delta_newmoon, 'h').astype(int)%24)
-        moon_phase_str = '%i days, %i hours since new moon' % moon_tuple
-    elif (delta_newmoon >= delta_fullmoon) and (moment_now <= nearest_full_moon):
-        moon_tuple = (np.timedelta64(delta_fullmoon, 'D').astype(int), np.timedelta64(delta_fullmoon, 'h').astype(int)%24)
-        moon_phase_str = '%i days, %i hours until full moon' % moon_tuple
-    elif (delta_newmoon >= delta_fullmoon) and (moment_now >= nearest_full_moon):
-        moon_tuple = (np.timedelta64(delta_fullmoon, 'D').astype(int), np.timedelta64(delta_fullmoon, 'h').astype(int)%24)
-        moon_phase_str = '%i days, %i hours since full moon' % moon_tuple
-
-    return moon_phase_str
-
-
 # dictionary of objects, get data for objects at moments, return dictionary
 # for each celestial object in dictionary, numpy array
 # each array row: [0 moment, 1 az, 2 alt, 3 ra, 4 dec, 5 distance from earth number
@@ -231,7 +211,6 @@ def calculate_astro_data(moments, celestial_objects_list, earth_latlng):
             celestial_object_distances = np.full(moments.size, 0)
 
         astro_data = np.zeros((moments.size, 6))
-        # astro_data[:,0] = moments # note: dtype not the same. this converts datetime64 objects into float
         astro_data[:,1] = celestial_object_azs
         astro_data[:,2] = celestial_object_alts
         astro_data[:,3] = celestial_object_ras
