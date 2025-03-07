@@ -88,7 +88,7 @@ function App() {
       const requestOptions = {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ awim: imageAWIM, momentsarray: NowMoments, elevation: clockMSL, requestlist: ['sun', 'moon', 'planets', 'stars'] })
+          body: JSON.stringify({ awim: imageAWIM, momentsarray: NowMoments, elevation: clockMSL, requestlist: ['stars', 'sun', 'moon', 'planets'] })
       };
       fetch('http://localhost:8000/celestialinphoto', requestOptions)
           .then(response => {
