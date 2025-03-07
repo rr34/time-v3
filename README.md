@@ -32,21 +32,31 @@ This is not by time nor by image, and contains what each object looks like. Moon
 # Clock Data Retrieval and Management
 - There will be 4 types of requests. Each has standard response columns and the rows are moments in time. Each response is valid for a single image and designed to streamline generation of SVG animation of the objects on the image.
 - The only thing to cache is the AzArts of objects per location and time period because this skips a lot of calculation and will be used for each image as long as the images are close to each other.
-  1. Get sun data
-    - pixel position x, y
-    - AzArt for the sky color animation
+- Data retrieval sequence:
+  - App gets awim from json.
+  - App sends request dictionary which is: awim from json file + moments array + maybe clockMSL? + data request list.
+  - API responds with dictionary of the following
+  1. sundata
+    - pixel position x
+    - pixel position y
+    - Azimuth just for interesting information
+    - Artifae for information and for the sky color animation
     - distance in AU
-  2. Get moon data
-    - pixel position x, y
+  2. moondata
+    - pixel position x
+    - pixel position y
     - Phase angle
     - bright side direction
-    - AzArt just to know in case.
+    - Azimuth just for interesting information
+    - Artifae for information and for the sky color animation
     - distance in AU
-  3. Get planets data
-    - pixel position x, y
+  3. planetsdata
+    - pixel position x
+    - pixel position y
     - distance in AU
-  4. Get stars data
-    - pixel position x, y
+  4. starsdata
+    - pixel position x
+    - pixel position y
     - distance in light years
 - Javascript represents tables as arrays of arrays, which is really lists of lists. The standard is for each row to be a list, but I think in this case it's best to make each column a list because I'm always using the tables to tick through the values in each column (not know the parameters of each row).
 - If the standard animation is to show 4 hours in a 16-second animation, then I want to retrieve 5 hours of data on a 1-hour schedule. 5 hours is 300 minutes, so 300 is the max number of points I will retrieve at once.

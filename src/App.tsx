@@ -1,41 +1,49 @@
 import './App.css';
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useEffect } from "react";
 import ClockStrings from "./components/ClockStrings";
 
 import ClockScreen from './components/ClockScreen';
+import imageAWIM from './assets/clock_images/timhouse20220410 - NL100550.json';
+
+export interface ClockTimeObj {
+  currenttime: Date;
+  sunindex: number;
+};
+
+export interface DailyEventsObj {
+  sundaily: Date[];
+  moondaily: Date[];
+  nearestnew: Date;
+  nearestnewangle: number;
+  nearestfull: Date;
+  nearestfullangle: number;
+}
 
 function App() {
   // initialize location variables
   const clockLatLong = [40.229,-83.2092];
   const clockMSL = 280;
 
-  // initialize time state variables
+  // initialize time state object
   let addhours = 0;
   let newdate = new Date(Date.now() + addhours*1000*60*60);
-  const [CurrentTime, setCurrentTime] = useState(newdate);
-  const [SunIndex, setSunIndex] = useState(0);
+  const [ClockTimeObj, setClockTimeObj] = useState({ currenttime: newdate, sunindex: 0 });
+  
+  // initialize daily events object
+  const [DailyEventsObj, setDailyEventsObj] = useState({ sundaily: [new Date()], moondaily: [new Date()], nearestnew: newdate, nearestnewangle: 0, nearestfull: newdate, nearestfullangle: 0 });
 
-  // initialize daily events variables
-  const [SunDaily, setSunDaily] = useState<Date[]>([]);
-  const [MoonDaily, setMoonDaily] = useState<Date[]>([]);
-  const [NearestNew, setNearestNew] = useState<Date>(new Date());
-  const [NearestNewAngle, setNearestNewAngle] = useState<number>(0);
-  const [NearestFull, setNearestFull] = useState<Date>(new Date());
-  const [NearestFullAngle, setNearestFullAngle] = useState<number>(0);
+  // update the clock strings every second. todo: fix this because it causes the entire app to reload twice every second when it fires.
+  // useEffect(() => {
+  //     const intervalID = setInterval(() => {
+  //         let addhours = 0;
+  //         let newdate = new Date(Date.now() + addhours*1000*60*60);
+  //         let sunindex = DailyEventsObj.sundaily.findIndex((date, i) => newdate < date);
+  //         setClockTimeObj({ currenttime: newdate, sunindex: sunindex })
+  //     }, 1*1000);
 
-  // update the clock strings every second
-  useEffect(() => {
-      const intervalID = setInterval(() => {
-          let addhours = 0;
-          let newdate = new Date(Date.now() + addhours*1000*60*60);
-          setCurrentTime(newdate);
-          setSunIndex(SunDaily.findIndex((date, i) => CurrentTime < date));
-      }, 1*1000);
-
-  return () => clearInterval(intervalID);
-  });
-
+  // return () => clearInterval(intervalID);
+  // });
 
   // don't need the following until I start animating SVG
   const NowMoments: string[] = [];
@@ -45,45 +53,56 @@ function App() {
     NowMoments.push(idate.toISOString());
   }
 
+  // todo: this is firing twice on initialization and making a duplicate request to the API
+  // useEffect(() => {
+  //     const requestOptions = {
+  //         method: 'POST',
+  //         headers: { 'Content-Type': 'application/json' },
+  //         body: JSON.stringify({ location: clockLatLong, elevation: clockMSL, currenttime: ClockTimeObj.currenttime })
+  //     };
+  //     fetch('http://localhost:8000/getevents', requestOptions)
+  //         .then(response => {
+  //           return response.json()
+  //         })
+  //         .then(data => {
+  //           let sundaily_strings: string[] = JSON.parse(data)['sundaily'];
+  //           let sundaily_dates: Date[] = [];
+  //           sundaily_strings.forEach(element => {
+  //             sundaily_dates.push(new Date(element));
+  //           });
+            
+  //           let moonDaily_strings: string[] = JSON.parse(data)['moondaily'];
+  //           let moondaily_dates: Date[] = [];
+  //           moonDaily_strings.forEach(element => {
+  //             moondaily_dates.push(new Date(element));
+  //           });
+  //           let newmoon_time: string = JSON.parse(data)['newmoon time'];
+  //           let newmoon_angle: number = Math.round(JSON.parse(data)['newmoon angle']*100) / 100;
+  //           let fullmoon_time: string = JSON.parse(data)['fullmoon time'];
+  //           let fullmoon_angle: number = Math.round(JSON.parse(data)['fullmoon angle']*100) / 100;
+  //           setDailyEventsObj({ sundaily: sundaily_dates, moondaily: moondaily_dates, nearestnew: new Date(newmoon_time), nearestnewangle: newmoon_angle, nearestfull: new Date(fullmoon_time), nearestfullangle: fullmoon_angle })
+  //         })
+  // }, []); // I can put variables in the dependency array and this will run whenever the variables change value.
+
   useEffect(() => {
       const requestOptions = {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({location: clockLatLong, elevation: clockMSL, currenttime: new Date()})
+          body: JSON.stringify({ awim: imageAWIM, momentsarray: NowMoments, elevation: clockMSL, requestlist: ['sun', 'moon', 'planets', 'stars'] })
       };
-      fetch('http://localhost:8000/getevents', requestOptions)
+      fetch('http://localhost:8000/celestialinphoto', requestOptions)
           .then(response => {
             return response.json()
           })
           .then(data => {
-            let sundaily_strings: string[] = JSON.parse(data)['sundaily'];
-            let sundaily_dates: Date[] = [];
-            sundaily_strings.forEach(element => {
-              sundaily_dates.push(new Date(element));
-            });
-            setSunDaily(sundaily_dates);
-            
-            let moonDaily_strings: string[] = JSON.parse(data)['moondaily'];
-            let moondaily_dates: Date[] = [];
-            moonDaily_strings.forEach(element => {
-              moondaily_dates.push(new Date(element));
-            });
-            setMoonDaily(moondaily_dates);
-            let newmoon_time: string = JSON.parse(data)['newmoon time'];
-            let newmoon_angle: number = Math.round(JSON.parse(data)['newmoon angle']*100) / 100;
-            setNearestNew(new Date(newmoon_time))
-            setNearestNewAngle(newmoon_angle)
-            let fullmoon_time: string = JSON.parse(data)['fullmoon time'];
-            let fullmoon_angle: number = Math.round(JSON.parse(data)['fullmoon angle']*100) / 100;
-            setNearestFull(new Date(fullmoon_time))
-            setNearestFullAngle(fullmoon_angle)
+            console.log('do here like above to retrieve the data')
           })
-  }, []); // I can put variables in the dependency array and this will run whenever the variables change value.
+  }, []);
 
   return (
     <div>
-      {/* <ClockScreen /> */}
-      <ClockStrings CurrentTime={CurrentTime} SunIndex={SunIndex} SunDaily={SunDaily} MoonDaily={MoonDaily} NearestNew={NearestNew} NearestNewAngle={NearestNewAngle} NearestFull={NearestFull} NearestFullAngle={NearestFullAngle} />
+      <ClockScreen />
+      {/* <ClockStrings cto={ClockTimeObj} deo={DailyEventsObj} /> */}
     </div>
   );
 }
