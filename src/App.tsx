@@ -10,9 +10,13 @@ function App() {
   const clockLatLong = [40.229,-83.2092];
   const clockMSL = 280;
 
-  // initialize state variables
+  // initialize time state variables
+  let addhours = 0;
+  let newdate = new Date(Date.now() + addhours*1000*60*60);
+  const [CurrentTime, setCurrentTime] = useState(newdate);
   const [SunIndex, setSunIndex] = useState(0);
 
+  // initialize daily events variables
   const [SunDaily, setSunDaily] = useState<Date[]>([]);
   const [MoonDaily, setMoonDaily] = useState<Date[]>([]);
   const [NearestNew, setNearestNew] = useState<Date>(new Date());
@@ -20,24 +24,32 @@ function App() {
   const [NearestFull, setNearestFull] = useState<Date>(new Date());
   const [NearestFullAngle, setNearestFullAngle] = useState<number>(0);
 
+  // update the clock strings every second
+  useEffect(() => {
+      const intervalID = setInterval(() => {
+          let addhours = 0;
+          let newdate = new Date(Date.now() + addhours*1000*60*60);
+          setCurrentTime(newdate);
+          setSunIndex(SunDaily.findIndex((date, i) => CurrentTime < date));
+      }, 1*1000);
+
+  return () => clearInterval(intervalID);
+  });
+
+
   // don't need the following until I start animating SVG
   const NowMoments: string[] = [];
   let MomentsCount: number = 300;
   for (let i=-60; i<MomentsCount-60; i++) { // generates times from an hour prior to CurrentTime until 4 hours after CurrentTime
-    let idate = new Date(CurrentTime.getTime());
+    let idate = new Date(Date.now());
     NowMoments.push(idate.toISOString());
   }
-
-  // update the day and night length string whenever the sun index changes, which means we passed a daily sun event
-  useEffect(() => {
-    UpdateDayNightLengthString(SunDaily, SunIndex, setDayNightLengthsString)
-  }, [SunIndex]); // I can put variables in the dependency array and this will run whenever the variables change value.
 
   useEffect(() => {
       const requestOptions = {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({location: clockLatLong, elevation: clockMSL, currenttime: CurrentTime})
+          body: JSON.stringify({location: clockLatLong, elevation: clockMSL, currenttime: new Date()})
       };
       fetch('http://localhost:8000/getevents', requestOptions)
           .then(response => {
@@ -71,8 +83,7 @@ function App() {
   return (
     <div>
       {/* <ClockScreen /> */}
-      <ClockStrings suneventsstring={SunEventsString} daynightlengthsstring={DayNightLengthsString} moonphasestring={MoonPhaseString} mooneventstring={MoonEventString} industrialdttimestring={IndustrialDTString} />
-      <p>{}</p>
+      <ClockStrings CurrentTime={CurrentTime} SunIndex={SunIndex} SunDaily={SunDaily} MoonDaily={MoonDaily} NearestNew={NearestNew} NearestNewAngle={NearestNewAngle} NearestFull={NearestFull} NearestFullAngle={NearestFullAngle} />
     </div>
   );
 }
