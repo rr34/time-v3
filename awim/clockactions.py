@@ -1,5 +1,5 @@
 import numpy as np
-import clockmath, formatters
+import clockmath, formatters, DBsqlstatements
 
 def get_events(location, elevation_msl, currenttime):
     currenttime = np.datetime64(currenttime)
@@ -20,6 +20,7 @@ def get_events(location, elevation_msl, currenttime):
 
 def get_celestialinphoto(awim_dict, momentsarray, elevation, requestlist):
     momentsarray = np.array([np.datetime64(moment) for moment in momentsarray])
+    location = awim_dict['awim Location Coordinates']
     requests_expanded = []
     for request in requestlist:
         if request == 'sun':
@@ -31,10 +32,11 @@ def get_celestialinphoto(awim_dict, momentsarray, elevation, requestlist):
             for planet in planetslist:
                 requests_expanded.append(planet)
         elif request == 'stars':
+            stars_tuples = DBsqlstatements.get_stars()
+            for star in stars_tuples:
+                star_name = 'HR ' + str(star[6])
+                RA = star[3]
+                Dec = star[4]
+                requests_expanded.append((star_name, RA, Dec))
 
-    response_dict = {}
-    for request in requestlist:
-        if request == 'sun':
-
-            print('get sun')
-            response_dict['sun'] = 'something'
+    response_dict = clockmath.calculate_astro_data(momentsarray, location, requests_expanded)

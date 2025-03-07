@@ -177,32 +177,28 @@ def calculate_astro_newfullmoon(moment_now, discretize=150):
 
 
 # dictionary of objects, get data for objects at moments, return dictionary
-# for each celestial object in dictionary, numpy array
-# each array row: [0 moment, 1 az, 2 alt, 3 ra, 4 dec, 5 distance from earth number
-def calculate_astro_data(moments, celestial_objects_list, earth_latlng):
+def calculate_astro_data(moments, earth_latlng, celestial_objects_list):
     celestial_objs_dictionary = {}
     img_astropy_location = EarthLocation(lat=earth_latlng[0]*u.deg, lon=earth_latlng[1]*u.deg) # can be outside loop because photos are near each other and using same latlng for all
     img_astropy_times = Time(moments)
     img_astropy_altazframes = AltAz(obstime=img_astropy_times, location=img_astropy_location)
-    planets_list = ['mercury', 'venus', 'mars', 'jupiter', 'saturn', 'uranus', 'neptune']
+    bodies = ['moon', 'mercury', 'venus', 'mars', 'jupiter', 'saturn', 'uranus', 'neptune']
     for celestial_object in celestial_objects_list:
-        if celestial_object == 'sun':
-            object_SkyCoords = get_sun(img_astropy_times)
-            object_type = 'sun'
-        elif celestial_object == 'moon':
-            object_SkyCoords = get_moon(img_astropy_times)
-            object_type = 'moon'
-        elif any(str in celestial_object for str in planets_list):
-            object_SkyCoords = get_body(celestial_object, img_astropy_times)
-            object_type = 'planet'
-        else:
-            object_SkyCoords = SkyCoord.from_name('alnilam')
+        if isinstance(celestial_object, str):
+            if celestial_object == 'sun':
+                object_SkyCoords = get_sun(img_astropy_times)
+                object_type = 'sun'
+            elif any(str in celestial_object for str in bodies):
+                object_SkyCoords = get_body(celestial_object, img_astropy_times)
+                object_type = 'planet or moon'
+        elif isinstance(celestial_object, tuple):
+            object_SkyCoords = SkyCoord(ra=celestial_object[1]*u.deg, dec=celestial_object[2]*u.deg)
             object_type = 'star'
 
         object_AltAzs = object_SkyCoords.transform_to(img_astropy_altazframes)
 
         celestial_object_azs = object_AltAzs.az.degree
-        celestial_object_alts = object_AltAzs.alt.degree
+        celestial_object_arts = object_AltAzs.alt.degree
         celestial_object_ras = object_SkyCoords.ra.degree
         celestial_object_decs = object_SkyCoords.dec.degree
         if object_type != 'star':
@@ -210,14 +206,20 @@ def calculate_astro_data(moments, celestial_objects_list, earth_latlng):
         else:
             celestial_object_distances = np.full(moments.size, 0)
 
-        astro_data = np.zeros((moments.size, 6))
-        astro_data[:,1] = celestial_object_azs
-        astro_data[:,2] = celestial_object_alts
-        astro_data[:,3] = celestial_object_ras
-        astro_data[:,4] = celestial_object_decs
-        astro_data[:,5] = celestial_object_distances
+        astro_data = np.zeros((moments.size, 5))
+        astro_data[:,0] = celestial_object_ras
+        astro_data[:,1] = celestial_object_decs
+        astro_data[:,2] = celestial_object_distances
+        astro_data[:,3] = celestial_object_azs
+        astro_data[:,4] = celestial_object_arts
 
-        celestial_objs_dictionary[celestial_object] = astro_data
+        if isinstance(celestial_object, str):
+            response_key = celestial_object
+        elif isinstance(celestial_object, tuple):
+            response_key = celestial_object[0]
+
+        print(response_key)
+        celestial_objs_dictionary[response_key] = astro_data
     
     return celestial_objs_dictionary
 
