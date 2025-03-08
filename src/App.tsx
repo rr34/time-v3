@@ -46,12 +46,16 @@ function App() {
   // });
 
   // don't need the following until I start animating SVG
-  const NowMoments: string[] = [];
-  let MomentsCount: number = 300;
-  for (let i=-60; i<MomentsCount-60; i++) { // generates times from an hour prior to CurrentTime until 4 hours after CurrentTime
-    let idate = new Date(Date.now());
-    NowMoments.push(idate.toISOString());
+  let momentscount: number = 20;
+  let stepminutes: number = 15;
+  let stepsbefore: number = 4;
+  let nowdate: number = Date.now();
+  let momentsarray: string[] = [];
+  for (let i=-stepsbefore; i<momentscount-stepsbefore; i++) { // generates times from an hour prior to CurrentTime until 4 hours after CurrentTime
+    let idate = new Date(nowdate + i * stepminutes*1000*60);
+    momentsarray.push(idate.toISOString());
   }
+  const [NowMoments, setNowMoments] = useState<string[]>(momentsarray);
 
   // todo: this is firing twice on initialization and making a duplicate request to the API
   // useEffect(() => {
