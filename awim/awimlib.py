@@ -68,8 +68,7 @@ def generate_empty_AWIMtag_dictionary(default_units=True):
 
 # conversions among azarts, xyangs, pixels
 def pxs_to_xyangs(AWIMtag_dictionary, pxs, imgsize_relative=1):
-    if isinstance(pxs, (list, tuple)): # models require numpy arrays
-        pxs = np.asarray(pxs)
+    pxs = np.asarray(pxs)
 
     input_shape = pxs.shape
     angs_direction = np.where(pxs < 0, -1, 1) # models are positive values only. Save sign. Same sign for xyangs
@@ -102,8 +101,7 @@ def pxs_to_xyangs(AWIMtag_dictionary, pxs, imgsize_relative=1):
 
 
 def xyangs_to_azarts(AWIMtag_dictionary, xyangs, ref_azart_override=False):
-    if isinstance(pxs, (list, tuple)): # models require numpy arrays
-        pxs = np.asarray(pxs)
+    pxs = np.asarray(pxs)
 
     input_shape = xyangs.shape
     angs_direction = np.where(xyangs < 0, -1, 1)
@@ -138,8 +136,7 @@ def xyangs_to_azarts(AWIMtag_dictionary, xyangs, ref_azart_override=False):
 
 
 def azarts_to_xyangs(AWIMtag_dictionary, azarts):
-    if isinstance(azarts, list):
-        azarts = np.asarray(azarts)
+    azarts = np.asarray(azarts)
 
     input_shape = azarts.shape
     azarts = azarts.reshape(-1,2)
@@ -188,14 +185,30 @@ def azarts_to_xyangs(AWIMtag_dictionary, azarts):
     return xyangs
 
 
-def xyangs_inimage(AWIMtag_dictionary, xyangs):
+def xyangs_inimage(AWIMtag_dictionary, xyangs, padding_percent=0):
+    # todonext: also, do the xyangs range from -180 to 180 and make sense through the entire range? xyangs should be usable independent of the image to know where an object is relative to the user looking in reference direction
+    xyangs = np.asarray(xyangs)
+
+    input_shape = xyangs.shape
+    xyangs = xyangs.reshape(-1,2)
+
     TBLR_angles = AWIMtag_dictionary['awim TBLR Angles']
     grid_angles = AWIMtag_dictionary['awim Grid Angles']
-    # todonext: find the max of the absolute values and compare to the xyangs to determine if xyang points are in the image.
+    ref_angs = np.asarray(TBLR_angles + grid_angles).reshape(-1,2)
+    yang_up = np.min(ref_angs[:,1])
+    yang_down = np.max(ref_angs[:,1])
+    xang_left = np.min(ref_angs[:,0])
+    xang_right = np.max(ref_angs[:,0])
+
+    pad = (padding_percent + 100) / 100
+    inimage_array = np.empty(xyangs.shape[0], dtype=bool)
+    inimage_array = np.where(np.logical_and(xyangs[:,1] > yang_up*pad, xyangs[:,1] < yang_down*pad), True, False)
+    inimage_array = np.where(np.logical_and(inimage_array, np.logical_and(xyangs[:,0] > xang_left*pad, xyangs[:,0] < xang_right*pad)), True, False)
+
+    return inimage_array
 
 def xyangs_to_pxs(AWIMtag_dictionary, xyangs):
-    if isinstance(xyangs, list):
-        xyangs = np.asarray(xyangs)
+    xyangs = np.asarray(xyangs)
 
     input_shape = xyangs.shape
     xyangs = xyangs.reshape(-1,2)

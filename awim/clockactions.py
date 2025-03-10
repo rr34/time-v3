@@ -43,10 +43,13 @@ def get_celestialinphoto(awim_dict, momentsarray, elevation, requestlist):
     bodies_astro_dict = astromath.calculate_astro_data(momentsarray, location, celestial_bodies)
 
     # bodies in the image dictionary generated here outside the awimlib functions because there is no commonality among the bodies in image for efficiency
-    bodies_inimage_dict = {}
+    bodies_image_dict = {}
     for key, value in bodies_astro_dict.items():
         azarts = value[:,3:5]
         bodies_xyangs = awimlib.azarts_to_xyangs(awim_dict, azarts)
-        bodies_inimage = awimlib.xyangs_inimage(awim_dict, bodies_xyangs)
+        bodies_inimage = awimlib.xyangs_inimage(awim_dict, bodies_xyangs, padding_percent=10)
         body_data = np.zeros((momentsarray.size, 3))
-        body_data[:,0] = celestial_object_ras
+        body_data[:,0] = bodies_inimage
+        # body_data[:,1:3] = pxs
+
+        bodies_image_dict[key] = body_data
