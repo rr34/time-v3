@@ -106,7 +106,7 @@ function App() {
   return (
     <div>
       <ClockScreen />
-      {/* <ClockStrings cto={ClockTimeObj} deo={DailyEventsObj} /> */}
+      {/* { <ClockStrings cto={ClockTimeObj} deo={DailyEventsObj} /> } */}
     </div>
   );
 }

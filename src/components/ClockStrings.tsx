@@ -142,7 +142,6 @@ const ClockStrings: React.FC<ClockStringsProps> = ({ cto, deo }) => {
             { moonphasestring }<br></br>
             { mooneventstring }<br></br>
             { industrialdtstring }<br></br>
-            { industrialdtstring }<br></br>
             { comptime }</p>
         </div>
     )
