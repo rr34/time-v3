@@ -172,6 +172,13 @@ def calculate_astro_newfullmoon(moment_now, discretize=150):
     return newmoon_time, newmoon_angle, fullmoon_time, fullmoon_angle
 
 
+def calculate_astro_moonphaseangle(moments):
+    moments_astropy = Time(moments)
+    moon_phase = astroplan.moon_phase_angle(moments_astropy).to_value()
+
+    return moon_phase
+
+
 # dictionary of objects, get data for objects at moments, return dictionary
 def calculate_astro_data(moments, earth_latlng, celestial_objects_list):
     celestial_objs_dictionary = {}
@@ -179,6 +186,7 @@ def calculate_astro_data(moments, earth_latlng, celestial_objects_list):
     img_astropy_times = Time(moments)
     img_astropy_altazframes = AltAz(obstime=img_astropy_times, location=img_astropy_location)
     bodies = ['moon', 'mercury', 'venus', 'mars', 'jupiter', 'saturn', 'uranus', 'neptune']
+    # TODO? With long lists of stars like I usually have, this would be more efficient doing ~20 moment iterations, each with a large array of star RA, Dec rather than 500+ star iterations, each with a small array of moments.
     for celestial_object in celestial_objects_list:
         if isinstance(celestial_object, str):
             if celestial_object == 'sun':
@@ -200,7 +208,7 @@ def calculate_astro_data(moments, earth_latlng, celestial_objects_list):
         if object_type != 'star':
             celestial_object_distances = object_SkyCoords.distance.au
         else:
-            celestial_object_distances = np.full(moments.size, 0)
+            celestial_object_distances = np.zeros(moments.size)
 
         astro_data = np.zeros((moments.size, 5))
         astro_data[:,0] = celestial_object_ras
@@ -221,7 +229,7 @@ def calculate_astro_data(moments, earth_latlng, celestial_objects_list):
 
 
 # to display the moon partially illuminated I need the angle it appears to be illuminated.
-# return degrees. straight down = sun stright below moon = 0°. (+) angle is CCW = illum up the right side. (-) angle is CW = illum up the left side.
+# return degrees. straight down = sun straight below moon = 0°. (+) angle is CCW = illum up the right side. (-) angle is CW = illum up the left side.
 # see diagrams for variable meanings.
 def calculate_astro_moon_brightsidedirection(moon_azalts_deg, sun_azalts_deg):
     # moon_azalts[:,2] = np.where(np.greater_equal(moon_azalts[:,2], 0), moon_azalts[:,2], 0)

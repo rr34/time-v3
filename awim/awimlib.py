@@ -67,6 +67,7 @@ def generate_empty_AWIMtag_dictionary(default_units=True):
 
 
 # conversions among azarts, xyangs, pixels
+# need to use Figure 1 for all of these.
 def pxs_to_xyangs(AWIMtag_dictionary, pxs, imgsize_relative=1):
     pxs = np.asarray(pxs)
 

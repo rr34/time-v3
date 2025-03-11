@@ -142,6 +142,7 @@ def generate_camera_AWIM_from_calibration(calibration_image_path, calibration_fi
 	# ref point case 2: like crosshairs case 2, on xcm axis (vertical)
 	# ref point case 3: like crosshairs case 3. on ycm axis (horizontal)
 	# ref point case 4: normal ref point
+	# reference Figure 1 PSD for all variable names
 	for row in cal_df[cal_df['type'] == 'ref_point'].iterrows():
 		px = row[1][['x_rec', 'y_rec']].values
 		row_xycm = [float(row[1]['x_cm']), float(row[1]['y_cm'])]
@@ -178,10 +179,11 @@ def generate_camera_AWIM_from_calibration(calibration_image_path, calibration_fi
 				actual_y_cm_rel_center = row_xycm[1] + target_pos_xycm_relaim[1] + rotation_y_cmatpt
 				
 				# trigonometry: there is very little for the calibration bc it isolates the camera with other variables being zero.
+				# reference Figure 1 for variable names
 				r1 = calibration_distance_cm
-				r2 = r1 # because the cal board is flat, not a sphere
+				r2 = r1 # because the camera altitude is zero
 				yang = math.atan(actual_y_cm_rel_center/r2) * 180/math.pi # mostly (-) because y_cm is (-). the cal board lines would project a small circle on a sphere, so correct
-				xang = math.atan(actual_x_cm_rel_center/r1) * 180/math.pi  # is the same as az_rel from diagram bc camera is level and perpendicular to the board
+				xang = math.atan(actual_x_cm_rel_center/r1) * 180/math.pi  # TODONEXT This calculation is not correct! is the same as az_rel from diagram bc camera is level and perpendicular to the board
 				xyangs = [xang,yang]
 
 				cal_df.loc[row[0], 'x_px'] = px[0]

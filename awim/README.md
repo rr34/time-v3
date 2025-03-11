@@ -147,6 +147,10 @@ The tag contains all information required to know the direction of each pixel in
 - `xang_predict` are the coefficient values to find the x-angle from the center and `yang_predict` are the coefficients to find the y-angle from the center. Notice again there are two polynomials, each based on both x-pixel and y-pixel, allowing for accurate mapping of lens curving, particularly near the corners.
 - **Pixel Borders** and **x,y Angle Borders** are the values along the corners and edges of the image to give a human-readable general idea of the dimensions of the image.
 
+## Angle Descriptions
+- xang is the angle from the center of the point of the camera view sideways
+- yang is the angle up or down, which 
+
 ## What Already Exists
 In a world of seemingly-infinite technology, some notes to avoid “re-inventing the wheel” and to enable maximum future flexibility:
 
