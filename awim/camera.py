@@ -180,10 +180,14 @@ def generate_camera_AWIM_from_calibration(calibration_image_path, calibration_fi
 				
 				# trigonometry: there is very little for the calibration bc it isolates the camera with other variables being zero.
 				# reference Figure 1 for variable names
-				r1 = calibration_distance_cm
-				r2 = r1 # because the camera altitude is zero
+				r2 = calibration_distance_cm # because the camera altitude is zero
 				yang = math.atan(actual_y_cm_rel_center/r2) * 180/math.pi # mostly (-) because y_cm is (-). the cal board lines would project a small circle on a sphere, so correct
-				xang = math.atan(actual_x_cm_rel_center/r1) * 180/math.pi  # TODONEXT This calculation is not correct! is the same as az_rel from diagram bc camera is level and perpendicular to the board
+				if actual_x_cm_rel_center == 0:
+					xang = 0
+				elif actual_x_cm_rel_center < 0: # to the left and since the atan will be (-), the result will be zero to -90
+					xang = -90 - math.atan(r2/actual_x_cm_rel_center) * 180/math.pi
+				elif actual_x_cm_rel_center > 0: # to the right and since the atan will be (+), the result will be zero to 90
+					xang = 90 - math.atan(r2/actual_x_cm_rel_center) * 180/math.pi
 				xyangs = [xang,yang]
 
 				cal_df.loc[row[0], 'x_px'] = px[0]
