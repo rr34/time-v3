@@ -33,13 +33,13 @@ def round_AWIMtag(AWIMtag):
         elif key in ('awim Location AGL'):
             round_digits = round_digits_dict['AGL']
             round_this = True
-        elif key in ('awim Ref Pixel', 'awim Ref Image Size', 'awim Grid Pixels', 'awim Pixel Size Center Horizontal Vertical', 'awim Pixel Size Average Horizontal Vertical', 'awim TBLR Pixels'):
+        elif key in ('awim Ref Pixel', 'awim Ref Image Size', 'awim Grid Pixels', 'awim Grid Pixel Size'):
             round_digits = round_digits_dict['pixels']
             round_this = True
-        elif key in ('awim Ref Pixel Azimuth Artifae', 'awim Grid Angles', 'awim Grid Azimuth Artifae', 'awim TBLR Angles', 'awim TBLR Azimuth Artifae'):
+        elif key in ('awim Ref Pixel Azimuth Artifae', 'awim Grid Angles', 'awim Grid Azimuth Artifae'):
             round_digits = round_digits_dict['degrees']
             round_this = True
-        elif key in ('awim Grid RA Dec','awim TBLR RA Dec'):
+        elif key in ('awim Grid RA Dec'):
             round_digits = round_digits_dict['hourangle']
             round_this = True
             # todo: the declination should be rounded to a hundredth instead of thousandth, a problem for another day, something like this:

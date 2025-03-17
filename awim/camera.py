@@ -283,19 +283,15 @@ def generate_camera_AWIM_from_calibration(calibration_image_path, calibration_fi
 	ypx_coeffs = [float(x) for x in ypx_coeffs]
 	cam_AWIMtag['awim Pixels Model ypx_coeffs'] = ypx_coeffs
 
-	ref_px, cam_grid_pxs, cam_TBLR_pxs = awimlib.get_ref_px_thirds_grid_TBLR(calibration_image_path, 'center, get from image')
+	ref_px, cam_grid_pxs = awimlib.get_ref_px_sixths_grid(calibration_image_path, 'center, get from image')
 	cam_grid_angs = awimlib.pxs_to_xyangs(cam_AWIMtag, cam_grid_pxs)
-	cam_TBLR_angs = awimlib.pxs_to_xyangs(cam_AWIMtag, cam_TBLR_pxs)
 
 	cam_AWIMtag['awim Ref Pixel'] = ref_px
 	cam_AWIMtag['awim Grid Pixels'] = cam_grid_pxs.tolist()
 	cam_AWIMtag['awim Grid Angles'] = cam_grid_angs.tolist()
-	cam_AWIMtag['awim TBLR Pixels'] = cam_TBLR_pxs.tolist()
-	cam_AWIMtag['awim TBLR Angles'] = cam_TBLR_angs.tolist()
 
-	px_size_center, px_size_average = awimlib.get_pixel_sizes(cam_AWIMtag)
-	cam_AWIMtag['awim Pixel Size Center Horizontal Vertical'] = px_size_center
-	cam_AWIMtag['awim Pixel Size Average Horizontal Vertical'] = px_size_average
+	px_sizes_grid = awimlib.get_pixel_sizes(cam_AWIMtag, cam_AWIMtag['awim Grid Pixels'])
+	cam_AWIMtag['awim Grid Pixel Size'] = px_sizes_grid.tolist()
 
 	cam_AWIMtag = formatters.round_AWIMtag(cam_AWIMtag)
 
@@ -343,7 +339,7 @@ def generate_tag_from_exif_plus_misc(image_path, cam_AWIMtag_dictionary, photosh
 
 	AWIMtag_dictionary['awim Models Type'] = cam_AWIMtag_dictionary['awim Models Type']
 
-	ref_px, img_grid_pxs, img_TBLR_pxs = awimlib.get_ref_px_thirds_grid_TBLR(image_path, 'center, get from image')
+	ref_px, img_grid_pxs = awimlib.get_ref_px_sixths_grid(image_path, 'center, get from image')
 	AWIMtag_dictionary['awim Ref Pixel'] = ref_px
 
 	AWIMtag_dictionary['awim Ref Image Size'] = cam_AWIMtag_dictionary['awim Ref Image Size']
@@ -415,22 +411,11 @@ def generate_tag_from_exif_plus_misc(image_path, cam_AWIMtag_dictionary, photosh
 	grid_RADecs = astropytools.AzArts_to_RADecs(image_location, image_moment, grid_azarts)
 	AWIMtag_dictionary['awim Grid RA Dec'] = grid_RADecs.tolist()
 
-	# get top, bottom, left, right (TBLR) angles, azimuth artifae, RA Dec. TBLR pixels from above. Unless cropped, should be the same as the camera
-	AWIMtag_dictionary['awim TBLR Pixels'] = img_TBLR_pxs.tolist()
-	TBLR_angs = awimlib.pxs_to_xyangs(AWIMtag_dictionary, img_TBLR_pxs)
-	AWIMtag_dictionary['awim TBLR Angles'] = TBLR_angs.tolist()
-
-	TBLR_azarts = awimlib.xyangs_to_azarts(AWIMtag_dictionary, TBLR_angs)
-	AWIMtag_dictionary['awim TBLR Azimuth Artifae'] = TBLR_azarts.tolist()
-
 	image_moment = AWIMtag_dictionary['awim Capture Moment']
 	image_location = AWIMtag_dictionary['awim Location Coordinates']
-	TBLR_RADecs = astropytools.AzArts_to_RADecs(image_location, image_moment, TBLR_azarts)
-	AWIMtag_dictionary['awim TBLR RA Dec'] = TBLR_RADecs.tolist()
 
-	px_size_center, px_size_average = awimlib.get_pixel_sizes(AWIMtag_dictionary)
-	AWIMtag_dictionary['awim Pixel Size Center Horizontal Vertical'] = px_size_center
-	AWIMtag_dictionary['awim Pixel Size Average Horizontal Vertical'] = px_size_average
+	px_sizes = awimlib.get_pixel_sizes(AWIMtag_dictionary, AWIMtag_dictionary['awim Grid Pixels'])
+	AWIMtag_dictionary['awim Grid Pixel Sizes'] = px_sizes
 
 	AWIMtag_dictionary = formatters.round_AWIMtag(AWIMtag_dictionary)
 

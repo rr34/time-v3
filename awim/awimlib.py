@@ -42,13 +42,8 @@ def generate_empty_AWIMtag_dictionary(default_units=True):
     AWIMtag_dictionary['awim Grid Angles'] = []
     AWIMtag_dictionary['awim Grid Azimuth Artifae'] = []
     AWIMtag_dictionary['awim Grid RA Dec'] = []
-    AWIMtag_dictionary['awim TBLR Pixels'] = []
-    AWIMtag_dictionary['awim TBLR Angles'] = []
-    AWIMtag_dictionary['awim TBLR Azimuth Artifae'] = []
-    AWIMtag_dictionary['awim TBLR RA Dec'] = []
+    AWIMtag_dictionary['awim Grid Pixel Size'] = []
     AWIMtag_dictionary['awim RA Dec Unit'] = 'ICRS J2000 Epoch, to thousandth of an hour, hundredth of a degree'
-    AWIMtag_dictionary['awim Pixel Size Center Horizontal Vertical'] = [-999.9, -999.9]
-    AWIMtag_dictionary['awim Pixel Size Average Horizontal Vertical'] = [-999.9, -999.9]
     AWIMtag_dictionary['awim Pixel Size Unit'] = 'Pixels per Degree; to tenth of a pixel'
 
     if not default_units:
@@ -138,7 +133,6 @@ def xyangs_to_azarts(AWIMtag_dictionary, xyangs, ref_azart_override=False):
 
 def azarts_to_xyangs(AWIMtag_dictionary, azarts):
     azarts = np.asarray(azarts)
-
     input_shape = azarts.shape
     azarts = azarts.reshape(-1,2)
 
@@ -193,13 +187,11 @@ def xyangs_inimage(AWIMtag_dictionary, xyangs, padding_percent=0):
     input_shape = xyangs.shape
     xyangs = xyangs.reshape(-1,2)
 
-    TBLR_angles = AWIMtag_dictionary['awim TBLR Angles']
-    grid_angles = AWIMtag_dictionary['awim Grid Angles']
-    ref_angs = np.asarray(TBLR_angles + grid_angles).reshape(-1,2)
-    yang_up = np.min(ref_angs[:,1])
-    yang_down = np.max(ref_angs[:,1])
-    xang_left = np.min(ref_angs[:,0])
-    xang_right = np.max(ref_angs[:,0])
+    grid_angles = np.asarray(AWIMtag_dictionary['awim Grid Angles']).reshape(-1,2)
+    yang_up = np.min(grid_angles[:,1])
+    yang_down = np.max(grid_angles[:,1])
+    xang_left = np.min(grid_angles[:,0])
+    xang_right = np.max(grid_angles[:,0])
 
     pad = (padding_percent + 100) / 100
     inimage_array = np.empty(xyangs.shape[0], dtype=bool)
@@ -243,32 +235,59 @@ def xyangs_to_pxs(AWIMtag_dictionary, xyangs):
     return pxs
 
 
+# gets pixel angular sizes
+# TODO: the horizontal angular size of pixels near top and bottwm center within 10-100 pixels of center seem to be too small, too many pixels per degree
+def get_pixel_sizes(AWIMtag_dictionary, pxs, imgsize_relative=1):
+    pxs = np.asarray(pxs)
+    input_shape = pxs.shape
+    pxs.reshape(-1,2)
+
+    small_px = 100
+    px_sizes_grid = np.zeros(pxs.shape)
+
+    left_shift_pxs = np.copy(pxs)
+    left_shift_pxs[:,0] -= small_px
+    left_shift_angs = pxs_to_xyangs(AWIMtag_dictionary, left_shift_pxs, imgsize_relative)
+    right_shift_pxs = np.copy(pxs)
+    right_shift_pxs[:,0] += small_px
+    right_shift_angs = pxs_to_xyangs(AWIMtag_dictionary, right_shift_pxs, imgsize_relative)
+    up_shift_pxs = np.copy(pxs)
+    up_shift_pxs[:,1] += small_px
+    up_shift_angs = pxs_to_xyangs(AWIMtag_dictionary, up_shift_pxs, imgsize_relative)
+    down_shift_pxs = np.copy(pxs)
+    down_shift_pxs[:,1] -= small_px
+    down_shift_angs = pxs_to_xyangs(AWIMtag_dictionary, down_shift_pxs, imgsize_relative)
+
+    px_sizes_grid[:,0] = np.divide(small_px*2,np.abs(np.subtract(left_shift_angs[:,0],right_shift_angs[:,0])))
+    px_sizes_grid[:,1] = np.divide(small_px*2,np.abs(np.subtract(up_shift_angs[:,1],down_shift_angs[:,1])))
+
+    px_sizes_grid.reshape(input_shape)
+
+    return px_sizes_grid
+
+
 # generates the pixel coordinates of the thirds grid and top, bottom, left, right of the image, which are used in the awim tag
-def get_ref_px_thirds_grid_TBLR(source_image_path, ref_px):
+def get_ref_px_sixths_grid(source_image_path, ref_px):
     with PIL.Image.open(source_image_path) as source_image: # todo: do for jpg, not just png
         img_pxsize = source_image.size
     img_pointsize = np.subtract(img_pxsize, 1) # the size from pixel center to pixel center is 1 pixel smaller because it excludes all the edge pixels' outer halves
 
     img_half = np.divide(img_pxsize, 2)
-    img_third = np.divide(img_pxsize, 3)
+    img_sixth = np.divide(img_pxsize, 6)
     img_center_index = np.subtract(img_half, 0.5).tolist()
-
-    x1 = -(img_half[0] - 0.5)
-    x2 = -(img_third[0] / 2 - 0.5)
-    x3 = img_third[0] / 2 - 0.5
-    x4 = img_half[0] - 0.5
-    y1 = img_half[1] - 0.5
-    y2 = img_third[1] / 2 - 0.5
-    y3 = -(img_third[1] / 2 - 0.5)
-    y4 = -(img_half[1] - 0.5)
 
     if ref_px == 'center, get from image': # todo: for ref_px allow for a cropped image where the reference pixel is not the center pixel
         ref_px = img_center_index
 
-    img_grid_pxs = np.array([[x1,y1],[x2,y1],[x3,y1],[x4,y1],[x1,y2],[x2,y2],[x3,y2],[x4,y2],[x1,y3],[x2,y3],[x3,y3],[x4,y3],[x1,y4],[x2,y4],[x3,y4],[x4,y4]])
-    img_TBLR_pxs = np.array([[0,y1],[0,y4],[x1,0],[x4,0]])
+    img_grid_pxs = np.zeros(shape=(49,2))
+    px_count = 0
+    for iy in range(3,-4,-1):
+        for ix in range(-3,4):
+            img_grid_pxs[px_count,0] = ix*img_sixth[0] - np.sign(ix)*0.5
+            img_grid_pxs[px_count,1] = iy*img_sixth[1] - np.sign(iy)*0.5
+            px_count += 1
 
-    return ref_px, img_grid_pxs, img_TBLR_pxs
+    return ref_px, img_grid_pxs
 
 
 # user guesses an azimuth lined up with a structure of known orientation and this function gives the exact azimuth of the structure's side closest to the guess
@@ -288,23 +307,3 @@ def closest_to_x_sides(guess_angle, oneside_angle, number_sides):
     correct_az = sides_angles[min_index]
 
     return correct_az
-
-
-# gets pixel angular sizes in image for awim tag
-def get_pixel_sizes(AWIMtag_dictionary, imgsize_relative=1):
-    small_px = 10
-    little_cross_LRUD = np.array([-small_px,0,small_px,0,0,small_px,0,-small_px]).reshape(-1,2)
-    little_cross_angs = pxs_to_xyangs(AWIMtag_dictionary, little_cross_LRUD, imgsize_relative)
-    px_size_center_horizontal = (abs(little_cross_LRUD[0,0]) + abs(little_cross_LRUD[1,0])) / (abs(little_cross_angs[0,0]) + abs(little_cross_angs[1,0]))
-    px_size_center_vertical = (abs(little_cross_LRUD[2,1]) + abs(little_cross_LRUD[3,1])) / (abs(little_cross_angs[2,1]) + abs(little_cross_angs[3,1]))
-
-    border_angles = np.array(AWIMtag_dictionary['awim TBLR Angles'])
-    horizontal_angle_total = abs(border_angles[2,0]) + abs(border_angles[3,0])
-    vertical_angle_total = abs(border_angles[0,1]) + abs(border_angles[1,1])
-    border_pixels = np.array(AWIMtag_dictionary['awim TBLR Pixels'])
-    horizontal_pixels = (abs(border_pixels[2,0]) + abs(border_pixels[3,0])) * imgsize_relative
-    vertical_pixels = (abs(border_pixels[0,1]) + abs(border_pixels[1,1])) * imgsize_relative
-    px_size_average_horizontal = horizontal_pixels / horizontal_angle_total
-    px_size_average_vertical = vertical_pixels / vertical_angle_total
-
-    return [px_size_center_horizontal, px_size_center_vertical], [px_size_average_horizontal, px_size_average_vertical]
