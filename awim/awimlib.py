@@ -40,9 +40,10 @@ def generate_empty_AWIMtag_dictionary(default_units=True):
     AWIMtag_dictionary['awim Ref Pixel Azimuth Artifae Unit'] = 'Degrees; to hundredth of a degree'
     AWIMtag_dictionary['awim Grid Pixels'] = []
     AWIMtag_dictionary['awim Grid Angles'] = []
+    AWIMtag_dictionary['awim Grid Direction and Arc'] = []
     AWIMtag_dictionary['awim Grid Azimuth Artifae'] = []
     AWIMtag_dictionary['awim Grid RA Dec'] = []
-    AWIMtag_dictionary['awim Grid Pixel Size'] = []
+    AWIMtag_dictionary['awim Grid Pixel Sizes'] = []
     AWIMtag_dictionary['awim RA Dec Unit'] = 'ICRS J2000 Epoch, to thousandth of an hour, hundredth of a degree'
     AWIMtag_dictionary['awim Pixel Size Unit'] = 'Pixels per Degree; to tenth of a pixel'
 
@@ -96,8 +97,102 @@ def pxs_to_xyangs(AWIMtag_dictionary, pxs, imgsize_relative=1):
     return xyangs
 
 
+# sph_tri convention [a, A, b, B, c, C], a to b to c is CW
+# b, A, c
+def spherical_solve(sph_tri):
+    a = sph_tri[0]
+    if isinstance(sph_tri[0], (np.ndarray, list, float)):
+        a_ = True
+    else:
+        a_ = False
+    A = sph_tri[1]
+    if isinstance(A, (np.ndarray, list, float)):
+        A_ = True
+    else:
+        A_ = False
+    b = sph_tri[2]
+    if isinstance(b, (np.ndarray, list, float)):
+        b_ = True
+    else:
+        b_ = False
+    B = sph_tri[3]
+    if isinstance(B, (np.ndarray, list, float)):
+        B_ = True
+    else:
+        B_ = False
+    c = sph_tri[4]
+    if isinstance(c, (np.ndarray, list, float)):
+        c_ = True
+    else:
+        c_ = False
+    C = sph_tri[5]
+    if isinstance(C, (np.ndarray, list, float)):
+        C_ = True
+    else:
+        C_ = False
+    if a_ and b_ and c_:
+        A2 = np.acos(np.divide(np.subtract(np.cos(b),np.multiply(np.cos(a),np.cos(c))),np.multiply(np.sin(a),np.sin(c))))
+        if not A_:
+            A = A2
+        else:
+            print(np.subtract(A2,A) * 180/math.pi)
+        B2 = np.acos(np.divide(np.subtract(np.cos(b),np.multiply(np.cos(a),np.cos(c))),np.multiply(np.sin(a),np.sin(c))))
+        if not B_:
+            B = B2
+        else:
+            print(np.subtract(B2,B) * 180/math.pi)
+        C2 = np.acos(np.divide(np.subtract(np.cos(c),np.multiply(np.cos(a),np.cos(b))),np.multiply(np.sin(a),np.sin(b))))
+        if not C_:
+            C = C2
+        else:
+            print(np.subtract(C2,C) * 180/math.pi)
+    elif b_ and A_ and c_ and not (a_ or B_ or C_): 
+        a = np.acos(np.add(np.multiply(np.cos(b),np.cos(c)), np.prod([np.sin(b),np.sin(c),np.cos(A)], axis=0)))
+        sph_tri = [a, A, b, B, c, C]
+        sph_tri = spherical_solve(sph_tri)
+
+
+    return sph_tri
+
+
+# xang sign matches the pxarc sign
+# yang sign matches the PXDIRECTION sign (and yang_arc sign)
+def xyangs_to_spherical(AWIMtag_dictionary, xyangs):
+    xyangs = np.asarray(xyangs)
+    input_shape = xyangs.shape
+    xyangs = xyangs.reshape(-1,2)
+
+    angs_direction = np.where(xyangs < 0, -1, 1)
+    xyangs = np.abs(xyangs)
+    xyangs *= math.pi/180
+
+    # see photoshop Figure 1 for variable names
+    xang_compliment = np.subtract(math.pi/2, xyangs[:,0]) # always (+) because xang < 90
+    d1 = 1*np.cos(xang_compliment) # always (+), correct here because pt2 = pt1 and is on the surface of the unit sphere
+    r2 = 1*np.sin(xang_compliment) # always (+), correct here because pt2 = pt1 and is on the surface of the unit sphere
+    # xyangs[:,1] are the yangs and can be -180 to 180
+    d2_ = np.multiply(np.cos(xyangs[:,1]), r2) # (-) for yang > 90 or < -90, meaning px behind observer
+    art_seg_ = np.multiply(np.sin(xyangs[:,1]), r2) # (-) for (-) yangs
+    yang_arcs = np.arcsin(art_seg_ / 1) # (-) for (-) art_seg_, hypotenuse is 1 because unit circle
+# [a, A, b, B, c, C] A to B to C is CW
+    sph_tri = [False, math.pi/2, yang_arcs, False, xyangs[0], False]
+    sph_solved = spherical_solve([False, np.full(yang_arcs.shape, math.pi/2), yang_arcs, False, xyangs[:,0], False])
+    PXDIRECTION = sph_solved[3]
+    pxarc = sph_solved[0]
+    C2 = sph_solved[5]
+
+
+    px_dirarc = np.zeros(xyangs.shape)
+    px_dirarc[:,0] = PXDIRECTION * 180/math.pi
+    px_dirarc[:,1] = pxarc * 180/math.pi
+
+    px_dirarc = px_dirarc.reshape(input_shape)
+
+    return px_dirarc
+
+
 def xyangs_to_azarts(AWIMtag_dictionary, xyangs, ref_azart_override=False):
-    pxs = np.asarray(pxs)
+    xyangs = np.asarray(xyangs)
 
     input_shape = xyangs.shape
     angs_direction = np.where(xyangs < 0, -1, 1)
@@ -112,12 +207,12 @@ def xyangs_to_azarts(AWIMtag_dictionary, xyangs, ref_azart_override=False):
 
     # see photoshop diagram of sphere, circles, and triangles for variable names
     xang_compliment = np.subtract(math.pi/2, xyangs[:,0]) # always (+) because xang < 90
-    d1 = 1*np.cos(xang_compliment) # always (+)
+    d1 = 1*np.cos(xang_compliment) # always (+) TODO: not right because d3 < 1, not = 1, because it is not on the surface of the unit sphere.
     r2 = 1*np.sin(xang_compliment) # always (+)
     ang_totalsmallcircle = np.add(ref_azart_rad[1], xyangs[:,1]) # -180 to 180
     d2_ = np.multiply(np.cos(ang_totalsmallcircle), r2) # (-) for ang_totalsmallcircle > 90 or < -90, meaning px behind observer
     art_seg_ = np.multiply(np.sin(ang_totalsmallcircle), r2) # (-) for (-) ang_totalsmallcircle
-    arts = np.arcsin(art_seg_) # (-) for (-) art_seg_
+    arts = np.arcsin(art_seg_ / 1) # (-) for (-) art_seg_
     az_rel = np.subtract(math.pi/2, np.arctan(np.divide(d2_, d1))) # d2 (-) for px behind observer and therefore az_rel > 90 because will subtract (-) atan
     az_rel = np.multiply(az_rel, angs_direction[:,0])
     azs = np.mod(np.add(ref_azart_rad[0], az_rel), 2*math.pi)
