@@ -36,7 +36,7 @@ def round_AWIMtag(AWIMtag):
         elif key in ('awim Ref Pixel', 'awim Ref Image Size', 'awim Grid Pixels', 'awim Grid Pixel Sizes'):
             round_digits = round_digits_dict['pixels']
             round_this = True
-        elif key in ('awim Ref Pixel Azimuth Artifae', 'awim Grid Angles', 'awim Grid Azimuth Artifae'):
+        elif key in ('awim Ref Pixel Azimuth Artifae', 'awim Grid Angles', 'awim Grid Azimuth Artifae', 'awim Grid Direction and Arc'):
             round_digits = round_digits_dict['degrees']
             round_this = True
         elif key in ('awim Grid RA Dec'):

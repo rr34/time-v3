@@ -40,7 +40,9 @@ def generate_empty_AWIMtag_dictionary(default_units=True):
     AWIMtag_dictionary['awim Ref Pixel Azimuth Artifae Unit'] = 'Degrees; to hundredth of a degree'
     AWIMtag_dictionary['awim Grid Pixels'] = []
     AWIMtag_dictionary['awim Grid Angles'] = []
+    AWIMtag_dictionary['awim Grid Angles Unit'] = 'Degrees, where xang from -90 left to 90 right. yang from -180 down to 180 up and abs(yang) > 90  means hemisphere behind the camera.'
     AWIMtag_dictionary['awim Grid Direction and Arc'] = []
+    AWIMtag_dictionary['awim Grid Direction and Arc Unit'] = 'Degrees, direction from -90 down to 90 up. Arc distance from -180 left to 180 right and abs(dir) > 90 means hemisphere behind the camera.'
     AWIMtag_dictionary['awim Grid Azimuth Artifae'] = []
     AWIMtag_dictionary['awim Grid RA Dec'] = []
     AWIMtag_dictionary['awim Grid Pixel Sizes'] = []
@@ -98,93 +100,75 @@ def pxs_to_xyangs(AWIMtag_dictionary, pxs, imgsize_relative=1):
 
 
 # sph_tri convention [a, A, b, B, c, C], a to b to c is CW
-# b, A, c
-def spherical_solve(sph_tri):
-    a = sph_tri[0]
-    if isinstance(sph_tri[0], (np.ndarray, list, float)):
-        a_ = True
-    else:
-        a_ = False
-    A = sph_tri[1]
-    if isinstance(A, (np.ndarray, list, float)):
-        A_ = True
-    else:
-        A_ = False
-    b = sph_tri[2]
-    if isinstance(b, (np.ndarray, list, float)):
-        b_ = True
-    else:
-        b_ = False
-    B = sph_tri[3]
-    if isinstance(B, (np.ndarray, list, float)):
-        B_ = True
-    else:
-        B_ = False
-    c = sph_tri[4]
-    if isinstance(c, (np.ndarray, list, float)):
-        c_ = True
-    else:
-        c_ = False
-    C = sph_tri[5]
-    if isinstance(C, (np.ndarray, list, float)):
-        C_ = True
-    else:
-        C_ = False
-    if a_ and b_ and c_:
-        A2 = np.acos(np.divide(np.subtract(np.cos(b),np.multiply(np.cos(a),np.cos(c))),np.multiply(np.sin(a),np.sin(c))))
-        if not A_:
+def spherical_solve(a=False, A=False, b=False, B=False, c=False, C=False):
+    if isinstance(a, (list, tuple, float)):
+        a = np.asarray(a)
+    if isinstance(A, (list, tuple, float)):
+        A = np.asarray(A)
+    if isinstance(b, (list, tuple, float)):
+        b = np.asarray(b)
+    if isinstance(B, (list, tuple, float)):
+        B = np.asarray(B)
+    if isinstance(a, (list, tuple, float)):
+        c = np.asarray(c)
+    if isinstance(a, (list, tuple, float)):
+        C = np.asarray(C)
+
+    # SSS, you know a, b, c, and maybe some interior angles so double-check that they match by printing the difference.
+    if isinstance(a, np.ndarray) and isinstance(b, np.ndarray) and isinstance(c, np.ndarray):
+        A2 = np.acos(np.divide(np.subtract(np.cos(a),np.multiply(np.cos(b),np.cos(c))),np.multiply(np.sin(b),np.sin(c))))
+        if not isinstance(A, np.ndarray):
             A = A2
         else:
             print(np.subtract(A2,A) * 180/math.pi)
         B2 = np.acos(np.divide(np.subtract(np.cos(b),np.multiply(np.cos(a),np.cos(c))),np.multiply(np.sin(a),np.sin(c))))
-        if not B_:
+        if not isinstance(B, np.ndarray):
             B = B2
         else:
             print(np.subtract(B2,B) * 180/math.pi)
         C2 = np.acos(np.divide(np.subtract(np.cos(c),np.multiply(np.cos(a),np.cos(b))),np.multiply(np.sin(a),np.sin(b))))
-        if not C_:
+        if not isinstance(C, np.ndarray):
             C = C2
         else:
             print(np.subtract(C2,C) * 180/math.pi)
-    elif b_ and A_ and c_ and not (a_ or B_ or C_): 
-        a = np.acos(np.add(np.multiply(np.cos(b),np.cos(c)), np.prod([np.sin(b),np.sin(c),np.cos(A)], axis=0)))
         sph_tri = [a, A, b, B, c, C]
-        sph_tri = spherical_solve(sph_tri)
 
+    # SAS, you know b, A, c
+    elif isinstance(A, np.ndarray) and isinstance(b, np.ndarray) and isinstance(c, np.ndarray) and not (isinstance(a, np.ndarray) or isinstance(B, np.ndarray) or isinstance(C, np.ndarray)): 
+        a = np.acos(np.add(np.multiply(np.cos(b),np.cos(c)), np.prod([np.sin(b),np.sin(c),np.cos(A)], axis=0)))
+        sph_tri = spherical_solve(A=A, b=b, c=c, a=a)
 
     return sph_tri
 
 
 # xang sign matches the pxarc sign
 # yang sign matches the PXDIRECTION sign (and yang_arc sign)
-def xyangs_to_spherical(AWIMtag_dictionary, xyangs):
+def xyangs_to_dirarcs(AWIMtag_dictionary, xyangs):
     xyangs = np.asarray(xyangs)
     input_shape = xyangs.shape
     xyangs = xyangs.reshape(-1,2)
 
-    angs_direction = np.where(xyangs < 0, -1, 1)
+    xangs_direction = np.where(xyangs[:,0] < 0, -1, 1)
+    yangs_direction = np.where(xyangs[:,1] < 0, -1, 1)
     xyangs = np.abs(xyangs)
     xyangs *= math.pi/180
 
     # see photoshop Figure 1 for variable names
     xang_compliment = np.subtract(math.pi/2, xyangs[:,0]) # always (+) because xang < 90
-    d1 = 1*np.cos(xang_compliment) # always (+), correct here because pt2 = pt1 and is on the surface of the unit sphere
     r2 = 1*np.sin(xang_compliment) # always (+), correct here because pt2 = pt1 and is on the surface of the unit sphere
     # xyangs[:,1] are the yangs and can be -180 to 180
-    d2_ = np.multiply(np.cos(xyangs[:,1]), r2) # (-) for yang > 90 or < -90, meaning px behind observer
     art_seg_ = np.multiply(np.sin(xyangs[:,1]), r2) # (-) for (-) yangs
     yang_arcs = np.arcsin(art_seg_ / 1) # (-) for (-) art_seg_, hypotenuse is 1 because unit circle
 # [a, A, b, B, c, C] A to B to C is CW
-    sph_tri = [False, math.pi/2, yang_arcs, False, xyangs[0], False]
-    sph_solved = spherical_solve([False, np.full(yang_arcs.shape, math.pi/2), yang_arcs, False, xyangs[:,0], False])
-    PXDIRECTION = sph_solved[3]
+    sph_solved = spherical_solve(A=np.full(yang_arcs.shape, math.pi/2), b=xyangs[:,0], c=yang_arcs)
+    PXDIRECTION = sph_solved[5]
     pxarc = sph_solved[0]
-    C2 = sph_solved[5]
-
+    PXDIRECTION = np.where(pxarc != 0, PXDIRECTION, 0) # PXDIRECTION undefined for origin, set to zero
+    B2 = sph_solved[3]
 
     px_dirarc = np.zeros(xyangs.shape)
-    px_dirarc[:,0] = PXDIRECTION * 180/math.pi
-    px_dirarc[:,1] = pxarc * 180/math.pi
+    px_dirarc[:,0] = np.multiply(PXDIRECTION * 180/math.pi, yangs_direction) # pxdir goes with yang direction
+    px_dirarc[:,1] = np.multiply(pxarc * 180/math.pi, xangs_direction) # pxarc goes with xang direction
 
     px_dirarc = px_dirarc.reshape(input_shape)
 
@@ -330,8 +314,7 @@ def xyangs_to_pxs(AWIMtag_dictionary, xyangs):
     return pxs
 
 
-# gets pixel angular sizes
-# TODO: the horizontal angular size of pixels near top and bottwm center within 10-100 pixels of center seem to be too small, too many pixels per degree
+# TODO: the horizontal angular size of pixels near top and bottwm center within 1-100 pixels of center seem to be too small, too many pixels per degree
 def get_pixel_sizes(AWIMtag_dictionary, pxs, imgsize_relative=1):
     pxs = np.asarray(pxs)
     input_shape = pxs.shape
@@ -359,6 +342,14 @@ def get_pixel_sizes(AWIMtag_dictionary, pxs, imgsize_relative=1):
     px_sizes_grid.reshape(input_shape)
 
     return px_sizes_grid
+
+
+def get_image_area(AWIMtag_dictionary):
+    grid_dirarc = AWIMtag_dictionary['awim Grid Direction and Arc']
+    tri1_b = grid_dirarc[6,1]
+    tri1_a = grid_dirarc[27,1]
+    tri1_A = math.pi/2
+
 
 
 # generates the pixel coordinates of the thirds grid and top, bottom, left, right of the image, which are used in the awim tag

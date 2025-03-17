@@ -286,7 +286,7 @@ def generate_camera_AWIM_from_calibration(calibration_image_path, calibration_fi
 	ref_px, cam_grid_pxs = awimlib.get_ref_px_sixths_grid(calibration_image_path, 'center, get from image')
 	cam_grid_angs = awimlib.pxs_to_xyangs(cam_AWIMtag, cam_grid_pxs)
 
-	grid_dirarcs = awimlib.xyangs_to_spherical(cam_AWIMtag, cam_grid_angs)
+	grid_dirarcs = awimlib.xyangs_to_dirarcs(cam_AWIMtag, cam_grid_angs)
 	cam_AWIMtag['awim Grid Direction and Arc'] = grid_dirarcs.tolist()
 
 	cam_AWIMtag['awim Ref Pixel'] = ref_px
@@ -406,7 +406,7 @@ def generate_tag_from_exif_plus_misc(image_path, cam_AWIMtag_dictionary, photosh
 	grid_angs = awimlib.pxs_to_xyangs(AWIMtag_dictionary, img_grid_pxs)
 	AWIMtag_dictionary['awim Grid Angles'] = grid_angs.tolist()
 	
-	grid_dirarcs = awimlib.xyangs_to_spherical(AWIMtag_dictionary, grid_angs)
+	grid_dirarcs = awimlib.xyangs_to_dirarcs(AWIMtag_dictionary, grid_angs)
 	AWIMtag_dictionary['awim Grid Direction and Arc'] = grid_dirarcs.tolist()
 
 	grid_azarts = awimlib.xyangs_to_azarts(AWIMtag_dictionary, grid_angs)
