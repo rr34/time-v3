@@ -313,7 +313,7 @@ def generate_tag_from_exif_plus_misc(image_path, cam_AWIMtag_dictionary, photosh
 	metadata_dict = metadata_tools.get_metadata(image_path)
 	AWIMtag_dictionary = awimlib.generate_empty_AWIMtag_dictionary()
 	with PIL.Image.open(image_path) as image:
-		image_dimensions = np.array(image.size)
+		image_dimensions = list(image.size)
 
 
 	if 'some user selection variable' == 'try camera gps': # todo: use GPS from camera if present, usually not in my case.
@@ -360,7 +360,7 @@ def generate_tag_from_exif_plus_misc(image_path, cam_AWIMtag_dictionary, photosh
 	azart_source = photoshoot_dictionary['AzSource']
 
 	# AzArt option 1 ... of several
-	if azart_source == 'az offset from reference':
+	if azart_source == 'offset from reference':
 		artifae = photoshoot_dictionary['Artifae']
 		ref_az = photoshoot_dictionary['RefAz'] # this is the guess direction of the reference object, not of the photo direction
 		obj_type = photoshoot_dictionary['ObjAzType']
@@ -405,7 +405,7 @@ def generate_tag_from_exif_plus_misc(image_path, cam_AWIMtag_dictionary, photosh
 
 	# get grid angles, azimuth artifae, RA Dec. Grid pixels from above. Unless cropped, should be the same as the camera
 	AWIMtag_dictionary['awim Grid Pixels'] = img_grid_pxs.tolist()
-	grid_angs = awimlib.pxs_to_xyangs(AWIMtag_dictionary, img_grid_pxs)
+	grid_angs = awimlib.pxs_to_xyangs(AWIMtag_dictionary, img_grid_pxs, image_dimensions)
 	AWIMtag_dictionary['awim Grid Angles'] = grid_angs.tolist()
 	
 	grid_dirarcs, sphtri2 = awimlib.xyangs_to_dirarcs(grid_angs, return_sphtri=True)

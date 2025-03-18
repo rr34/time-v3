@@ -128,16 +128,26 @@ def _sphtri_solve(a=False, b=False, c=False, A=False, B=False, C=False):
 
 # conversions among azarts, xyangs, pixels
 # need to use Figure 1 for all of these.
-def pxs_to_xyangs(AWIMtag_dictionary, pxs, imgsize_relative=1):
-    pxs = np.asarray(pxs)
+def pxs_to_xyangs(AWIMtag_dictionary, pxs, imgsize_correction=False):
+    if isinstance(imgsize_correction, (list, tuple)):
+        imgsize_tag = AWIMtag_dictionary['awim Ref Image Size in Pixels']
+        aspect_ratio_img = imgsize_correction[0] / imgsize_correction[1]
+        aspect_ratio_tag = imgsize_tag[0] / imgsize_tag[1]
+        aspect_ratio_diff = aspect_ratio_tag - aspect_ratio_img
+        print(f'Aspect ratio difference check: {aspect_ratio_diff}')
+        correction_factor = imgsize_correction[0] / imgsize_tag[0] # resolution usually less than the original, < 1, so makes the px values larger below to account for the difference.
+    elif isinstance(imgsize_correction, float):
+        correction_factor = imgsize_correction
+    else:
+        correction_factor = 1
 
+    pxs = np.asarray(pxs)
     input_shape = pxs.shape
     angs_direction = np.where(pxs < 0, -1, 1) # models are positive values only. Save sign. Same sign for xyangs
-
     pxs = np.abs(pxs).reshape(-1,2)
 
     if AWIMtag_dictionary['awim Models Type'] == '3d_degree_poly_fit_abs_from_center':
-        pxs = pxs / imgsize_relative
+        pxs = pxs / correction_factor
         pxs_poly = np.zeros((pxs.shape[0], 9))
         pxs_poly[:,0] = pxs[:,0]
         pxs_poly[:,1] = pxs[:,1]
