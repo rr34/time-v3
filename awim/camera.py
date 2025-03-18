@@ -257,7 +257,7 @@ def generate_camera_AWIM_from_calibration(calibration_image_path, calibration_fi
 		cam_AWIMtag['awim Capture Moment Source'] = 'Attempted to get from exif, but was not present or not complete.'
 
 	# fill in the tag
-	cam_AWIMtag['awim Ref Image Size'] = cam_image_dimensions.tolist()
+	cam_AWIMtag['awim Ref Image Size in Pixels'] = cam_image_dimensions.tolist()
 	cam_AWIMtag['awim Models Type'] = pixel_map_type
 
 	xyangs_model_df = pd.DataFrame(xyangs_model.coef_, columns=xyangs_model.feature_names_in_, index=['xang_predict', 'yang_predict'])
@@ -286,8 +286,10 @@ def generate_camera_AWIM_from_calibration(calibration_image_path, calibration_fi
 	ref_px, cam_grid_pxs = awimlib.get_ref_px_sixths_grid(calibration_image_path, 'center, get from image')
 	cam_grid_angs = awimlib.pxs_to_xyangs(cam_AWIMtag, cam_grid_pxs)
 
-	grid_dirarcs = awimlib.xyangs_to_dirarcs(cam_AWIMtag, cam_grid_angs)
+	grid_dirarcs, sphtri2 = awimlib.xyangs_to_dirarcs(cam_grid_angs, return_sphtri=True)
 	cam_AWIMtag['awim Grid Direction and Arc'] = grid_dirarcs.tolist()
+
+	cam_AWIMtag['awim Image Angular Fraction Total Covered'] = awimlib.get_image_area(cam_AWIMtag, sphtri2)
 
 	cam_AWIMtag['awim Ref Pixel'] = ref_px
 	cam_AWIMtag['awim Grid Pixels'] = cam_grid_pxs.tolist()
@@ -345,7 +347,7 @@ def generate_tag_from_exif_plus_misc(image_path, cam_AWIMtag_dictionary, photosh
 	ref_px, img_grid_pxs = awimlib.get_ref_px_sixths_grid(image_path, 'center, get from image')
 	AWIMtag_dictionary['awim Ref Pixel'] = ref_px
 
-	AWIMtag_dictionary['awim Ref Image Size'] = cam_AWIMtag_dictionary['awim Ref Image Size']
+	AWIMtag_dictionary['awim Ref Image Size in Pixels'] = cam_AWIMtag_dictionary['awim Ref Image Size in Pixels']
 	AWIMtag_dictionary['awim Angles Models Features'] = cam_AWIMtag_dictionary['awim Angles Models Features']
 	AWIMtag_dictionary['awim Angles Model xang_coeffs'] = cam_AWIMtag_dictionary['awim Angles Model xang_coeffs']
 	AWIMtag_dictionary['awim Angles Model yang_coeffs'] = cam_AWIMtag_dictionary['awim Angles Model yang_coeffs']
@@ -406,7 +408,7 @@ def generate_tag_from_exif_plus_misc(image_path, cam_AWIMtag_dictionary, photosh
 	grid_angs = awimlib.pxs_to_xyangs(AWIMtag_dictionary, img_grid_pxs)
 	AWIMtag_dictionary['awim Grid Angles'] = grid_angs.tolist()
 	
-	grid_dirarcs = awimlib.xyangs_to_dirarcs(AWIMtag_dictionary, grid_angs)
+	grid_dirarcs, sphtri2 = awimlib.xyangs_to_dirarcs(AWIMtag_dictionary, grid_angs)
 	AWIMtag_dictionary['awim Grid Direction and Arc'] = grid_dirarcs.tolist()
 
 	grid_azarts = awimlib.xyangs_to_azarts(AWIMtag_dictionary, grid_angs)
