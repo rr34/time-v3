@@ -51,8 +51,8 @@ def generate_empty_AWIMtag_dictionary(default_units=True):
     AWIMtag_dictionary['awim RA Dec Unit'] = 'ICRS J2000 Epoch, to thousandth of an hour, hundredth of a degree'
     AWIMtag_dictionary['awim Grid Pixel Sizes'] = []
     AWIMtag_dictionary['awim Pixel Size Unit'] = 'Pixels per Degree; to tenth of a pixel'
-    AWIMtag_dictionary['awim Image Angular Fraction Total Covered'] = -999.9
-    AWIMtag_dictionary['awim Image Angular Fraction Total Covered Unit'] = 'Percentage of the total sphere around observer covered by the image. Maximum of 50 percent without looking behind.'
+    AWIMtag_dictionary['awim Image Field of View Fraction'] = -999.9
+    AWIMtag_dictionary['awim Image Field of View Fraction Unit'] = 'Denominator of fraction of total that the image field of view covers. Number of images required to cover total. Minimum value of 2 without image looking behind observer.'
 
     if not default_units:
         AWIMtag_dictionary['awim Location Coordinates Unit'] = ''
@@ -165,7 +165,7 @@ def pxs_to_xyangs(AWIMtag_dictionary, pxs, imgsize_relative=1):
 # yang sign matches the PXDIRECTION sign (and yang_arc sign)
 # xyangs[:,0] are the xangs and can be -90 to 90
 # xyangs[:,1] are the yangs and can be -180 to 180
-# spherical triangle parts are:
+# spherical triangle 2 parts are:
 # a is pxarc
 # b is xangs. xangs are arcs
 # c is yang_arc
@@ -348,13 +348,6 @@ def xyangs_to_pxs(AWIMtag_dictionary, xyangs):
 
 
 # See Figure 1 for spherical triangle definitions and variable names.
-# spherical triangle 2 parts are:
-# a is pxarc
-# b is xangs. xangs are arcs
-# c is yang_arc
-# A is 90 degrees
-# B is useful to find the area of the image on the unit sphere
-# C is PXDIRECTION
 # spherical triangle 3 parts are:
 # a is unknown and unused really, should be < xang at the bottom because the arcs are smaller farther away
 # b is yang_arc, which vertical at the center is yang
@@ -362,9 +355,7 @@ def xyangs_to_pxs(AWIMtag_dictionary, xyangs):
 # A is PXDIRECTION_COMP
 # B is useful to find the area of the image on the unit sphere
 # C should be 90 degrees, but going to be treated as an unknown
-
 def get_image_area(AWIMtag_dictionary, grid_sphtri2):
-    # Case 2 spherical triangle SAS: b, c, A are known:
     grid_xyangs = np.abs(np.asarray(AWIMtag_dictionary['awim Grid Angles']) * math.pi/180)
     grid_dirarcs = np.abs(np.asarray(AWIMtag_dictionary['awim Grid Direction and Arc']) * math.pi/180)
     grid_xyangs.reshape(-1,2)
@@ -376,7 +367,15 @@ def get_image_area(AWIMtag_dictionary, grid_sphtri2):
     yang_arcs = np.array([grid_xyangs[3,1],grid_xyangs[3,1],grid_xyangs[45,1],grid_xyangs[45,1]])
     pxarcs = np.array([grid_dirarcs[6,1],grid_dirarcs[0,1],grid_dirarcs[42,1],grid_dirarcs[48,1]])
     PXDIRECTION_COMP = np.subtract(math.pi/2, sphtri2_array[:,5])
-    print('stop here')
+    # Case 2 spherical triangle SAS: b, c, A are known:
+    sphtri3_solved = _sphtri_solve(b=yang_arcs, c=pxarcs, A=PXDIRECTION_COMP)
+    B3 = sphtri3_solved[:,4]
+    B2 = sphtri2_array[:,4]
+
+    surface_area_covered = np.sum(B3) + np.sum(B2) - (4-2)*math.pi # sum of the angles minus sides minus two times pi
+    fraction_covered_denominator = 4*math.pi / surface_area_covered
+
+    return fraction_covered_denominator
 
 
 # TODO: the horizontal angular size of pixels near top and bottwm center within 1-100 pixels of center seem to be too small, too many pixels per degree

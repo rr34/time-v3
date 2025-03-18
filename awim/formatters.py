@@ -16,6 +16,7 @@ def AWIMtag_rounding_digits():
     rounding_digits_dict['pixels'] = 1
     rounding_digits_dict['degrees'] = 2
     rounding_digits_dict['hourangle'] = 3
+    rounding_digits_dict['fractiondenominator'] = 2
 
     return rounding_digits_dict
 
@@ -45,6 +46,9 @@ def round_AWIMtag(AWIMtag):
             # todo: the declination should be rounded to a hundredth instead of thousandth, a problem for another day, something like this:
             # img_borders_RADecs[:,[0,2,4]] = img_borders_RADecs[:,[0,2,4]].round(round_digits['hourangle'])
 	        # img_borders_RADecs[:,[1,3,5]] = img_borders_RADecs[:,[1,3,5]].round(round_digits['degrees'])
+        elif key in ('awim Image Field of View Fraction'):
+            round_digits = round_digits_dict['fractiondenominator']
+            round_this = True
 
         if isinstance(value, list) and round_this:
             rounded = np.array(value).round(round_digits).tolist()

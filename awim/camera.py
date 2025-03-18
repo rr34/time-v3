@@ -49,6 +49,7 @@ def _target_miss(calibration_distance_cm, center_px, target_pos_px, x_small_cm, 
 	return target_pos_xycm_relaim
 
 
+# TODO: implement tilt and spherical angles into this calculation
 def _grid_rotation_error(row_xycm, align_orientation, align1_px, align2_px, align_targets_radius_cm, target_pos_px):
 	if align_orientation == 'horizontal':
 		xy_index = 1 # align with the y pixel coordinate for the horizontal axis
@@ -284,16 +285,15 @@ def generate_camera_AWIM_from_calibration(calibration_image_path, calibration_fi
 	cam_AWIMtag['awim Pixels Model ypx_coeffs'] = ypx_coeffs
 
 	ref_px, cam_grid_pxs = awimlib.get_ref_px_sixths_grid(calibration_image_path, 'center, get from image')
+	cam_AWIMtag['awim Ref Pixel'] = ref_px
+	cam_AWIMtag['awim Grid Pixels'] = cam_grid_pxs.tolist()
 	cam_grid_angs = awimlib.pxs_to_xyangs(cam_AWIMtag, cam_grid_pxs)
+	cam_AWIMtag['awim Grid Angles'] = cam_grid_angs.tolist()
 
 	grid_dirarcs, sphtri2 = awimlib.xyangs_to_dirarcs(cam_grid_angs, return_sphtri=True)
 	cam_AWIMtag['awim Grid Direction and Arc'] = grid_dirarcs.tolist()
 
-	cam_AWIMtag['awim Image Angular Fraction Total Covered'] = awimlib.get_image_area(cam_AWIMtag, sphtri2)
-
-	cam_AWIMtag['awim Ref Pixel'] = ref_px
-	cam_AWIMtag['awim Grid Pixels'] = cam_grid_pxs.tolist()
-	cam_AWIMtag['awim Grid Angles'] = cam_grid_angs.tolist()
+	cam_AWIMtag['awim Image Field of View Fraction'] = awimlib.get_image_area(cam_AWIMtag, sphtri2)
 
 	px_sizes_grid = awimlib.get_pixel_sizes(cam_AWIMtag, cam_AWIMtag['awim Grid Pixels'])
 	cam_AWIMtag['awim Grid Pixel Sizes'] = px_sizes_grid.tolist()
@@ -357,7 +357,7 @@ def generate_tag_from_exif_plus_misc(image_path, cam_AWIMtag_dictionary, photosh
 	AWIMtag_dictionary['awim Pixels Model ypx_coeffs'] = cam_AWIMtag_dictionary['awim Pixels Model ypx_coeffs']
 
 	img_orientation = photoshoot_dictionary['Orientation']
-	azart_source = photoshoot_dictionary['AzArtSource']
+	azart_source = photoshoot_dictionary['AzSource']
 
 	# AzArt option 1 ... of several
 	if azart_source == 'az offset from reference':
@@ -408,8 +408,13 @@ def generate_tag_from_exif_plus_misc(image_path, cam_AWIMtag_dictionary, photosh
 	grid_angs = awimlib.pxs_to_xyangs(AWIMtag_dictionary, img_grid_pxs)
 	AWIMtag_dictionary['awim Grid Angles'] = grid_angs.tolist()
 	
-	grid_dirarcs, sphtri2 = awimlib.xyangs_to_dirarcs(AWIMtag_dictionary, grid_angs)
+	grid_dirarcs, sphtri2 = awimlib.xyangs_to_dirarcs(grid_angs, return_sphtri=True)
 	AWIMtag_dictionary['awim Grid Direction and Arc'] = grid_dirarcs.tolist()
+
+	AWIMtag_dictionary['awim Image Field of View Fraction'] = awimlib.get_image_area(AWIMtag_dictionary, sphtri2)
+
+	px_sizes_grid = awimlib.get_pixel_sizes(AWIMtag_dictionary, AWIMtag_dictionary['awim Grid Pixels'])
+	AWIMtag_dictionary['awim Grid Pixel Sizes'] = px_sizes_grid.tolist()
 
 	grid_azarts = awimlib.xyangs_to_azarts(AWIMtag_dictionary, grid_angs)
 	AWIMtag_dictionary['awim Grid Azimuth Artifae'] = grid_azarts.tolist()
@@ -421,9 +426,6 @@ def generate_tag_from_exif_plus_misc(image_path, cam_AWIMtag_dictionary, photosh
 
 	image_moment = AWIMtag_dictionary['awim Capture Moment']
 	image_location = AWIMtag_dictionary['awim Location Coordinates']
-
-	px_sizes = awimlib.get_pixel_sizes(AWIMtag_dictionary, AWIMtag_dictionary['awim Grid Pixels'])
-	AWIMtag_dictionary['awim Grid Pixel Sizes'] = px_sizes
 
 	AWIMtag_dictionary = formatters.round_AWIMtag(AWIMtag_dictionary)
 
