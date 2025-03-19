@@ -34,6 +34,7 @@ async def celestialinphoto(request: Request):
     except:
         print('some error on the post request attempt')
 
+    # todonext: send the response dictionaries
     response_dict = clockactions.get_celestialinphoto(request_dict['awim'], request_dict['momentsarray'], request_dict['elevation'], request_dict['requestlist'])
     response_dict_json = json.dumps(response_dict) # TODO: maybe use orjson at some point? because faster
 

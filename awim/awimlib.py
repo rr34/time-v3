@@ -126,8 +126,16 @@ def _sphtri_solve(a=False, b=False, c=False, A=False, B=False, C=False):
     return sph_tri
 
 
-# conversions among azarts, xyangs, pixels
-# need to use Figure 1 for all of these.
+# Index of functions:
+# pxs_to_xyangs
+# xyangs_to_dirarcs
+# dirarcs_to_azarts TODO
+# xyangs_to_azarts TODO maybe eliminate because of dirarcs
+# azarts_to_dirarcs TODO
+# azarts_to_xyangs TODO maybe eliminate because of dirarcs
+# xyangs_inimage
+# xyangs_to_pxs
+# Figure 1 for all of these. TODO make variables match figure.
 def pxs_to_xyangs(AWIMtag_dictionary, pxs, imgsize_correction=False):
     if isinstance(imgsize_correction, (list, tuple)):
         imgsize_tag = AWIMtag_dictionary['awim Ref Image Size in Pixels']
@@ -171,17 +179,6 @@ def pxs_to_xyangs(AWIMtag_dictionary, pxs, imgsize_correction=False):
     return xyangs
 
 
-# xang sign matches the pxarc sign
-# yang sign matches the PXDIRECTION sign (and yang_arc sign)
-# xyangs[:,0] are the xangs and can be -90 to 90
-# xyangs[:,1] are the yangs and can be -180 to 180
-# spherical triangle 2 parts are:
-# a is pxarc
-# b is xangs. xangs are arcs
-# c is yang_arc
-# A is 90 degrees
-# B is useful to find the area of the image on the unit sphere
-# C is PXDIRECTION
 def xyangs_to_dirarcs(xyangs, return_sphtri=False):
     xyangs = np.asarray(xyangs)
     input_shape = xyangs.shape
@@ -194,6 +191,17 @@ def xyangs_to_dirarcs(xyangs, return_sphtri=False):
     xyangs *= math.pi/180
 
     # see photoshop Figure 1 for variable names
+    # xyangs[:,0] are the xangs and can be -90 to 90
+    # xang sign matches the pxarc sign
+    # xyangs[:,1] are the yangs and can be -180 to 180
+    # yang sign matches the PXDIRECTION sign (and yang_arc sign)
+    # spherical triangle 2 parts are:
+    # a is pxarc
+    # b is xangs. xangs are arcs
+    # c is yang_arc
+    # A is 90 degrees
+    # B is useful to find the area of the image on the unit sphere
+    # C is PXDIRECTION
     xang_compliment = np.subtract(math.pi/2, xyangs[:,0]) # always (+) because xang < 90
     r2 = 1*np.sin(xang_compliment) # always (+), correct here because pt2 = pt1 and is on the surface of the unit sphere
     art_seg_ = np.multiply(np.sin(xyangs[:,1]), r2) # (-) for (-) yangs
@@ -217,13 +225,16 @@ def xyangs_to_dirarcs(xyangs, return_sphtri=False):
         return px_dirarc, sph_solved
 
 
+def dirarcs_to_azarts():
+    pass
+
+
 def xyangs_to_azarts(AWIMtag_dictionary, xyangs, ref_azart_override=False):
     xyangs = np.asarray(xyangs)
-
     input_shape = xyangs.shape
-    angs_direction = np.where(xyangs < 0, -1, 1)
     xyangs = xyangs.reshape(-1,2)
-    angs_direction = angs_direction.reshape(-1,2)
+    angs_direction = np.where(xyangs < 0, -1, 1)
+
     xyangs[:,0] = np.abs(xyangs[:,0])
     xyangs *= math.pi/180
     if isinstance(ref_azart_override, (list, tuple, np.ndarray)): # This gives the option to use the awim tag of a photo and point the photo in any direction.
@@ -250,6 +261,10 @@ def xyangs_to_azarts(AWIMtag_dictionary, xyangs, ref_azart_override=False):
     azarts = azarts.reshape(input_shape)
 
     return azarts
+
+
+def azarts_to_dirarcs():
+    pass
 
 
 def azarts_to_xyangs(AWIMtag_dictionary, azarts):
@@ -302,29 +317,28 @@ def azarts_to_xyangs(AWIMtag_dictionary, azarts):
 
 
 def xyangs_inimage(AWIMtag_dictionary, xyangs, padding_percent=0):
-    # todonext: also, do the xyangs range from -180 to 180 and make sense through the entire range? xyangs should be usable independent of the image to know where an object is relative to the user looking in reference direction
     xyangs = np.asarray(xyangs)
-
     input_shape = xyangs.shape
     xyangs = xyangs.reshape(-1,2)
 
     grid_angles = np.asarray(AWIMtag_dictionary['awim Grid Angles']).reshape(-1,2)
-    yang_up = np.min(grid_angles[:,1])
-    yang_down = np.max(grid_angles[:,1])
+    yang_up = np.max(grid_angles[:,1])
+    yang_down = np.min(grid_angles[:,1])
     xang_left = np.min(grid_angles[:,0])
     xang_right = np.max(grid_angles[:,0])
 
     pad = (padding_percent + 100) / 100
     inimage_array = np.empty(xyangs.shape[0], dtype=bool)
-    inimage_array = np.where(np.logical_and(xyangs[:,1] > yang_up*pad, xyangs[:,1] < yang_down*pad), True, False)
+    inimage_array = np.where(np.logical_and(xyangs[:,1] < yang_up*pad, xyangs[:,1] > yang_down*pad), True, False)
     inimage_array = np.where(np.logical_and(inimage_array, np.logical_and(xyangs[:,0] > xang_left*pad, xyangs[:,0] < xang_right*pad)), True, False)
+
+    inimage_array.reshape(input_shape)
 
     return inimage_array
 
 
 def xyangs_to_pxs(AWIMtag_dictionary, xyangs):
     xyangs = np.asarray(xyangs)
-
     input_shape = xyangs.shape
     xyangs = xyangs.reshape(-1,2)
 
@@ -357,14 +371,6 @@ def xyangs_to_pxs(AWIMtag_dictionary, xyangs):
     return pxs
 
 
-# See Figure 1 for spherical triangle definitions and variable names.
-# spherical triangle 3 parts are:
-# a is unknown and unused really, should be < xang at the bottom because the arcs are smaller farther away
-# b is yang_arc, which vertical at the center is yang
-# c is px_arc, which comes from the diarcs
-# A is PXDIRECTION_COMP
-# B is useful to find the area of the image on the unit sphere
-# C should be 90 degrees, but going to be treated as an unknown
 def get_image_area(AWIMtag_dictionary, grid_sphtri2):
     grid_xyangs = np.abs(np.asarray(AWIMtag_dictionary['awim Grid Angles']) * math.pi/180)
     grid_dirarcs = np.abs(np.asarray(AWIMtag_dictionary['awim Grid Direction and Arc']) * math.pi/180)
@@ -373,7 +379,16 @@ def get_image_area(AWIMtag_dictionary, grid_sphtri2):
     # 4 quandrants of triangles 2 and 3 CCW from upper right
     # 4 corners are at indices 0, 6, 42, 48
     # TBLR are at indices 3, 45, 21, 27
+    # See Figure 1 for spherical triangle definitions and variable names.
+    # spherical triangle 2 parts are a comment in the xyangs_to_dirarcs function
     sphtri2_array = np.abs(np.array([grid_sphtri2[6,:],grid_sphtri2[0,:],grid_sphtri2[42,:],grid_sphtri2[48,:]]))
+    # spherical triangle 3 parts are:
+    # a is unknown and unused really, should be < xang at the bottom because the arcs are smaller farther away
+    # b is yang_arc, which vertical at the center is yang
+    # c is px_arc, which comes from the diarcs
+    # A is PXDIRECTION_COMP
+    # B is useful to find the area of the image on the unit sphere
+    # C should be 90 degrees, but going to be treated as an unknown
     yang_arcs = np.array([grid_xyangs[3,1],grid_xyangs[3,1],grid_xyangs[45,1],grid_xyangs[45,1]])
     pxarcs = np.array([grid_dirarcs[6,1],grid_dirarcs[0,1],grid_dirarcs[42,1],grid_dirarcs[48,1]])
     PXDIRECTION_COMP = np.subtract(math.pi/2, sphtri2_array[:,5])

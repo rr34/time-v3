@@ -18,7 +18,7 @@ def get_events(location, elevation_msl, currenttime):
     return response_dict
 
 
-def get_celestialinphoto(awim_dict, momentsarray, elevation, requestlist):
+def get_celestialinphoto(awim_dict, momentsarray, elevation, requestlist, inimage_threshold=2):
     momentsarray = np.array([np.datetime64(moment) for moment in momentsarray])
     location = awim_dict['awim Location Coordinates']
     celestial_bodies = []
@@ -46,14 +46,26 @@ def get_celestialinphoto(awim_dict, momentsarray, elevation, requestlist):
     # bodies in the image dictionary generated here outside the awimlib functions because there is no commonality among the bodies in image for efficiency
     bodies_image_dict = {}
     padding_percent = 10
-    inimage_threshold = 2
     for key, value in bodies_astro_dict.items():
         body_azarts = value[:,3:5]
-        bodies_xyangs = awimlib.azarts_to_xyangs(awim_dict, body_azarts)
-        body_inimage = awimlib.xyangs_inimage(awim_dict, bodies_xyangs, padding_percent=padding_percent)
+        # azart_to_dirarc here?
+        body_xyangs = awimlib.azarts_to_xyangs(awim_dict, body_azarts) # with dirarc, xyangs are just an intermediary, but still necessary and still useful for determining if body is in image.
+        body_inimage = awimlib.xyangs_inimage(awim_dict, body_xyangs, padding_percent=padding_percent)
         if body_inimage.sum() >= inimage_threshold:
             print(key)
-            bodies_pxs = awimlib.xyangs_to_pxs(awim_dict, bodies_xyangs)
+            body_dirarcs = awimlib.xyangs_to_dirarcs(body_xyangs) # dirarcs are useful because possible to correct for tilt. Are they otherwise necessary?
+            body_pxs = awimlib.xyangs_to_pxs(awim_dict, body_xyangs) # convert this calculation to dirarcs_to_pixels because more versatile and can implement tilt.
+            # For all bodies:
+            # 0: In the photo? True / False by moment
+            # 1: Pixel position x
+            # 2: Pixel position y
+            # 3: Distance in AU within solar system or light years outside - TODO for the stars because the catalogues do not include distances and it seems it's not always known very well? Currently setting to zero for the stars.
+            # Plus for sun and moon:
+            # 4: Azimuth just for interesting information and completeness to go with artifae
+            # 5: Artifae for information and for the sky color animation
+            # Plus for moon only:
+            # 6: Phase angle
+            # 7: Bright side direction
             if key not in ['sun', 'moon']:
                 body_data = np.zeros((momentsarray.size, 4))
             elif key == 'sun':
@@ -69,7 +81,7 @@ def get_celestialinphoto(awim_dict, momentsarray, elevation, requestlist):
                 body_data[:,7] = brightside_direction
 
             body_data[:,0] = body_inimage
-            body_data[:,1:3] = bodies_pxs
+            body_data[:,1:3] = body_pxs
             body_data[:,3] = value[:,2]
 
             bodies_image_dict[key] = body_data
