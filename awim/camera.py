@@ -357,24 +357,34 @@ def generate_tag_from_exif_plus_misc(image_path, cam_AWIMtag_dictionary, photosh
 	AWIMtag_dictionary['awim Pixels Model ypx_coeffs'] = cam_AWIMtag_dictionary['awim Pixels Model ypx_coeffs']
 
 	img_orientation = photoshoot_dictionary['Orientation']
-	azart_source = photoshoot_dictionary['AzSource']
+	az_source = photoshoot_dictionary['AzSource']
+	art_source = photoshoot_dictionary['ArtSource']
+	artifae_set_already = False
 
-	# AzArt option 1 ... of several
-	if azart_source == 'offset from reference':
-		artifae = photoshoot_dictionary['Artifae']
-		ref_az = photoshoot_dictionary['RefAz'] # this is the guess direction of the reference object, not of the photo direction
+	# Az option 1 ... of several
+	if az_source == 'offset from reference object':
+		source_str = 'Azimuth adjustment from reference using tripod readings.'
+		ref_az = photoshoot_dictionary['RefAz'] # this is the guess which reference object side used, not of the photo direction
 		obj_type = photoshoot_dictionary['ObjAzType']
-		# get a reference azimuth from an object or from shooting an azimuth between two points
-		if azart_source == 'two points':
+		obj_az = photoshoot_dictionary['ObjAz']
+		if obj_type == 'rectangle':
+			source_str += ' Reference was a rectangular object of known azimuth.'
+			obj_sides = 4
+		elif obj_type == 'line':
+			source_str += ' Reference was a line of known azimuth.'
+			obj_sides = 2
+		elif obj_type == 'triangle':
+			source_str += ' Reference was an equilateral triangle of known azimuth.'
+			obj_sides = 3
+		elif obj_type == 'pentagon':
+			source_str += ' Reference was an equilateral pentagon of known azimuth.'
+			obj_sides = 5
+		elif obj_type == 'lat long coordinates':
+			source_str += ' Reference was a line defined by two lat long coordinates.'
+			obj_sides = 2
 			latlng1 = photoshoot_dictionary['LatLongPt1']
 			latlng2 = photoshoot_dictionary['LatLongPt2']
-			obj_az = 'get azimuth from the two lat long coordinates'
-		elif azart_source != 'two points':
-			obj_az = photoshoot_dictionary['ObjAz']
-		if obj_type == 'rectangle':
-			obj_sides = 4
-		elif obj_type in ('halves', 'two points'):
-			obj_sides = 2
+			obj_az = 0.0 # TODO: get reference azimuth from two lat long coordinates
 		obj_az = awimlib.closest_to_x_sides(ref_az, obj_az, obj_sides) # adjusts object azimuth to the actual measured azimuth of the object using a close enough guess
 
 		# adjust the photo azimuth from the reference azimuth using tripod readings
@@ -388,11 +398,14 @@ def generate_tag_from_exif_plus_misc(image_path, cam_AWIMtag_dictionary, photosh
 			sign = 1
 		azimuth = obj_az + sign*angle_moved
 		azimuth = (azimuth + 360) % 360
-		azart = [azimuth, artifae]
-		AWIMtag_dictionary['awim Ref Pixel Azimuth Artifae'] = azart
-		AWIMtag_dictionary['awim Ref Pixel Azimuth Artifae Source'] = 'Adjustment from reference object using tripod readings.'
-	# AzArt option 2 ...
-	elif azart_source == 'option 2, celestial object':
+	# Az option 2 ... TODO
+	elif az_source == 'celestial object in photo':
+		source_str = 'Azimuth from celestial object in photo.' # TODO name the celestial object in this string.
+		azimuth = 0.0
+		if art_source == 'celestial object in photo':
+			source_str += ' Artifae also from same celestial object in photo.'
+			artifae = 0.0
+			artifae_set_already = True
 		# if AWIMtag_dictionary['awim Azimuth Artifae Source'] == 'from known px':
 		# 	if isinstance(known_px_azart, str):
 		# 		ref_azart_source = 'From celestial object in photo: ' + known_px_azart
@@ -402,6 +415,14 @@ def generate_tag_from_exif_plus_misc(image_path, cam_AWIMtag_dictionary, photosh
 		# AWIMtag_dictionary['awim Ref Pixel Azimuth Artifae'] = ref_azart.round(round_digits['degrees'])
 		# AWIMtag_dictionary['awim Ref Pixel Azimuth Artifae Source'] = ref_azart_source
 		pass
+
+	if not artifae_set_already and art_source == 'direct from user':
+		artifae = photoshoot_dictionary['Artifae']
+		source_str += ' Artifae direct from user measurement.'
+
+	azart = [azimuth, artifae]
+	AWIMtag_dictionary['awim Ref Pixel Azimuth Artifae'] = azart
+	AWIMtag_dictionary['awim Ref Pixel Azimuth Artifae Source'] = source_str
 
 	# get grid angles, azimuth artifae, RA Dec. Grid pixels from above. Unless cropped, should be the same as the camera
 	AWIMtag_dictionary['awim Grid Pixels'] = img_grid_pxs.tolist()
