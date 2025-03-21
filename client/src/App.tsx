@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import ClockStrings from "./components/ClockStrings";
 
 import ClockScreen from './components/ClockScreen';
-import imageAWIM from './assets/clock_images/timhouse20220410 - NL100550.json';
+import imageAWIM from './assets/clock_images/timhouse20220410 - NL100550.json'; // todonext: this needs to be moved to the backend with the images so the images can be selected dynamically by the server.
 
 export interface ClockTimeObj {
   currenttime: Date;
@@ -92,7 +92,7 @@ function App() {
       const requestOptions = {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ awim: imageAWIM, momentsarray: NowMoments, elevation: clockMSL, requestlist: ['stars', 'sun', 'moon', 'planets'] })
+          body: JSON.stringify({ awim: imageAWIM, momentsarray: NowMoments, elevation: clockMSL, requestlist: ['stars', 'sun', 'moon', 'planets'], returnastro: 'true' })
       };
       fetch('http://localhost:8000/celestialinphoto', requestOptions)
           .then(response => {
