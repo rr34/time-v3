@@ -295,3 +295,14 @@ def format_GPS_latlng(exif_dict):
         GPS_alt = float(GPS_alt_rational[0]) / float(GPS_alt_rational[1]) * GPS_alt_sign
 
     return GPS_latlng, GPS_alt
+
+
+def dict_arrays_tolists(array_dict):
+    output_dict = {}
+    for key, value in array_dict.items():
+        if isinstance(value, np.ndarray):
+            output_dict[key] = value.transpose().tolist() # transpose gives lists of same data that progress by moment.
+        else:
+            output_dict[key] = value
+    
+    return output_dict

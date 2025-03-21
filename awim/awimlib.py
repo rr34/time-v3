@@ -317,9 +317,7 @@ def azarts_to_xyangs(AWIMtag_dictionary, azarts):
 
 
 def xyangs_inimage(AWIMtag_dictionary, xyangs, padding_percent=0):
-    xyangs = np.asarray(xyangs)
-    input_shape = xyangs.shape
-    xyangs = xyangs.reshape(-1,2)
+    xyangs = np.asarray(xyangs).reshape(-1,2)
 
     grid_angles = np.asarray(AWIMtag_dictionary['awim Grid Angles']).reshape(-1,2)
     yang_up = np.max(grid_angles[:,1])
@@ -331,8 +329,6 @@ def xyangs_inimage(AWIMtag_dictionary, xyangs, padding_percent=0):
     inimage_array = np.empty(xyangs.shape[0], dtype=bool)
     inimage_array = np.where(np.logical_and(xyangs[:,1] < yang_up*pad, xyangs[:,1] > yang_down*pad), True, False)
     inimage_array = np.where(np.logical_and(inimage_array, np.logical_and(xyangs[:,0] > xang_left*pad, xyangs[:,0] < xang_right*pad)), True, False)
-
-    inimage_array.reshape(input_shape)
 
     return inimage_array
 
@@ -365,6 +361,7 @@ def xyangs_to_pxs(AWIMtag_dictionary, xyangs):
     pxs[:,1] = np.dot(xyangs_poly, y_px_predict_coeff)
 
     pxs = np.multiply(pxs, xyangs_direction)
+    # todonext: convert this to all-positive pixel values (new function?) based on the AWIMtag dimensions since negative pixel values are not a convention anywhere
 
     pxs = pxs.reshape(input_shape)
 

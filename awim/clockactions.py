@@ -45,7 +45,7 @@ def get_celestialinphoto(awim_dict, momentsarray, elevation, requestlist, inimag
 
     # bodies in the image dictionary generated here outside the awimlib functions because there is no commonality among the bodies in image for efficiency
     bodies_image_dict = {}
-    padding_percent = 10
+    padding_percent = 5
     for key, value in bodies_astro_dict.items():
         body_azarts = value[:,3:5]
         # azart_to_dirarc here?
@@ -88,6 +88,9 @@ def get_celestialinphoto(awim_dict, momentsarray, elevation, requestlist, inimag
     
     bodies_total = len(bodies_astro_dict)
     bodiescount_inimage = len(bodies_image_dict)
-    print(f'Total bodies: {bodies_total}. Bodies in image during period: {bodiescount_inimage}. Percent in image: {bodiescount_inimage/bodies_total * 100}')
+    print(f'{bodies_total} total bodies, {bodiescount_inimage} bodies in image during period, so {round(bodiescount_inimage/bodies_total * 100, 2)} percent of total passed through image during period.')
 
-    return bodies_astro_dict, bodies_image_dict
+    bodies_astro_dict_lists = formatters.dict_arrays_tolists(bodies_astro_dict)
+    bodies_image_dict_lists = formatters.dict_arrays_tolists(bodies_image_dict)
+
+    return bodies_astro_dict_lists, bodies_image_dict_lists

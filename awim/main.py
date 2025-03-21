@@ -34,8 +34,12 @@ async def celestialinphoto(request: Request):
     except:
         print('some error on the post request attempt')
 
-    # todonext: send the response dictionaries
-    response_dict = clockactions.get_celestialinphoto(request_dict['awim'], request_dict['momentsarray'], request_dict['elevation'], request_dict['requestlist'])
+    astro_dict, bodies_inimage_dict = clockactions.get_celestialinphoto(request_dict['awim'], request_dict['momentsarray'], request_dict['elevation'], request_dict['requestlist'])
+
+    if request_dict['returnastro'] == 'true':
+        response_dict = {'astro dict': astro_dict, 'bodies in image dict': bodies_inimage_dict}
+    elif request_dict['returnastro'] == 'false':
+        response_dict = {'bodies in image dict': bodies_inimage_dict}
     response_dict_json = json.dumps(response_dict) # TODO: maybe use orjson at some point? because faster
 
     return response_dict_json
