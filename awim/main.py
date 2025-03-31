@@ -1,10 +1,12 @@
 import uvicorn
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from dotenv import load_dotenv
 import json
 import clockactions
 
 app = FastAPI()
+load_dotenv('.env')
 
 origins = ["*"]
 app.add_middleware(
