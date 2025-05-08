@@ -11,7 +11,7 @@ node_modules
 dist
 dist-ssr
 *.local
-api/src/public/clock_images
+api/src/public/clockimages
 
 # Editor directories and files
 .vscode/*

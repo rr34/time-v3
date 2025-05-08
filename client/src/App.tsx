@@ -24,8 +24,8 @@ function App() {
   const [selectedScreen, setSelectedScreen] = useState<'screen' | 'strings'>('strings');
 
   // initialize location variables
-  const clockLatLong = [40.229,-83.2092];
-  const clockMSL = 280;
+  const clockLatLong: number[] = [40.229,-83.2092];
+  const clockMSL: number = 280;
 
   // initialize time state object
   const addhours = 0;

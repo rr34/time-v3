@@ -33,9 +33,7 @@ interface ClockStringsProps {
     setcto: React.Dispatch<React.SetStateAction<{ currenttime: Date; sunindex: number }>>;
     deo: DailyEventsObj;
 }
-
-
-const ClockStrings: React.FC<ClockStringsProps> = ({ cto, setcto, deo }) => {
+const ClockStrings = ({ cto, setcto, deo }: ClockStringsProps) => {
     // update the clock strings every second. todo: fix this because it causes the entire app to reload twice every second when it fires.
     useEffect(() => {
         const intervalID = setInterval(() => {
