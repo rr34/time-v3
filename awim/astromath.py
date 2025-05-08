@@ -185,19 +185,23 @@ def calculate_astro_data(moments, earth_latlng, celestial_objects_list):
     img_astropy_location = EarthLocation(lat=earth_latlng[0]*u.deg, lon=earth_latlng[1]*u.deg) # can be outside loop because photos are near each other and using same latlng for all
     img_astropy_times = Time(moments)
     img_astropy_altazframes = AltAz(obstime=img_astropy_times, location=img_astropy_location)
-    bodies = ['moon', 'mercury', 'venus', 'mars', 'jupiter', 'saturn', 'uranus', 'neptune']
+    solar_system = ['moon', 'mercury', 'venus', 'mars', 'jupiter', 'saturn', 'uranus', 'neptune']
     # TODO? With long lists of stars like I usually have, this would be more efficient doing ~20 moment iterations, each with a large array of star RA, Dec rather than 500+ star iterations, each with a small array of moments.
     for celestial_object in celestial_objects_list:
         if isinstance(celestial_object, str):
+            response_key = celestial_object
             if celestial_object == 'sun':
                 object_SkyCoords = get_sun(img_astropy_times)
                 object_type = 'sun'
-            elif any(str in celestial_object for str in bodies):
+            elif any(str in celestial_object for str in solar_system):
                 object_SkyCoords = get_body(celestial_object, img_astropy_times)
                 object_type = 'planet or moon'
         elif isinstance(celestial_object, tuple):
+            response_key = celestial_object[0]
             object_SkyCoords = SkyCoord(ra=celestial_object[1]*u.deg, dec=celestial_object[2]*u.deg)
             object_type = 'star'
+        print('Calculating astro data for: ' + response_key)
+
 
         object_AltAzs = object_SkyCoords.transform_to(img_astropy_altazframes)
 
@@ -217,12 +221,6 @@ def calculate_astro_data(moments, earth_latlng, celestial_objects_list):
         astro_data[:,3] = celestial_object_azs
         astro_data[:,4] = celestial_object_arts
 
-        if isinstance(celestial_object, str):
-            response_key = celestial_object
-        elif isinstance(celestial_object, tuple):
-            response_key = celestial_object[0]
-
-        print(response_key)
         celestial_objs_dictionary[response_key] = astro_data
     
     return celestial_objs_dictionary

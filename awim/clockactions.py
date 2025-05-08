@@ -18,9 +18,10 @@ def get_events(location, elevation_msl, currenttime):
     return response_dict
 
 
-def get_celestialinphoto(awim_dict, momentsarray, elevation, requestlist, inimage_threshold=2):
+def get_celestialinphoto(awim_dict, momentsarray, requestlist, inimage_threshold=2, padding_percent = 5):
     momentsarray = np.array([np.datetime64(moment) for moment in momentsarray])
     location = awim_dict['awim Location Coordinates']
+    elevation = awim_dict['awim Location Terrain Elevation'] + awim_dict['awim Location AGL'] # this should be only if awim Location MSL is null, which it usually is but not always.
     celestial_bodies = []
     # The following loop just creates the expanded list of bodies. Within solar system just get a name because RA, Dec has to be calculated. Outside solar system (stars) are a tuple of name with the RA, Dec given.
     for request in requestlist:
@@ -45,14 +46,19 @@ def get_celestialinphoto(awim_dict, momentsarray, elevation, requestlist, inimag
 
     # bodies in the image dictionary generated here outside the awimlib functions because there is no commonality among the bodies in image for efficiency
     bodies_image_dict = {}
-    padding_percent = 5
+    
     for key, value in bodies_astro_dict.items():
+        print('Calculating position in image for: ' + key)
         body_azarts = value[:,3:5]
+        # if key == 'sun':
+        #     print('stop here')
+        if body_azarts[10,0] < 200:
+            print('stop here')
         # azart_to_dirarc here?
         body_xyangs = awimlib.azarts_to_xyangs(awim_dict, body_azarts) # with dirarc, xyangs are just an intermediary, but still necessary and still useful for determining if body is in image.
         body_inimage = awimlib.xyangs_inimage(awim_dict, body_xyangs, padding_percent=padding_percent)
         if body_inimage.sum() >= inimage_threshold:
-            print(key)
+            print(key + ' appears in the image.')
             body_dirarcs = awimlib.xyangs_to_dirarcs(body_xyangs) # dirarcs are useful because possible to correct for tilt. Are they otherwise necessary?
             body_pxs = awimlib.xyangs_to_pxs(awim_dict, body_xyangs) # convert this calculation to dirarcs_to_pixels because more versatile and can implement tilt.
             # For all bodies:

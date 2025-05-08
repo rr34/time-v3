@@ -6,11 +6,11 @@ import json
 def sql_execute(text, user_input, result_type):
     try:
         conn = mariadb.connect(
-            user=os.getenv('MYSQL_USER')[0],
-            host=os.getenv('MYSQL_PASSWORD')[0],
-            password=os.getenv('MYSQL_PASSWORD')[0],
-            port=os.getenv('MYSQL_PORT')[0],
-            database=os.getenv('MYSQL_DATABASE')[0]
+            user=os.getenv('MYSQL_USER'),
+            host=os.getenv('MYSQL_HOST'),
+            password=os.getenv('MYSQL_PASSWORD'),
+            port=int(os.getenv('MYSQL_PORT')),
+            database=os.getenv('MYSQL_DATABASE')
         )
     except mariadb.Error as e:
         print(f"Error connecting to MariaDB platform: {e}")

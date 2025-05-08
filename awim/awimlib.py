@@ -91,17 +91,20 @@ def _sphtri_solve(a=False, b=False, c=False, A=False, B=False, C=False):
         if not isinstance(A, np.ndarray):
             A = A2
         else:
-            print(np.subtract(A2,A) * 180/math.pi)
+            # print('Should be all zeros or close to zero: ' + np.subtract(A2,A) * 180/math.pi)
+            pass
         B2 = np.acos(np.divide(np.subtract(np.cos(b),np.multiply(np.cos(a),np.cos(c))),np.multiply(np.sin(a),np.sin(c))))
         if not isinstance(B, np.ndarray):
             B = B2
         else:
-            print(np.subtract(B2,B) * 180/math.pi)
+            # print('Should be all zeros or close to zero: ' + np.subtract(B2,B) * 180/math.pi)
+            pass
         C2 = np.acos(np.divide(np.subtract(np.cos(c),np.multiply(np.cos(a),np.cos(b))),np.multiply(np.sin(a),np.sin(b))))
         if not isinstance(C, np.ndarray):
             C = C2
         else:
-            print(np.subtract(C2,C) * 180/math.pi)
+            # print('Should be all zeros or close to zero: ' + np.subtract(C2,C) * 180/math.pi)
+            pass
         sph_tri = np.array([a, b, c, A, B, C]).transpose()
 
     # SAS: b, c, A are known.
@@ -361,7 +364,7 @@ def xyangs_to_pxs(AWIMtag_dictionary, xyangs):
     pxs[:,1] = np.dot(xyangs_poly, y_px_predict_coeff)
 
     pxs = np.multiply(pxs, xyangs_direction)
-    # todonext: convert this to all-positive pixel values (new function?) based on the AWIMtag dimensions since negative pixel values are not a convention anywhere
+    # TODO: convert this to all-positive pixel values (new function?) based on the AWIMtag dimensions since negative pixel values are not a convention anywhere
 
     pxs = pxs.reshape(input_shape)
 

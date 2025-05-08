@@ -26,7 +26,7 @@ WHERE ShootID = ? ;
 def get_stars():
     qms_tuple = False
     results = DBfunctions.sql_execute("""
-SELECT bsc.Readablename, bsc.ConstellationFullName , bsc.GreekLetter , bsc.RA, bsc.Declination , bsc.VisualMagnitude , bsc.HarvardRevised
+SELECT bsc.Readablename, bsc.ConstellationFullName , bsc.GreekLetter , bsc.RA*15, bsc.Declination , bsc.VisualMagnitude , bsc.HarvardRevised
 from bright_star_catalogue bsc
 where bsc.VisualMagnitude < 4
 or bsc.GreekLetterSort = 1

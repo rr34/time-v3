@@ -48,6 +48,33 @@ This function is not really necessary, but useful to visualize the metadata of a
 
 - There is so much to do to go from recording the direction of a RAW image on paper to animating the movement of Earth using the data. What is first?
 
+# Functions Map by Entry Points
+## @app.post('/getevents')
+- clockactions.get_events(location, elevation_msl, currenttime)
+	- astromath.calculate_astro_risesandsets(earth_latlng, moment_now, elevation=0)
+	- astromath.calculate_astro_newfullmoon(moment_now, discretize=150)
+Returns dictionary with sun and moon daily event times plus moon phase event times. All data are moments in time except the moon phase angles at new and full moon.
+
+## @app.post('/celestialinphoto')
+- clockactions.get_celestialinphoto(awim_dict, momentsarray, requestlist, inimage_threshold=2, padding_percent = 5)
+	- expands 'sun', 'moon', 'planets', 'stars' to a list of each celestial body. Contacts DB to expand the stars based on fixed SQL statement.
+	- then calls astromath.calculate_astro_data(moments, earth_latlng, celestial_objects_list)
+		- independent of the photo to give astro data for the celestial bodies
+		- loops over the celestial bodies list and returns celestial bodies dictionary, which has astro data for each celestial body in the list
+	- then loops over the celestial bodies dictionary calling
+		- awimlib.azarts_to_xyangs
+		- awimlib.xyangs_inimage
+		and only if the body appears in the image over the moments array period, calls
+		- awimlib.xyangs_to_dirarcs
+		- awimlib.xyangs_to_pxs
+		- astromath.calculate_astro_moonphaseangle
+		- astromath.calculate_astro_moon_brightsidedirection
+Returns dictionary of astro data that is independent of the image
+Returns also dictionary of bodies that appear in the image over the period along with where in the image.
+Does not include AzArt except for the sun and moon because AzArt is mostly useful to determine the location in the image anyway.
+Includes phase angle and bright side direction for the moon because unlike other bodies, the moon looks different in the sky depending on when.
+
+
 # Metadata Lists
 ## Metadata Sources
 - XMP text files of XML
@@ -94,7 +121,7 @@ Lightroom time lapse functions:
  
 2.
 - interpolate between keyframes
-- write keywords kfstart, kfmid, kfend, flagged, night, day, civiltwilight, nauticaltwilight, astronomicaltwilight, sunset, sunrise, moonset, moonrise
+- write keywords kfstart, kfmid, kfend, flagged, night, day, civiltwilight, nauticaltwilight, astronomicaltwilight, sunset, sunrise, moonset,  rise
 - 
  
 3.

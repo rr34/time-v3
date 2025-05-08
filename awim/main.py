@@ -11,9 +11,9 @@ load_dotenv('.env')
 origins = ["*"]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["http://127.0.0.1:5173"],
     allow_credentials=True,
-    allow_methods=["POST", "GET"],
+    allow_methods=["*"],
     allow_headers=["*"],
 )
 
@@ -36,7 +36,7 @@ async def celestialinphoto(request: Request):
     except:
         print('some error on the post request attempt')
 
-    astro_dict, bodies_inimage_dict = clockactions.get_celestialinphoto(request_dict['awim'], request_dict['momentsarray'], request_dict['elevation'], request_dict['requestlist'])
+    astro_dict, bodies_inimage_dict = clockactions.get_celestialinphoto(request_dict['awim'], request_dict['momentsarray'], request_dict['requestlist'])
 
     if request_dict['returnastro'] == 'true':
         response_dict = {'astro dict': astro_dict, 'bodies in image dict': bodies_inimage_dict}
