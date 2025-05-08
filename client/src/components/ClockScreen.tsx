@@ -9,7 +9,9 @@ interface ClockScreenProps {
 function ClockScreen({ NowMoments }: ClockScreenProps) {
   const [imageSrc, setImageSrc] = useState<string>("");
   const [metadata, setMetadata] = useState<any>(null);
+  const [astroData, setAstroData] = useState<any>(null);
 
+  // Fetch image + metadata
   useEffect(() => {
     const fetchImageAndMetadata = async () => {
       try {
@@ -17,32 +19,43 @@ function ClockScreen({ NowMoments }: ClockScreenProps) {
         const data = await response.json();
 
         const imageUrl = `http://localhost:5000${data.imageUrl}`;
-        const metadata = data.metadata;
-
         setImageSrc(imageUrl);
-        setMetadata(metadata);
-
-        const requestOptions = {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            awim: metadata, // sending the object, not URL
-            momentsarray: NowMoments,
-            requestlist: ["stars", "sun", "moon", "planets"],
-            returnastro: "true",
-          }),
-        };
-
-        const astroResponse = await fetch("http://localhost:8000/celestialinphoto", requestOptions);
-        const astroData = await astroResponse.json();
-        // Optionally: setCelestialBodies(astroData);
+        setMetadata(data.metadata);
       } catch (error) {
-        console.error("Error fetching image or celestial data:", error);
+        console.error("Error fetching image or metadata:", error);
       }
     };
 
     fetchImageAndMetadata();
-  }, [NowMoments]);
+  }, []);
+
+  // Fetch celestial data (dependent on metadata and NowMoments)
+  useEffect(() => {
+    const fetchCelestialData = async () => {
+      if (!metadata) return;
+
+      try {
+        const response = await fetch("http://localhost:8000/celestialinphoto", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            awim: metadata,
+            momentsarray: NowMoments,
+            requestlist: ["stars", "sun", "moon", "planets"],
+            returnastro: "true",
+          }),
+        });
+
+        const data = await response.json();
+        console.log(data) // todonext: use this data to place celestial objects in the image.
+        setAstroData(data); // optional
+      } catch (error) {
+        console.error("Error fetching celestial data:", error);
+      }
+    };
+
+    fetchCelestialData();
+  }, [metadata, NowMoments]);
 
   return (
     <>

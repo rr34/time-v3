@@ -103,7 +103,7 @@ function App() {
       {
         selectedScreen === 'strings' ?
         (<ClockStrings cto={ClockTimeObj} setcto={setClockTimeObj} deo={DailyEventsObj} />) :
-        (<ClockScreen />)
+        (<ClockScreen NowMoments={NowMoments}/>)
       }
     </>
   );
