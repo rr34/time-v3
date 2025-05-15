@@ -1,6 +1,8 @@
 function ClockImage() {
+    const imageUrl = `${import.meta.env.VITE_FRONTEND_URL}/clock_images/timhouse20220410 - NL100541.PNG`;
+
     return (
-        <img src='http://localhost:5000/clock_images/timhouse20220410 - NL100541.PNG' className='clock-image' ></img>
+        <img src={imageUrl} className='clock-image' alt="Clock" />
     );
 }
 

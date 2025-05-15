@@ -7,6 +7,7 @@ interface ClockScreenProps {
 }
 
 function ClockScreen({ NowMoments }: ClockScreenProps) {
+  const AWIM_URL = import.meta.env.VITE_AWIM_URL;
   const [imageSrc, setImageSrc] = useState<string>("");
   const [metadata, setMetadata] = useState<any>(null);
   const [astroData, setAstroData] = useState<any>(null);
@@ -15,10 +16,10 @@ function ClockScreen({ NowMoments }: ClockScreenProps) {
   useEffect(() => {
     const fetchImageAndMetadata = async () => {
       try {
-        const response = await fetch("http://localhost:5000/clockimage");
+        const response = await fetch(`${import.meta.env.VITE_FRONTEND_URL}/clockimage`);
         const data = await response.json();
 
-        const imageUrl = `http://localhost:5000${data.imageUrl}`;
+        const imageUrl = `${import.meta.env.VITE_FRONTEND_URL}${data.imageUrl}`;
         setImageSrc(imageUrl);
         setMetadata(data.metadata);
       } catch (error) {
@@ -35,7 +36,7 @@ function ClockScreen({ NowMoments }: ClockScreenProps) {
       if (!metadata) return;
 
       try {
-        const response = await fetch("http://localhost:8000/celestialinphoto", {
+        const response = await fetch(`${import.meta.env.VITE_AWIM_URL}/celestialinphoto`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({

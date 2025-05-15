@@ -1,18 +1,25 @@
-const express = require("express");
-const cors = require("cors");
-const dotenv = require("dotenv");
-const path = require("path");
-const fs = require("fs");
+import express from "express";
+import cors from "cors";
+import dotenv from "dotenv";
+import path from "path";
+import { fileURLToPath } from "url";
+import fs from "fs";
 
-dotenv.config();
+// Load environment variables
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+dotenv.config({ path: path.join(__dirname, '.env') });
 
 const app = express();
+
 const PORT = process.env.PORT || 5000;
+const CLIENT_IP = process.env.CLIENT_IP;
+console.log("CLIENT_IP env variable is: ", CLIENT_IP)
 
 // Enable CORS with specific origins
 app.use(
   cors({
-    origin: "http://127.0.0.1:5173", // Allow Vite React frontend default port
+    origin: CLIENT_IP, // Allow Vite React frontend default port
     methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
@@ -23,7 +30,7 @@ app.use(
 app.use(
   "/clockimages",
   (req, res, next) => {
-    res.setHeader("Access-Control-Allow-Origin", "http://127.0.0.1:5173");
+    res.setHeader("Access-Control-Allow-Origin", CLIENT_IP);
     res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
     next();
   },
@@ -55,6 +62,6 @@ app.get("/clockimage", (req, res) => {
 });
 
 // Start server
-app.listen(PORT, () => {
+app.listen(PORT, "127.0.0.1", () => {
   console.log(`🚀 Server is running on http://localhost:${PORT}`);
 });
