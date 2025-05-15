@@ -160,7 +160,7 @@ def parse_brightstar_text():
         brightstar_str = text_file.read()
     brightstars_df = formatters.brightstar_text_to_dataframe(brightstar_str)
 
-    save_path = os.path.join(workingpath, 'V_50 stars.csv')
+    save_path = os.path.join(workingpath, 'V_50 stars 2.csv')
     brightstars_df.to_csv(save_path, index=False)
 
     remarks_df = formatters.brightstar_remarks_to_dataframe(brightstar_str)

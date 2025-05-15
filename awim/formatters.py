@@ -219,9 +219,9 @@ def brightstar_text_to_dataframe(brightstar_text):
         except:
             SAO_number = 0
         try:
-            RA_hours = float(line[95:96])
-            RA_minutes = float(line[98:99])
-            RA_seconds = float(line[101:104])
+            RA_hours = float(line[94:96])
+            RA_minutes = float(line[97:99])
+            RA_seconds = float(line[100:104])
             RA = RA_hours + RA_minutes/60 + RA_seconds/3600
             Dec_sign = line[105]
             if Dec_sign == '+':

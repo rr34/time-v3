@@ -50,10 +50,6 @@ def get_celestialinphoto(awim_dict, momentsarray, requestlist, inimage_threshold
     for key, value in bodies_astro_dict.items():
         print('Calculating position in image for: ' + key)
         body_azarts = value[:,3:5]
-        # if key == 'sun':
-        #     print('stop here')
-        if body_azarts[10,0] < 200:
-            print('stop here')
         # azart_to_dirarc here?
         body_xyangs = awimlib.azarts_to_xyangs(awim_dict, body_azarts) # with dirarc, xyangs are just an intermediary, but still necessary and still useful for determining if body is in image.
         body_inimage = awimlib.xyangs_inimage(awim_dict, body_xyangs, padding_percent=padding_percent)
