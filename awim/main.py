@@ -3,7 +3,6 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 import os
-import json
 import clockactions
 
 app = FastAPI()
@@ -26,9 +25,8 @@ async def getevents(request: Request):
         print('some error on the post request attempt')
 
     response_dict = clockactions.get_events(request_dict['location'], request_dict['elevation'], request_dict['currenttime'])
-    response_dict_json = json.dumps(response_dict) # TODO: maybe use orjson at some point? because faster
 
-    return response_dict_json
+    return response_dict
 
 @app.post('/celestialinphoto')
 async def celestialinphoto(request: Request):
@@ -43,9 +41,8 @@ async def celestialinphoto(request: Request):
         response_dict = {'astro dict': astro_dict, 'bodies in image dict': bodies_inimage_dict}
     elif request_dict['returnastro'] == 'false':
         response_dict = {'bodies in image dict': bodies_inimage_dict}
-    response_dict_json = json.dumps(response_dict) # TODO: maybe use orjson at some point? because faster
 
-    return response_dict_json
+    return response_dict
 
 if __name__ == '__main__':
     uvicorn.run(app)
