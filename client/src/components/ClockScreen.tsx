@@ -48,9 +48,6 @@ function ClockScreen({ NowMoments }: ClockScreenProps) {
         });
 
         const data = await response.json();
-        console.log('raw data celestial in image', data)
-        console.log('astrodata celestial in image', data['astro dict'])
-        console.log('in image data celestial in image', data['bodies in image dict'])
         setAstroData(data['astro dict']);
         setBodiesInImage(data['bodies in image dict']);
       } catch (error) {
