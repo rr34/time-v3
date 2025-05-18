@@ -13,6 +13,7 @@ dist-ssr
 *.local
 api/src/public/clockimages
 api/src/.env
+client/.env
 
 # Editor directories and files
 .vscode/*

@@ -1,4 +1,9 @@
-function CelestialBodies() {
+export interface CelestialBodiesProps {
+    astroData: { [key: string]: number[][] };
+    bodiesInImage: { [key: string]: number[][] };
+}
+
+function CelestialBodies({astroData, bodiesInImage}: CelestialBodiesProps) {
     // console.log(imageAWIM['awim Angles Model xang_coeffs'])
     console.log('why do I keep loading this?')
     return (

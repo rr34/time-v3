@@ -7,10 +7,10 @@ interface ClockScreenProps {
 }
 
 function ClockScreen({ NowMoments }: ClockScreenProps) {
-  const AWIM_URL = import.meta.env.VITE_AWIM_URL;
   const [imageSrc, setImageSrc] = useState<string>("");
   const [metadata, setMetadata] = useState<any>(null);
-  const [astroData, setAstroData] = useState<any>(null);
+  const [astroData, setAstroData] = useState<number[][]|null>(null);
+  const [bodiesInImage, setBodiesInImage] = useState<number[][]|null>(null);
 
   // Fetch image + metadata
   useEffect(() => {
@@ -48,8 +48,11 @@ function ClockScreen({ NowMoments }: ClockScreenProps) {
         });
 
         const data = await response.json();
-        console.log(data) // todonext: use this data to place celestial objects in the image.
-        setAstroData(data); // optional
+        console.log('raw data celestial in image', data)
+        console.log('astrodata celestial in image', data['astro dict'])
+        console.log('in image data celestial in image', data['bodies in image dict'])
+        setAstroData(data['astro dict']);
+        setBodiesInImage(data['bodies in image dict']);
       } catch (error) {
         console.error("Error fetching celestial data:", error);
       }
@@ -61,7 +64,8 @@ function ClockScreen({ NowMoments }: ClockScreenProps) {
   return (
     <>
       {imageSrc && <img src={imageSrc} className="clock-image" alt="Clock" />}
-      <CelestialBodies />
+      {astroData && bodiesInImage ? (<CelestialBodies astroData={astroData} bodiesInImage={bodiesInImage} />) :
+      (<p>Loading celestial data...</p>)}
     </>
   );
 }

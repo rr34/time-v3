@@ -48,35 +48,48 @@ function App() {
   const [NowMoments, setNowMoments] = useState<string[]>(momentsarray);
 
   // todo: this is firing twice on initialization and making a duplicate request to the API
-  useEffect(() => {
+useEffect(() => {
+  const fetchDailyEvents = async () => {
+    try {
       const requestOptions = {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ location: clockLatLong, elevation: clockMSL, currenttime: ClockTimeObj.currenttime })
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ location: clockLatLong, elevation: clockMSL, currenttime: ClockTimeObj.currenttime }),
       };
-      fetch('http://localhost:8000/getevents', requestOptions)
-          .then(response => {
-            return response.json()
-          })
-          .then(data => {
-            const sundaily_strings: string[] = JSON.parse(data)['sundaily'];
-            const sundaily_dates: Date[] = [];
-            sundaily_strings.forEach(element => {
-              sundaily_dates.push(new Date(element));
-            });
-            
-            const moonDaily_strings: string[] = JSON.parse(data)['moondaily'];
-            const moondaily_dates: Date[] = [];
-            moonDaily_strings.forEach(element => {
-              moondaily_dates.push(new Date(element));
-            });
-            const newmoon_time: string = JSON.parse(data)['newmoon time'];
-            const newmoon_angle: number = Math.round(JSON.parse(data)['newmoon angle']*100) / 100;
-            const fullmoon_time: string = JSON.parse(data)['fullmoon time'];
-            const fullmoon_angle: number = Math.round(JSON.parse(data)['fullmoon angle']*100) / 100;
-            setDailyEventsObj({ sundaily: sundaily_dates, moondaily: moondaily_dates, nearestnew: new Date(newmoon_time), nearestnewangle: newmoon_angle, nearestfull: new Date(fullmoon_time), nearestfullangle: fullmoon_angle })
-          })
-  }, []);
+      const response = await fetch('http://localhost:8000/getevents', requestOptions);
+      const data = await response.json();
+      console.log('raw data: ', data)
+      console.log('raw data: ', data['sundaily'])
+      console.log('raw data: ', data['moondaily'])
+      console.log('raw data: ', data['newmoon time'])
+      
+      const sundaily_strings: string[] = data['sundaily'];
+      const sundaily_dates: Date[] = sundaily_strings.map(str => new Date(str));
+
+      const moondaily_strings: string[] = data['moondaily'];
+      const moondaily_dates: Date[] = moondaily_strings.map(str => new Date(str));
+
+      const newmoon_time: string = data['newmoon time'];
+      const newmoon_angle: number = Math.round(data['newmoon angle'] * 100) / 100;
+
+      const fullmoon_time: string = data['fullmoon time'];
+      const fullmoon_angle: number = Math.round(data['fullmoon angle'] * 100) / 100;
+
+      setDailyEventsObj({
+        sundaily: sundaily_dates,
+        moondaily: moondaily_dates,
+        nearestnew: new Date(newmoon_time),
+        nearestnewangle: newmoon_angle,
+        nearestfull: new Date(fullmoon_time),
+        nearestfullangle: fullmoon_angle,
+      });
+    } catch (error) {
+      console.error("Error fetching daily events:", error);
+    }
+  };
+
+  fetchDailyEvents();
+}, []);
 
   return (
     <>
