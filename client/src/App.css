@@ -25,6 +25,10 @@
   height: auto;
 }
 
+.clock-screen {
+  position: relative;
+}
+
 .clock-image {
   display: block;
   width: 100%;
@@ -33,10 +37,12 @@
 
 .celestial-bodies {
   position: absolute;
-  width: 100%;
-  height: auto;
+  /* width: 100%;
+  height: auto; */
   top: 0;
   left: 0;
+  z-index: 2;
+  pointer-events: none;
 }
 
 @keyframes logo-spin {
