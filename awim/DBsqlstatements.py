@@ -28,7 +28,7 @@ def get_stars():
     results = DBfunctions.sql_execute("""
 SELECT bsc.Readablename, bsc.ConstellationFullName , bsc.GreekLetter , bsc.RA*15, bsc.Declination , bsc.VisualMagnitude , bsc.HarvardRevised
 from bright_star_catalogue bsc
-where bsc.VisualMagnitude < 4
+where bsc.VisualMagnitude < 3
 or bsc.GreekLetterSort = 1
 order by bsc.VisualMagnitude ;
 """, qms_tuple, result_type='listtuples')

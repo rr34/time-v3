@@ -364,7 +364,10 @@ def xyangs_to_pxs(AWIMtag_dictionary, xyangs):
     pxs[:,1] = np.dot(xyangs_poly, y_px_predict_coeff)
 
     pxs = np.multiply(pxs, xyangs_direction)
-    # TODO: convert this to all-positive pixel values (new function?) based on the AWIMtag dimensions since negative pixel values are not a convention anywhere
+    # convert to all-positive pixel values (new function?) based on the AWIMtag dimensions since negative pixel values are not a convention anywhere
+    ref_image_size = AWIMtag_dictionary['awim Ref Image Size in Pixels']
+    pxs[:,0] = pxs[:,0] + ref_image_size[0] / 2
+    pxs[:,1] = pxs[:,1] * -1 + ref_image_size[1] / 2 # invert yang first so positive direction is down, then add half the image size to shift origin to top
 
     pxs = pxs.reshape(input_shape)
 
