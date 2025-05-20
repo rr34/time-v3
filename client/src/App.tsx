@@ -36,9 +36,9 @@ function App() {
   const [DailyEventsObj, setDailyEventsObj] = useState({ sundaily: [new Date()], moondaily: [new Date()], nearestnew: newdate, nearestnewangle: 0, nearestfull: newdate, nearestfullangle: 0 });
 
   // don't need the following until I start animating SVG
-  const momentscount: number = 16;
-  const stepminutes: number = 15;
-  const stepsbefore: number = 4;
+  const momentscount: number = 24;
+  const stepminutes: number = 30;
+  const stepsbefore: number = 12;
   const nowdate: number = Date.now();
   const momentsarray: string[] = [];
   for (let i=-stepsbefore; i<momentscount-stepsbefore; i++) { // generates times from an hour prior to CurrentTime until 4 hours after CurrentTime

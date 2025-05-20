@@ -44,7 +44,7 @@ app.get("/", (req, res) => {
 
 // Endpoint to get clock image and metadata
 app.get("/clockimage", (req, res) => {
-  const baseName = "timhouse20220410 - NL100550";
+  const baseName = "timhouse20220410 - NL100549";
   const imageFile = `${baseName}.PNG`;
   const jsonFile = `${baseName}.json`;
 

@@ -1,6 +1,4 @@
 import { useEffect, useState } from "react";
-// import ClockImage from "./ClockImage";
-import CelestialBodies from "./CelestialBodies";
 
 interface ClockScreenProps {
   NowMoments: string[];
@@ -8,41 +6,51 @@ interface ClockScreenProps {
 
 function ClockScreen({ NowMoments }: ClockScreenProps) {
   const [imageSrc, setImageSrc] = useState<string>("");
-  const [metadata, setMetadata] = useState<any>(null);
-  const [astroData, setAstroData] = useState<{ [key: string]: number[][] }|null>(null);
-  const [bodiesInImage, setBodiesInImage] = useState<{ [key: string]: number[][] }|null>(null);
-  const [refImageSize, setRefImageSize] = useState<number[]|null>(null);
+  const [AWIMdata, setAWIMdata] = useState<any>(null);
+  const [astroData, setAstroData] = useState<{ [key: string]: number[][] } | null>(null);
+  const [bodiesInImage, setBodiesInImage] = useState<{ [key: string]: number[][] } | null>(null);
+  const [refImageSize, setRefImageSize] = useState<[number, number] | null>(null);
+
+  const frameDuration = 2;
+  const totalFrames = NowMoments.length;
+  const totalDuration = frameDuration * totalFrames;
 
   // Fetch image + metadata
   useEffect(() => {
-    const fetchImageAndMetadata = async () => {
+    const fetchImageAndAWIMdata = async () => {
       try {
         const response = await fetch(`${import.meta.env.VITE_FRONTEND_URL}/clockimage`);
         const data = await response.json();
-
         const imageUrl = `${import.meta.env.VITE_FRONTEND_URL}${data.imageUrl}`;
+
         setImageSrc(imageUrl);
-        setMetadata(data.metadata);
-        setRefImageSize(data.metadata['awim Ref Image Size in Pixels'])
+        setAWIMdata(data.metadata);
+
+        const refSize = data.metadata['awim Ref Image Size in Pixels'];
+        if (Array.isArray(refSize) && refSize.length === 2) {
+          setRefImageSize([refSize[0], refSize[1]]);
+        } else {
+          console.error("Invalid ref image size format.");
+        }
       } catch (error) {
         console.error("Error fetching image or metadata:", error);
       }
     };
 
-    fetchImageAndMetadata();
+    fetchImageAndAWIMdata();
   }, []);
 
-  // Fetch celestial data (dependent on metadata and NowMoments)
+  // Fetch celestial body data
   useEffect(() => {
     const fetchCelestialData = async () => {
-      if (!metadata) return;
+      if (!AWIMdata) return;
 
       try {
         const response = await fetch(`${import.meta.env.VITE_AWIM_URL}/celestialinphoto`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            awim: metadata,
+            awim: AWIMdata,
             momentsarray: NowMoments,
             requestlist: ["stars", "sun", "moon", "planets"],
             returnastro: "true",
@@ -50,24 +58,81 @@ function ClockScreen({ NowMoments }: ClockScreenProps) {
         });
 
         const data = await response.json();
-        setAstroData(data['astro dict']);
-        setBodiesInImage(data['bodies in image dict']);
+        setAstroData(data["astro dict"]);
+        setBodiesInImage(data["bodies in image dict"]);
       } catch (error) {
         console.error("Error fetching celestial data:", error);
       }
     };
 
     fetchCelestialData();
-  }, [metadata, NowMoments]);
+  }, [AWIMdata, NowMoments]);
+
+  if (!refImageSize) return <p>Loading image and metadata...</p>;
+
+  const [refWidth, refHeight] = refImageSize;
 
   return (
-    <>
-      <div className="clock-screen">
-      {imageSrc && <img src={imageSrc} className="clock-image" alt="Clock" />}
-      {astroData && bodiesInImage && refImageSize? (<CelestialBodies astroData={astroData} bodiesInImage={bodiesInImage} refImageSize={refImageSize} />) :
-      (<p>Loading celestial data...</p>)}
-      </div>
-    </>
+    <div
+      className="aspect-container"
+      style={{
+        aspectRatio: `${refWidth} / ${refHeight}`,
+      }}
+    >
+      {imageSrc && (
+        <img src={imageSrc} className="clock-image" alt="Clock" />
+      )}
+
+      {astroData && bodiesInImage && (
+        <svg
+          className="celestial-overlay"
+          viewBox={`0 0 ${refWidth} ${refHeight}`}
+          preserveAspectRatio="xMidYMid meet"
+        >
+          {Object.entries(bodiesInImage).map(([bodyName, [visibleArr, xArr, yArr]], index) => {
+            if (visibleArr.every((v) => v === 0)) return null;
+
+            const pathId = `motionPath-${index}`;
+            const pathD = xArr
+              .map((x, i) => {
+                const y = yArr[i];
+                return i === 0 ? `M ${x},${y}` : `L ${x},${y}`;
+              })
+              .join(" ");
+
+            return (
+              <g key={bodyName}>
+                <path id={pathId} d={pathD} fill="none" stroke="none" />
+
+                <circle r="5" fill="white">
+                  <animateMotion dur={`${totalDuration}s`} repeatCount="indefinite">
+                    <mpath href={`#${pathId}`} />
+                  </animateMotion>
+<animate
+  attributeName="opacity"
+  values={visibleArr.join(";")}
+  dur={`${totalDuration}s`}
+  repeatCount="indefinite"
+  calcMode="discrete"
+/>
+                </circle>
+
+                <g>
+                  <g transform="translate(0, -20)"> {/* Move text 20px above path */}
+                    <text fill="white" fontSize="24" textAnchor="middle" dominantBaseline="middle">
+                      {bodyName}
+                    </text>
+                  </g>
+                  <animateMotion dur={`${totalDuration}s`} repeatCount="indefinite" rotate="auto">
+                    <mpath href={`#${pathId}`} />
+                  </animateMotion>
+                </g>
+              </g>
+            );
+          })}
+        </svg>
+      )}
+    </div>
   );
 }
 
