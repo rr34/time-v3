@@ -1,15 +1,13 @@
 # ToDo
-- todo: minimize data transmitted using standard array of single values for bodies with name, magnitude, etc.
 - todo: make brighter stars bigger
 - todo: planets, sun, moon different appearance
 - todo: cache astrodata
 - todo: transparent sky
 - todo: sky svg background that changes color
-- todo: foreground image
+- todo: foreground image separate
 - todo: parse bright star catalog (and send file to Aaron and Ahmed).
 - todo: animate moon phase.
 - todo: Standard glockenspiel animations.
-- todo: connect this app to the back-end awim to position the sun in the correct position based on time.
 - todo: front-end needs to be able to generate and work with transparency files to determine if objects are visible / above the horizon, etc. See awim_png_littleblur = awim_png.filter(filter=BoxBlur(pxs_per_minute*5)) and awim_png_bigblur = awim_png.filter(filter=BoxBlur(pxs_per_minute*17))
 # Coordinate Types
 - SkyCoords specific to object and moment for solar system objects. Once calculated, quickly convertable to RADec and AzArt. Can be created quickly for stars using known RADec.
