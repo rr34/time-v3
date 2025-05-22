@@ -34,7 +34,7 @@ def get_celestialinphoto(awim_dict, momentsarray, requestlist, inimage_threshold
             for planet in planetslist:
                 bodies_astro_dict[planet] = {'type': 'planet'}
         elif request == 'stars':
-            stars_tuples = DBsqlstatements.get_stars(magnitude=4)
+            stars_tuples = DBsqlstatements.get_stars(magnitude=5)
             for star in stars_tuples:
                 bodies_astro_dict['HR ' + str(star[0])] = {
                 'type': 'star',
@@ -56,7 +56,7 @@ def get_celestialinphoto(awim_dict, momentsarray, requestlist, inimage_threshold
     for key, value in bodies_astro_dict.items():
         print('Calculating position in image for: ' + key)
         # azart_to_dirarc here?
-        body_azarts = np.vstack((value['azimuths'], value['artifaes']))
+        body_azarts = np.column_stack((value['azimuths'], value['artifaes']))
         body_xyangs = awimlib.azarts_to_xyangs(awim_dict, body_azarts) # with dirarc, xyangs are just an intermediary, but still necessary and still useful for determining if body is in image.
         body_inimage = awimlib.xyangs_inimage(awim_dict, body_xyangs, padding_percent=padding_percent)
         if body_inimage.sum() >= inimage_threshold:
@@ -75,7 +75,7 @@ def get_celestialinphoto(awim_dict, momentsarray, requestlist, inimage_threshold
             if key == 'moon':
                 phase_angle = astromath.calculate_astro_moonphaseangle(momentsarray)
                 bodies_image_dict[key]['phaseangle'] = phase_angle
-                sun_azarts = np.vstack((bodies_astro_dict['sun']['azimuths'], bodies_astro_dict['sun']['artifaes']))
+                sun_azarts = np.column_stack((bodies_astro_dict['sun']['azimuths'], bodies_astro_dict['sun']['artifaes']))
                 brightside_direction = astromath.calculate_astro_moon_brightsidedirection(body_azarts, sun_azarts)
                 bodies_image_dict[key]['brightsidedirection'] = brightside_direction
     
