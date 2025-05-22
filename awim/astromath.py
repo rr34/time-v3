@@ -1,6 +1,7 @@
 from datetime import timezone
 import math
 import numpy as np
+import copy
 import astropy.units as u
 from astropy.time import Time
 from astropy.coordinates import SkyCoord, EarthLocation, AltAz, get_sun, get_body
@@ -180,50 +181,32 @@ def calculate_astro_moonphaseangle(moments):
 
 
 # dictionary of objects, get data for objects at moments, return dictionary
-def calculate_astro_data(moments, earth_latlng, celestial_objects_list):
-    celestial_objs_dictionary = {}
+def calculate_astro_data(moments, earth_latlng, celestial_objects_dict):
     img_astropy_location = EarthLocation(lat=earth_latlng[0]*u.deg, lon=earth_latlng[1]*u.deg) # can be outside loop because photos are near each other and using same latlng for all
     img_astropy_times = Time(moments)
     img_astropy_altazframes = AltAz(obstime=img_astropy_times, location=img_astropy_location)
-    solar_system = ['moon', 'mercury', 'venus', 'mars', 'jupiter', 'saturn', 'uranus', 'neptune']
     # TODO? With long lists of stars like I usually have, this would be more efficient doing ~20 moment iterations, each with a large array of star RA, Dec rather than 500+ star iterations, each with a small array of moments.
-    for celestial_object in celestial_objects_list:
-        if isinstance(celestial_object, str):
-            response_key = celestial_object
-            if celestial_object == 'sun':
-                object_SkyCoords = get_sun(img_astropy_times)
-                object_type = 'sun'
-            elif any(str in celestial_object for str in solar_system):
-                object_SkyCoords = get_body(celestial_object, img_astropy_times)
-                object_type = 'planet or moon'
-        elif isinstance(celestial_object, tuple):
-            response_key = celestial_object[0]
-            object_SkyCoords = SkyCoord(ra=celestial_object[1]*u.deg, dec=celestial_object[2]*u.deg)
-            object_type = 'star'
-        print('Calculating astro data for: ' + response_key)
-
+    # TODO: ChatGPT says there's a way to batch calculate the stars, which would be more efficient, but I didn't want to implement at the time.
+    response_dict = copy.deepcopy(celestial_objects_dict)
+    for key, value in celestial_objects_dict.items():
+        if value['type'] == 'sun':
+            object_SkyCoords = get_sun(img_astropy_times)
+        elif value['type'] in ['planet', 'moon']:
+            object_SkyCoords = get_body(key, img_astropy_times)
+        elif value['type'] == 'star':
+            object_SkyCoords = SkyCoord(ra=value['RA']*u.deg, dec=value['Declination']*u.deg)
+        print('Calculating astro data for: ' + key)
 
         object_AltAzs = object_SkyCoords.transform_to(img_astropy_altazframes)
 
-        celestial_object_azs = object_AltAzs.az.degree
-        celestial_object_arts = object_AltAzs.alt.degree
-        celestial_object_ras = object_SkyCoords.ra.degree
-        celestial_object_decs = object_SkyCoords.dec.degree
-        if object_type != 'star':
-            celestial_object_distances = object_SkyCoords.distance.au
-        else:
-            celestial_object_distances = np.zeros(moments.size)
+        response_dict[key]['azimuths'] = object_AltAzs.az.degree
+        response_dict[key]['artifaes'] = object_AltAzs.alt.degree
+        if value['type'] in ['sun', 'moon', 'planet']:
+            response_dict[key]['ras'] = object_SkyCoords.ra.degree
+            response_dict[key]['decs'] = object_SkyCoords.dec.degree
+            response_dict[key]['distances'] = object_SkyCoords.distance.au
 
-        astro_data = np.zeros((moments.size, 5))
-        astro_data[:,0] = celestial_object_ras
-        astro_data[:,1] = celestial_object_decs
-        astro_data[:,2] = celestial_object_distances
-        astro_data[:,3] = celestial_object_azs
-        astro_data[:,4] = celestial_object_arts
-
-        celestial_objs_dictionary[response_key] = astro_data
-    
-    return celestial_objs_dictionary
+    return response_dict
 
 
 # to display the moon partially illuminated I need the angle it appears to be illuminated.

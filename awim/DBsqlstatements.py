@@ -23,13 +23,15 @@ WHERE ShootID = ? ;
     return results
 
 
-def get_stars():
-    qms_tuple = False
+def get_stars(magnitude):
+    qms_tuple = (magnitude,)
     results = DBfunctions.sql_execute("""
-SELECT bsc.Readablename, bsc.ConstellationFullName , bsc.GreekLetter , bsc.RA*15, bsc.Declination , bsc.VisualMagnitude , bsc.HarvardRevised
-from bright_star_catalogue bsc
-where bsc.VisualMagnitude < 3
-or bsc.GreekLetterSort = 1
+SELECT bsc.HarvardRevised , bsc.RA*15 , bsc.Declination , bsc.VisualMagnitude , bsc.ConstellationFullName , bsc.MagRank , bsc.GreekLetter , bsc.ReadableName
+FROM bright_star_catalogue bsc
+WHERE bsc.VisualMagnitude < ?
+OR bsc.MagRank = 1
+AND RA IS NOT NULL
+AND Declination IS NOT NULL
 order by bsc.VisualMagnitude ;
 """, qms_tuple, result_type='listtuples')
 

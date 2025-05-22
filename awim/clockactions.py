@@ -22,71 +22,62 @@ def get_celestialinphoto(awim_dict, momentsarray, requestlist, inimage_threshold
     momentsarray = np.array([np.datetime64(moment) for moment in momentsarray])
     location = awim_dict['awim Location Coordinates']
     elevation = awim_dict['awim Location Terrain Elevation'] + awim_dict['awim Location AGL'] # this should be only if awim Location MSL is null, which it usually is but not always.
-    celestial_bodies = []
+    bodies_astro_dict = {}
     # The following loop just creates the expanded list of bodies. Within solar system just get a name because RA, Dec has to be calculated. Outside solar system (stars) are a tuple of name with the RA, Dec given.
     for request in requestlist:
         if request == 'sun':
-            celestial_bodies.append('sun')
+            bodies_astro_dict['sun'] = {'type': 'sun'}
         elif request == 'moon':
-            celestial_bodies.append('moon')
+            bodies_astro_dict['moon'] = {'type': 'moon'}
         elif request == 'planets':
             planetslist = ['mercury', 'venus', 'mars', 'jupiter', 'saturn', 'uranus', 'neptune']
             for planet in planetslist:
-                celestial_bodies.append(planet)
+                bodies_astro_dict[planet] = {'type': 'planet'}
         elif request == 'stars':
-            stars_tuples = DBsqlstatements.get_stars()
+            stars_tuples = DBsqlstatements.get_stars(magnitude=4)
             for star in stars_tuples:
-                star_name = 'HR ' + str(star[6])
-                RA = star[3]
-                Dec = star[4]
-                celestial_bodies.append((star_name, RA, Dec))
+                bodies_astro_dict['HR ' + str(star[0])] = {
+                'type': 'star',
+                'RA': star[1],
+                'Declination': star[2],
+                'VisualMagnitude': star[3],
+                'ConstellationFullName': star[4],
+                'MagRank': star[5],
+                'GreekLetter': star[6],
+                'ReadableName': star[7],
+                }
 
     # astro data function generates a dictionary within it because it uses the common location and times for calculation efficiency
-    bodies_astro_dict = astromath.calculate_astro_data(momentsarray, location, celestial_bodies)
+    bodies_astro_dict = astromath.calculate_astro_data(momentsarray, location, bodies_astro_dict)
 
-    # bodies in the image dictionary generated here outside the awimlib functions because there is no commonality among the bodies in image for efficiency
+    # bodies in the image dictionary generated here, not inside awimlib, because there is no commonality among the bodies in image for efficiency
+    # bodies in the image dictionary has same keys as the astro_dict, but fewer because only includes bodies that pass through the image.
     bodies_image_dict = {}
-    
     for key, value in bodies_astro_dict.items():
         print('Calculating position in image for: ' + key)
-        body_azarts = value[:,3:5]
         # azart_to_dirarc here?
+        body_azarts = np.vstack((value['azimuths'], value['artifaes']))
         body_xyangs = awimlib.azarts_to_xyangs(awim_dict, body_azarts) # with dirarc, xyangs are just an intermediary, but still necessary and still useful for determining if body is in image.
         body_inimage = awimlib.xyangs_inimage(awim_dict, body_xyangs, padding_percent=padding_percent)
         if body_inimage.sum() >= inimage_threshold:
+            bodies_image_dict[key] = {}
             print(key + ' appears in the image.')
             body_dirarcs = awimlib.xyangs_to_dirarcs(body_xyangs) # dirarcs are useful because possible to correct for tilt. Are they otherwise necessary?
-            body_pxs = awimlib.xyangs_to_pxs(awim_dict, body_xyangs) # convert this calculation to dirarcs_to_pixels because more versatile and can implement tilt.
-            # For all bodies:
-            # 0: In the photo? True / False by moment
-            # 1: Pixel position x
-            # 2: Pixel position y
-            # 3: Distance in AU within solar system or light years outside - TODO for the stars because the catalogues do not include distances and it seems it's not always known very well? Currently setting to zero for the stars.
-            # Plus for sun and moon:
-            # 4: Azimuth just for interesting information and completeness to go with artifae
-            # 5: Artifae for information and for the sky color animation
-            # Plus for moon only:
-            # 6: Phase angle
-            # 7: Bright side direction
-            if key not in ['sun', 'moon']:
-                body_data = np.zeros((momentsarray.size, 4))
-            elif key == 'sun':
-                body_data = np.zeros((momentsarray.size, 6))
-                body_data[:,4:6] = body_azarts
-            elif key == 'moon':
-                body_data = np.zeros((momentsarray.size, 8))
-                body_data[:,4:6] = body_azarts
+            body_pxs = awimlib.xyangs_to_pxs(awim_dict, body_xyangs, 'for svg') # convert this calculation to dirarcs_to_pixels because more versatile and can implement tilt.
+
+            bodies_image_dict[key]['xangs'] = body_xyangs[:,0]
+            bodies_image_dict[key]['yangs'] = body_xyangs[:,1]
+            bodies_image_dict[key]['dirs'] = body_dirarcs[:,0]
+            bodies_image_dict[key]['arcs'] = body_dirarcs[:,1]
+            bodies_image_dict[key]['pixelpos x'] = body_pxs[:,0]
+            bodies_image_dict[key]['pixelpos y'] = body_pxs[:,1]
+
+            if key == 'moon':
                 phase_angle = astromath.calculate_astro_moonphaseangle(momentsarray)
-                body_data[:,6] = phase_angle
-                sun_azarts = bodies_astro_dict['sun'][:,3:5]
+                bodies_image_dict[key]['phaseangle'] = phase_angle
+                sun_azarts = np.vstack((bodies_astro_dict['sun']['azimuths'], bodies_astro_dict['sun']['artifaes']))
                 brightside_direction = astromath.calculate_astro_moon_brightsidedirection(body_azarts, sun_azarts)
-                body_data[:,7] = brightside_direction
-
-            body_data[:,0] = body_inimage
-            body_data[:,1:3] = body_pxs
-            body_data[:,3] = value[:,2]
-
-            bodies_image_dict[key] = body_data
+                bodies_image_dict[key]['brightsidedirection'] = brightside_direction
     
     bodies_total = len(bodies_astro_dict)
     bodiescount_inimage = len(bodies_image_dict)

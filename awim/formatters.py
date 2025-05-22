@@ -297,12 +297,12 @@ def format_GPS_latlng(exif_dict):
     return GPS_latlng, GPS_alt
 
 
-def dict_arrays_tolists(array_dict):
-    output_dict = {}
-    for key, value in array_dict.items():
-        if isinstance(value, np.ndarray):
-            output_dict[key] = value.transpose().tolist() # transpose gives lists of same data that progress by moment.
-        else:
-            output_dict[key] = value
-    
-    return output_dict
+def dict_arrays_tolists(obj):
+    if isinstance(obj, dict):
+        return {k: dict_arrays_tolists(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [dict_arrays_tolists(v) for v in obj]
+    elif isinstance(obj, np.ndarray):
+        return obj.tolist()
+    else:
+        return obj
