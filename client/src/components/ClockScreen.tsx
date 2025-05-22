@@ -89,9 +89,16 @@ function ClockScreen({ NowMoments }: ClockScreenProps) {
           viewBox={`0 0 ${refWidth} ${refHeight}`}
           preserveAspectRatio="xMidYMid meet"
         >
-          {Object.entries(bodiesInImage).map(([bodyName, [visibleArr, xArr, yArr]], index) => {
-            if (visibleArr.every((v) => v === 0)) return null;
+          {Object.entries(bodiesInImage).map(([bodyName, bodyData], index) => {
+            const xArr: number[] = bodyData['pixelpos x'];
+            const yArr: number[] = bodyData['pixelpos y'];
 
+            const visibleArr = xArr.map((x, i) => {
+              const y = yArr[i];
+              return (x >= 0 && x <= refWidth && y >= 0 && y <= refHeight) ? 1 : 0;
+            });
+
+  if (visibleArr.every((v) => v === 0)) return null;
             const pathId = `motionPath-${index}`;
             const pathD = xArr
               .map((x, i) => {
@@ -104,7 +111,7 @@ function ClockScreen({ NowMoments }: ClockScreenProps) {
               <g key={bodyName}>
                 <path id={pathId} d={pathD} fill="none" stroke="none" />
 
-                <circle r="5" fill="white">
+                <circle r="10" fill="red">
                   <animateMotion dur={`${totalDuration}s`} repeatCount="indefinite">
                     <mpath href={`#${pathId}`} />
                   </animateMotion>

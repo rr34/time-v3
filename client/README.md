@@ -1,9 +1,13 @@
 # ToDo
+- todo: minimize data transmitted using standard array of single values for bodies with name, magnitude, etc.
+- todo: make brighter stars bigger
+- todo: planets, sun, moon different appearance
+- todo: cache astrodata
+- todo: transparent sky
+- todo: sky svg background that changes color
+- todo: foreground image
 - todo: parse bright star catalog (and send file to Aaron and Ahmed).
-- todo: resurrect functions from the old clock and integrate into awim project as appropriate to be able to retrieve pixel positions.
-- todo: animate the sun based on a series of times.
-- todo: standardize the text representation of the time, starting with the representation I used in the previous version of this clock.
-- todo: Expand sun to include moon, planets, stars, moon phase.
+- todo: animate moon phase.
 - todo: Standard glockenspiel animations.
 - todo: connect this app to the back-end awim to position the sun in the correct position based on time.
 - todo: front-end needs to be able to generate and work with transparency files to determine if objects are visible / above the horizon, etc. See awim_png_littleblur = awim_png.filter(filter=BoxBlur(pxs_per_minute*5)) and awim_png_bigblur = awim_png.filter(filter=BoxBlur(pxs_per_minute*17))

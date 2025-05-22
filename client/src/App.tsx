@@ -37,7 +37,7 @@ function App() {
 
   // don't need the following until I start animating SVG
   const momentscount: number = 24;
-  const stepminutes: number = 30;
+  const stepminutes: number = 60;
   const stepsbefore: number = 12;
   const nowdate: number = Date.now();
   const momentsarray: string[] = [];
