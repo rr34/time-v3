@@ -8,12 +8,27 @@ function ClockScreen({ NowMoments }: ClockScreenProps) {
   const [imageSrc, setImageSrc] = useState<string>("");
   const [AWIMdata, setAWIMdata] = useState<any>(null);
   const [astroData, setAstroData] = useState<{ [key: string]: number[][] } | null>(null);
-  const [bodiesInImage, setBodiesInImage] = useState<{ [key: string]: number[][] } | null>(null);
+  const [bodiesInImage, setBodiesInImage] = useState<{ [key: string]: any } | null>(null);
   const [refImageSize, setRefImageSize] = useState<[number, number] | null>(null);
 
   const frameDuration = 2;
   const totalFrames = NowMoments.length;
   const totalDuration = frameDuration * totalFrames;
+
+  // Styles for celestial bodies
+  const bodyStyleMap: { [key: string]: { fill: string; radius: number; stroke?: string } } = {
+    sun: { fill: "yellow", radius: 18 },
+    moon: { fill: "white", radius: 10 },
+    mercury: { fill: "#b0b0b0", radius: 6 },
+    venus: { fill: "#e6c07b", radius: 8 },
+    earth: { fill: "#1f77b4", radius: 8 },
+    mars: { fill: "#d95f02", radius: 7 },
+    jupiter: { fill: "#c49c94", radius: 14 },
+    saturn: { fill: "#deb887", radius: 12 },
+    uranus: { fill: "#76d7ea", radius: 10 },
+    neptune: { fill: "#4169e1", radius: 10 },
+    pluto: { fill: "#aaaaaa", radius: 5 },
+  };
 
   // Fetch image + metadata
   useEffect(() => {
@@ -92,41 +107,48 @@ function ClockScreen({ NowMoments }: ClockScreenProps) {
           {Object.entries(bodiesInImage).map(([bodyName, bodyData], index) => {
             const xArr: number[] = bodyData['pixelpos x'];
             const yArr: number[] = bodyData['pixelpos y'];
+            const type: string = (bodyData['type'] || "").toLowerCase();
+            const nameKey = bodyName.toLowerCase();
+            const style = bodyStyleMap[nameKey] || bodyStyleMap[type] || { fill: "red", radius: 6 };
 
             const visibleArr = xArr.map((x, i) => {
               const y = yArr[i];
               return (x >= 0 && x <= refWidth && y >= 0 && y <= refHeight) ? 1 : 0;
             });
 
-  if (visibleArr.every((v) => v === 0)) return null;
+            if (visibleArr.every((v) => v === 0)) return null;
+
             const pathId = `motionPath-${index}`;
-            const pathD = xArr
-              .map((x, i) => {
-                const y = yArr[i];
-                return i === 0 ? `M ${x},${y}` : `L ${x},${y}`;
-              })
-              .join(" ");
+            const pathD = xArr.map((x, i) => {
+              const y = yArr[i];
+              return i === 0 ? `M ${x},${y}` : `L ${x},${y}`;
+            }).join(" ");
 
             return (
               <g key={bodyName}>
                 <path id={pathId} d={pathD} fill="none" stroke="none" />
 
-                <circle r="10" fill="red">
+                <circle r={style.radius} fill={style.fill} stroke={style.stroke || "none"}>
                   <animateMotion dur={`${totalDuration}s`} repeatCount="indefinite">
                     <mpath href={`#${pathId}`} />
                   </animateMotion>
-<animate
-  attributeName="opacity"
-  values={visibleArr.join(";")}
-  dur={`${totalDuration}s`}
-  repeatCount="indefinite"
-  calcMode="discrete"
-/>
+                  <animate
+                    attributeName="opacity"
+                    values={visibleArr.join(";")}
+                    dur={`${totalDuration}s`}
+                    repeatCount="indefinite"
+                    calcMode="discrete"
+                  />
                 </circle>
 
                 <g>
-                  <g transform="translate(0, -20)"> {/* Move text 20px above path */}
-                    <text fill="white" fontSize="24" textAnchor="middle" dominantBaseline="middle">
+                  <g transform="translate(0, -20)">
+                    <text
+                      fill="white"
+                      fontSize="24"
+                      textAnchor="middle"
+                      dominantBaseline="middle"
+                    >
                       {bodyName}
                     </text>
                   </g>
