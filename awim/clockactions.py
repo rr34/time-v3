@@ -34,7 +34,7 @@ def get_celestialinphoto(awim_dict, momentsarray, requestlist, inimage_threshold
             for planet in planetslist:
                 bodies_astro_dict[planet] = {'type': 'planet'}
         elif request == 'stars':
-            stars_tuples = DBsqlstatements.get_stars(magnitude=5)
+            stars_tuples = DBsqlstatements.get_stars(magnitude=4)
             for star in stars_tuples:
                 bodies_astro_dict['HR ' + str(star[0])] = {
                 'type': 'star',
@@ -71,6 +71,8 @@ def get_celestialinphoto(awim_dict, momentsarray, requestlist, inimage_threshold
             bodies_image_dict[key]['arcs'] = body_dirarcs[:,1]
             bodies_image_dict[key]['pixelpos x'] = body_pxs[:,0]
             bodies_image_dict[key]['pixelpos y'] = body_pxs[:,1]
+            for astrokey, astrovalue in bodies_astro_dict[key].items():
+                bodies_image_dict[key][astrokey] = astrovalue
 
             if key == 'moon':
                 phase_angle = astromath.calculate_astro_moonphaseangle(momentsarray)
