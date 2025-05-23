@@ -93,31 +93,38 @@ useEffect(() => {
 
   return (
     <>
-      <div style={{ marginBottom: '1rem' }}>
-        <label style={{ marginLeft: '1rem' }}>
-          <input
-            type="radio"
-            value="strings"
-            checked={selectedScreen === 'strings'}
-            onChange={() => setSelectedScreen('strings')}
-          />
-          Clock Strings
-        </label>
-        <label>
-          <input
-            type="radio"
-            value="screen"
-            checked={selectedScreen === 'screen'}
-            onChange={() => setSelectedScreen('screen')}
-          />
-          Clock Screen
-        </label>
+      <div style={{ position: 'relative', width: '100vw', height: '100vh' }}>
+        {/* Floating Control Panel */}
+        <div className="control-panel">
+          <label>
+            <input
+              type="radio"
+              value="strings"
+              checked={selectedScreen === 'strings'}
+              onChange={() => setSelectedScreen('strings')}
+            />
+            Clock Strings
+          </label>
+          <label>
+            <input
+              type="radio"
+              value="screen"
+              checked={selectedScreen === 'screen'}
+              onChange={() => setSelectedScreen('screen')}
+            />
+            Clock Screen
+          </label>
+        </div>
+
+        {/* Clock display area */}
+        <div style={{ width: '100%', height: '100%', pointerEvents: 'none' }}>
+          {
+            selectedScreen === 'strings'
+              ? <ClockStrings cto={ClockTimeObj} setcto={setClockTimeObj} deo={DailyEventsObj} />
+              : <ClockScreen NowMoments={NowMoments} />
+          }
+        </div>
       </div>
-      {
-        selectedScreen === 'strings' ?
-        (<ClockStrings cto={ClockTimeObj} setcto={setClockTimeObj} deo={DailyEventsObj} />) :
-        (<ClockScreen NowMoments={NowMoments}/>)
-      }
     </>
   );
 }
