@@ -1,5 +1,19 @@
 import { useEffect, useState } from "react";
 
+function radiusFromMagnitude(mag: number): number {
+  const minMag = -1.46;
+  const maxMag = 4;
+  const minRadius = 3;
+  const maxRadius = 20;
+  const magRange = maxMag - minMag;
+  const radRange = maxRadius - minRadius;
+
+  const radius = maxRadius - (mag - minMag) * radRange / magRange;
+  const clampedRad = Math.min(Math.max(radius, minRadius), maxRadius);
+
+  return clampedRad;
+}
+
 interface ClockScreenProps {
   NowMoments: string[];
 }
@@ -15,22 +29,18 @@ function ClockScreen({ NowMoments }: ClockScreenProps) {
   const totalFrames = NowMoments.length;
   const totalDuration = frameDuration * totalFrames;
 
-  // Styles for celestial bodies
   const bodyStyleMap: { [key: string]: { fill: string; radius: number; stroke?: string } } = {
-    sun: { fill: "yellow", radius: 18 },
-    moon: { fill: "white", radius: 10 },
-    mercury: { fill: "#b0b0b0", radius: 6 },
-    venus: { fill: "#e6c07b", radius: 8 },
-    earth: { fill: "#1f77b4", radius: 8 },
-    mars: { fill: "#d95f02", radius: 7 },
-    jupiter: { fill: "#c49c94", radius: 14 },
-    saturn: { fill: "#deb887", radius: 12 },
-    uranus: { fill: "#76d7ea", radius: 10 },
-    neptune: { fill: "#4169e1", radius: 10 },
-    pluto: { fill: "#aaaaaa", radius: 5 },
+    sun: { fill: "yellow", radius: 50 },
+    moon: { fill: "white", radius: 50 },
+    mercury: { fill: "#b0b0b0", radius: 20 },
+    venus: { fill: "#e6c07b", radius: 20 },
+    mars: { fill: "#d95f02", radius: 20 },
+    jupiter: { fill: "#c49c94", radius: 20 },
+    saturn: { fill: "#deb887", radius: 20 },
+    uranus: { fill: "#76d7ea", radius: 20 },
+    neptune: { fill: "#4169e1", radius: 20 },
   };
 
-  // Fetch image + metadata
   useEffect(() => {
     const fetchImageAndAWIMdata = async () => {
       try {
@@ -55,7 +65,6 @@ function ClockScreen({ NowMoments }: ClockScreenProps) {
     fetchImageAndAWIMdata();
   }, []);
 
-  // Fetch celestial body data
   useEffect(() => {
     const fetchCelestialData = async () => {
       if (!AWIMdata) return;
@@ -105,11 +114,23 @@ function ClockScreen({ NowMoments }: ClockScreenProps) {
           preserveAspectRatio="xMidYMid meet"
         >
           {Object.entries(bodiesInImage).map(([bodyName, bodyData], index) => {
+            console.log("bodyData:", bodyData);
             const xArr: number[] = bodyData['pixelpos x'];
             const yArr: number[] = bodyData['pixelpos y'];
             const type: string = (bodyData['type'] || "").toLowerCase();
             const nameKey = bodyName.toLowerCase();
-            const style = bodyStyleMap[nameKey] || bodyStyleMap[type] || { fill: "red", radius: 6 };
+            const baseStyle = bodyStyleMap[nameKey] || bodyStyleMap[type] || { fill: "white", radius: 3 };
+
+            let radius = baseStyle.radius;
+            if (type === "star") {
+              const visualMag = bodyData['VisualMagnitude'] !== undefined
+                ? parseFloat(bodyData['VisualMagnitude'])
+                : 6;
+              radius = radiusFromMagnitude(visualMag);
+            }
+
+            const fill = baseStyle.fill;
+            const stroke = baseStyle.stroke || "none";
 
             const visibleArr = xArr.map((x, i) => {
               const y = yArr[i];
@@ -128,7 +149,7 @@ function ClockScreen({ NowMoments }: ClockScreenProps) {
               <g key={bodyName}>
                 <path id={pathId} d={pathD} fill="none" stroke="none" />
 
-                <circle r={style.radius} fill={style.fill} stroke={style.stroke || "none"}>
+                <circle r={radius} fill={fill} stroke={stroke}>
                   <animateMotion dur={`${totalDuration}s`} repeatCount="indefinite">
                     <mpath href={`#${pathId}`} />
                   </animateMotion>
@@ -149,7 +170,7 @@ function ClockScreen({ NowMoments }: ClockScreenProps) {
                       textAnchor="middle"
                       dominantBaseline="middle"
                     >
-                      {bodyName}
+                      {bodyData['ReadableName']?.trim() || bodyName}
                     </text>
                   </g>
                   <animateMotion dur={`${totalDuration}s`} repeatCount="indefinite" rotate="auto">
