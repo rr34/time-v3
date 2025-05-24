@@ -1,15 +1,20 @@
-# TODO
-- limit the distance off screen the celestial bodies can go to improve animation. Ensure the animation runs only on screen then the bodies stay close off-screen but transparent until they appear again.
-- make brighter stars bigger
-- planets, sun, moon different appearance
-- cache astrodata
-- transparent sky
-- sky svg background that changes color
-- foreground image separate
+# TODOnext
+- I already broke the Express API by modifying the .get /clockimage response structure to send L2 and L4 URLs inside an object along with the awim metadata. As this change is implemented, the following should be implemented all at once along with it:
+  - frontend uses an object of multiple image basenames to generate multiple ClockScreen instances.
+  - I think move the fetch image data and fetch awim data outside the clockscreen component?
+  - I think the app can save multiple SVG animations, but can it save multiple images? 20 images? or get PNG files from backend each time displayed?
+  - backend cache astrodata because will now save a lot of time, even dev time.
+  - OR instead of cache, batch generate the bodies_inimage_dict and send multiple of those along with a single astro_dict? I think this is simpler and almost as versatile, maybe more versatile.
+  - use the L2 transparent sky file
+  - create L1 sky svg background that changes color
+  - use the L4 foreground image
 - parse bright star catalog (and send file to Aaron and Ahmed).
 - animate moon phase.
 - Standard glockenspiel animations.
-- front-end needs to be able to generate and work with transparency files to determine if objects are visible / above the horizon, etc. See awim_png_littleblur = awim_png.filter(filter=BoxBlur(pxs_per_minute*5)) and awim_png_bigblur = awim_png.filter(filter=BoxBlur(pxs_per_minute*17))
+- frontend needs to be able to generate and work with transparency files to determine if objects are visible / above the horizon, etc. See awim_png_littleblur = awim_png.filter(filter=BoxBlur(pxs_per_minute*5)) and awim_png_bigblur = awim_png.filter(filter=BoxBlur(pxs_per_minute*17))
+# animation problems
+- limit the distance off screen the celestial bodies can go to improve animation. Ensure the animation runs only on screen then the bodies stay close off-screen but transparent until they appear again.
+- the problems are mostly with the beginning and end of an animation and they are not as bad with shorter step size, like 15 minutes. 
 # Coordinate Types
 - SkyCoords specific to object and moment for solar system objects. Once calculated, quickly convertable to RADec and AzArt. Can be created quickly for stars using known RADec.
 - RADec specific to object only for stars, same for all moments and earth locations. Specific to moments and objects for solar system objects and when RA Dec is calculated, AzArt is easy.
