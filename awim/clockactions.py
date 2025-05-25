@@ -37,14 +37,16 @@ def get_celestialinphoto(awim_dict, momentsarray, requestlist, inimage_threshold
             stars_tuples = DBsqlstatements.get_stars(magnitude=4)
             for star in stars_tuples:
                 bodies_astro_dict['HR ' + str(star[0])] = {
-                'type': 'star',
-                'RA': star[1],
-                'Declination': star[2],
-                'VisualMagnitude': star[3],
-                'ConstellationFullName': star[4],
-                'MagRank': star[5],
-                'GreekLetter': star[6],
-                'ReadableName': star[7],
+                'type': 'star', # string
+                'ReadableName': star[1],
+                'RA': star[2], # number
+                'Declination': star[3], # number
+                'Distance': star[4], # number
+                'VisualMagnitude': star[5], # number
+                'MagRankAll': star[6], # number
+                'ConstellationFullName': star[7], # string
+                'MagRankConstellation': star[8], # number
+                'GreekLetter': star[9], # string
                 }
 
     # astro data function generates a dictionary within it because it uses the common location and times for calculation efficiency
