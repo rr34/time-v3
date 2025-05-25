@@ -42,28 +42,21 @@ app.get("/", (req, res) => {
 
 // Endpoint to get clock image and metadata
 app.get("/clockimage", (req, res) => {
-  const baseName = "timhouse20220410 - NL100540";
+  const baseName = "timhouse20220410 - NL100457";
   const imageFile = `${baseName}.PNG`;
-  const earthforeground = `${baseName} L4.PNG`;
-  const skytransparency = `${baseName} L2.PNG`;
   const jsonFile = `${baseName}.json`;
 
-  // put these in an object
   const imagePath = path.join(__dirname, "public/clockimages", imageFile);
-  const imageL4Path = path.join(__dirname, "public/clockimages", earthforeground);
-  const imageL2Path = path.join(__dirname, "public/clockimages", skytransparency);
   const jsonPath = path.join(__dirname, "public/clockimages", jsonFile);
 
   if (!fs.existsSync(imagePath) || !fs.existsSync(jsonPath)) {
     return res.status(404).json({ error: "Clock image or metadata not found" });
   }
 
-  const metadata = JSON.parse(fs.readFileSync(jsonPath, "utf-8")); 
+  const metadata = JSON.parse(fs.readFileSync(jsonPath, "utf-8"));
   const imageUrl = `/clockimages/${imageFile}`;
-  const imageL4Url = `/clockimages/${earthforeground}`;
-  const imageL2Url = `/clockimages/${skytransparency}`;
 
-  res.json({ baseName: imageUrl, metadata });
+  res.json({ imageUrl, metadata });
 });
 
 // Start server

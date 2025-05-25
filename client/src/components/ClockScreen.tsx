@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { BodiesDict, awimTag } from "../types/interfaces";
 
 function radiusFromMagnitude(mag: number): number {
   const minMag = -1.46;
@@ -15,16 +15,14 @@ function radiusFromMagnitude(mag: number): number {
 }
 
 interface ClockScreenProps {
+  imageSrc: string; // can the whole image itself be passed in here, not just the src url?
+  awimtag: awimTag;
+  astroData: BodiesDict;
+  bodiesInImage: BodiesDict;
   NowMoments: string[];
 }
 
-function ClockScreen({ NowMoments }: ClockScreenProps) {
-  const [imageSrc, setImageSrc] = useState<string>("");
-  const [AWIMdata, setAWIMdata] = useState<any>(null);
-  const [astroData, setAstroData] = useState<{ [key: string]: number[][] } | null>(null);
-  const [bodiesInImage, setBodiesInImage] = useState<{ [key: string]: any } | null>(null);
-  const [refImageSize, setRefImageSize] = useState<[number, number] | null>(null);
-
+function ClockScreen({ imageSrc, awimtag, astroData, bodiesInImage, NowMoments }: ClockScreenProps) {
   const frameDuration = 2;
   const totalFrames = NowMoments.length;
   const totalDuration = frameDuration * totalFrames;
@@ -41,60 +39,10 @@ function ClockScreen({ NowMoments }: ClockScreenProps) {
     neptune: { fill: "#4169e1", radius: 20 },
   };
 
-  useEffect(() => {
-    const fetchImageAndAWIMdata = async () => {
-      try {
-        const response = await fetch(`${import.meta.env.VITE_FRONTEND_URL}/clockimage`);
-        const data = await response.json();
-        const imageUrl = `${import.meta.env.VITE_FRONTEND_URL}${data.imageUrl}`;
+  if (!awimtag) return <p>Loading image, awimtag, astrodata, bodiesInImage data...</p>;
 
-        setImageSrc(imageUrl);
-        setAWIMdata(data.metadata);
-
-        const refSize = data.metadata['awim Ref Image Size in Pixels'];
-        if (Array.isArray(refSize) && refSize.length === 2) {
-          setRefImageSize([refSize[0], refSize[1]]);
-        } else {
-          console.error("Invalid ref image size format.");
-        }
-      } catch (error) {
-        console.error("Error fetching image or metadata:", error);
-      }
-    };
-
-    fetchImageAndAWIMdata();
-  }, []);
-
-  useEffect(() => {
-    const fetchCelestialData = async () => {
-      if (!AWIMdata) return;
-
-      try {
-        const response = await fetch(`${import.meta.env.VITE_AWIM_URL}/celestialinphoto`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            awim: AWIMdata,
-            momentsarray: NowMoments,
-            requestlist: ["stars", "sun", "moon", "planets"],
-            returnastro: "true",
-          }),
-        });
-
-        const data = await response.json();
-        setAstroData(data["astro dict"]);
-        setBodiesInImage(data["bodies in image dict"]);
-      } catch (error) {
-        console.error("Error fetching celestial data:", error);
-      }
-    };
-
-    fetchCelestialData();
-  }, [AWIMdata, NowMoments]);
-
-  if (!refImageSize) return <p>Loading image and metadata...</p>;
-
-  const [refWidth, refHeight] = refImageSize;
+  const refDims = awimtag['awim Ref Image Size in Pixels']; // unless the awimtag was broken, this will always be type number[] with two numbers in it
+  const [refWidth, refHeight] = refDims;
 
   return (
     <div

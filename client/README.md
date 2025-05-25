@@ -1,13 +1,13 @@
 # TODOnext
-- I already broke the Express API by modifying the .get /clockimage response structure to send L2 and L4 URLs inside an object along with the awim metadata. As this change is implemented, the following should be implemented all at once along with it:
-  - frontend uses an object of multiple image basenames to generate multiple ClockScreen instances.
-  - I think move the fetch image data and fetch awim data outside the clockscreen component?
+- clockscreen is broken with no fetches, clockgallery is added with fetches but untested, interfaces are created and helpful, need to complete the following all at once:
+  - started already: frontend uses an object of multiple image basenames to generate multiple ClockScreen instances.
+  - Express API needs to get a list of image basenames from awim DB, which drives the rest. Going to use the DB for stars and now images. Utility. Will make quicker to add images from awim tagging to the clock since tagging is going to use the DB.
+  - nowmoments passed into clockgallery from outside. I think going to make clockscreens within a clockgallery all have the same moments array.
   - I think the app can save multiple SVG animations, but can it save multiple images? 20 images? or get PNG files from backend each time displayed?
-  - backend cache astrodata because will now save a lot of time, even dev time.
-  - OR instead of cache, batch generate the bodies_inimage_dict and send multiple of those along with a single astro_dict? I think this is simpler and almost as versatile, maybe more versatile.
-  - use the L2 transparent sky file
+  - awim API batch generate the bodies_inimage_dict and send multiple of those along with a single astro_dict
+  - awim API cache astrodata maybe? maybe save dev time?
   - create L1 sky svg background that changes color
-  - use the L4 foreground image
+  - maybe add possibility of a background layer L2? L3 is the svg L4 is the foreground.
 - parse bright star catalog (and send file to Aaron and Ahmed).
 - animate moon phase.
 - Standard glockenspiel animations.
