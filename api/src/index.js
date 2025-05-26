@@ -10,16 +10,18 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.join(__dirname, '.env') });
 
-const app = express();
+if (!process.env.CLIENT_IP) {
+  console.error("CLIENT_IP environment variable not set!");
+  process.exit(1);
+}
 
+const app = express();
 const PORT = process.env.PORT || 5000;
-const CLIENT_IP = process.env.CLIENT_IP;
-console.log("CLIENT_IP env variable is: ", CLIENT_IP)
 
 // Enable CORS with specific origins
 app.use(
   cors({
-    origin: CLIENT_IP, // Allow Vite React frontend default port
+    origin: process.env.CLIENT_IP, // Allow Vite React frontend default port
     methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
