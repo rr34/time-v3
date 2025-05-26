@@ -8,7 +8,7 @@ import metadata_tools, formatters
 
 def generate_empty_AWIMtag_dictionary(default_units=True):
     AWIMtag_dictionary = {}
-    AWIMtag_dictionary['awim Version'] = 'awim v2025-03-18'
+    AWIMtag_dictionary['awim Version'] = 'awim v2025-05-26' # added DB id
     AWIMtag_dictionary['awim Location Coordinates'] = [-999.9, -999.9]
     AWIMtag_dictionary['awim Location Coordinates Unit'] = 'Latitude, Longitude; to 6 decimal places so ~11cm'
     AWIMtag_dictionary['awim Location Coordinates Source'] = ''
@@ -53,6 +53,7 @@ def generate_empty_AWIMtag_dictionary(default_units=True):
     AWIMtag_dictionary['awim Pixel Size Unit'] = 'Pixels per Degree; to tenth of a pixel'
     AWIMtag_dictionary['awim Image Field of View Fraction'] = -999.9
     AWIMtag_dictionary['awim Image Field of View Fraction Unit'] = 'Denominator of fraction of total that the image field of view covers. Number of images required to cover total. Minimum value of 2 without image looking behind observer.'
+    AWIMtag_dictionary['awim DB id'] = -1
 
     if not default_units:
         AWIMtag_dictionary['awim Location Coordinates Unit'] = ''

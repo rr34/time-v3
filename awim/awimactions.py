@@ -37,9 +37,9 @@ def generate_metatext_files():
 
 
 def generate_image_tags():
-    photoshootID = 'timhouse20220410'
+    batchID = 'timhouse20220410'
     # 1. Get lists of photo files and entries in the database.
-    photoshoot_basenames = DBsqlstatements.get_basenames(photoshootID)
+    photoshoot_basenames = DBsqlstatements.get_basenames(batchID)
     workingpath = os.path.join(os.getcwd(), 'working')
     imagebases_list = []
     images_list_iterable = []
@@ -49,7 +49,7 @@ def generate_image_tags():
         if 'cam_awim.json' in file.lower(): # software could eventually select the correct camera awim from many based on the exif lens information from the images, but for now all photos in the batch need to be taken with the same lens.
             awim_path = os.path.join(workingpath, file)
             with open(awim_path, 'r') as json_file:
-                cam_AWIMtag_dictionary = json.load(json_file)
+                cam_AWIMtag_dictionary = json.load(json_file) # todonext: start troubleshooting here. Possibly regenerate camawim because the one I have didn't work here.
         elif file_type.lower() in ('.jpg', '.png', 'jpeg'):
             file_path = os.path.join(workingpath, file)
             imagebases_list.append(file_base)
@@ -73,27 +73,33 @@ def generate_image_tags():
     # 3. Iterate over the image files using the basename to get the unique corresponding entry in the database.
     for image in images_list_iterable:
         image_path = image[0]
-        image_basename = image[1]
-        photoshoot_dictionary = DBsqlstatements.get_photo(photoshootID, image_basename)
+        camimage_basename = image[1]
+        photoshoot_dictionary = DBsqlstatements.get_photo(batchID, camimage_basename)
         if len(photoshoot_dictionary) == 1:
             photoshoot_dictionary = photoshoot_dictionary[0]
         elif len(photoshoot_dictionary) > 1:
-            print('Duplicate entry for basename: ' + image_basename)
+            print('Duplicate entry for basename: ' + camimage_basename)
         elif len(photoshoot_dictionary) < 1:
-            print('Some unknown error for : ' + image_basename)
+            print('Some unknown error for : ' + camimage_basename)
         
-        AWIMtag_dict = camera.generate_tag_from_exif_plus_misc(image_path, cam_AWIMtag_dictionary, photoshoot_dictionary)
+        AWIMtag_dict, dev_dict = camera.generate_tag_from_exif_plus_misc(image_path, cam_AWIMtag_dictionary, photoshoot_dictionary)
 
         # 4. Save each awim tag json file, along with a copy of the image file of the same base name.
+        moment_capture = AWIMtag_dict['awim Capture Moment']
+        photo_basename = photoshoot_dictionary['SiteName'].replace(' ', '').lower() + ' ' + moment_capture + ' ' + camimage_basename
         image_filetype = os.path.splitext(image_path)[1]
-        new_basename = photoshootID + ' - ' + image_basename
-        new_image_path = os.path.join(workingpath, new_basename) + image_filetype
-        json_path = os.path.join(workingpath, new_basename) + '.json'
+        new_image_path = os.path.join(workingpath, photo_basename) + image_filetype
+        json_path = os.path.join(workingpath, photo_basename) + '.json'
 
         with open(json_path, "w") as text_file:
             json.dump(AWIMtag_dict, text_file, indent=4, sort_keys=True)
 
         shutil.copy2(image_path, new_image_path) # todo: generate the tag in place, then rename the file later? copy2 preserves metadata like time stamps
+
+        # 5. Update the DB with values caluclated for awim tag to show "scratchpad notes". These are duplicate to the awim tag values, but useful mostly for dev.
+        dev_dict['PhotoBasename'] = photo_basename
+        dev_dict['awimTag'] = json.dump(AWIMtag_dict)
+        DBsqlstatements.update_scratchpad(AWIMtag_dict, dev_dict)
 
     return
 

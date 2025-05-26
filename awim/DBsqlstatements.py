@@ -1,23 +1,48 @@
 import DBfunctions
 
-def get_photo(photoshoot_id, basename):
-    qms_tuple = (photoshoot_id, basename)
+def get_photo(batchID, basename):
+    qms_tuple = (batchID, basename)
     results = DBfunctions.sql_execute("""
-SELECT *, CONCAT(CamFilePre , CamFileUnique ) as basename
-FROM shoot_cte sc 
-WHERE ShootID = ? 
-HAVING basename = ?;
+SELECT *
+FROM photos_awim
+WHERE BatchID = ?
+AND CamFilename = ?;
 """, qms_tuple, result_type='listdictionaries')
 
     return results
 
 
-def get_basenames(photoshoot_id):
-    qms_tuple = (photoshoot_id,)
+def get_basenames(batchID):
+    qms_tuple = (batchID,)
     results = DBfunctions.sql_execute("""
-SELECT CONCAT(CamFilePre , CamFileUnique ) as basename
-FROM shoot_photos
-WHERE ShootID = ? ;
+SELECT CamFilename
+FROM photos_awim
+WHERE BatchID = ? ;
+""", qms_tuple, result_type='listsinglefield')
+
+    return results
+
+
+# Duplicate data, but this puts the calculated values in the DB for a table view of how the awim tag values were calculated.
+def update_scratchpad(AWIMtag_dictionary, dev_dict):
+    momentcapture = AWIMtag_dictionary['awim Capture Moment']
+    photobasename = dev_dict['PhotoBasename']
+    photomsl = AWIMtag_dictionary['awim Location MSL']
+    azart = AWIMtag_dictionary['awim Ref Pixel Azimuth Artifae']
+    dbid = AWIMtag_dictionary['DB id']
+
+    qms_tuple = (momentcapture, photobasename, photomsl, azart[0], azart[1], dbid)
+
+    results = DBfunctions.sql_execute("""
+UPDATE photos_awim
+SET
+    MomentCapture = ?
+    PhotoBasename = ?
+    PhotoMSL = ?
+    Azimuth = ?
+    Artifae = ?
+    awimTag = ?
+WHERE id = ? ;
 """, qms_tuple, result_type='listsinglefield')
 
     return results

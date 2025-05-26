@@ -312,6 +312,7 @@ def generate_tag_from_exif_plus_misc(image_path, cam_AWIMtag_dictionary, photosh
 	# tz = 'US/Eastern'
 	metadata_dict = metadata_tools.get_metadata(image_path)
 	AWIMtag_dictionary = awimlib.generate_empty_AWIMtag_dictionary()
+	dev_dict = {}
 	with PIL.Image.open(image_path) as image:
 		image_dimensions = list(image.size)
 
@@ -365,8 +366,8 @@ def generate_tag_from_exif_plus_misc(image_path, cam_AWIMtag_dictionary, photosh
 	if az_source == 'offset from reference object':
 		source_str = 'Azimuth adjustment from reference using tripod readings.'
 		ref_az = photoshoot_dictionary['RefAz'] # this is the guess which reference object side used, not of the photo direction
-		obj_type = photoshoot_dictionary['ObjAzType']
-		obj_az = photoshoot_dictionary['ObjAz']
+		obj_type = photoshoot_dictionary['AzRefObjAzType']
+		obj_az = photoshoot_dictionary['AzRefObjAz']
 		if obj_type == 'rectangle':
 			source_str += ' Reference was a rectangular object of known azimuth.'
 			obj_sides = 4
@@ -382,8 +383,8 @@ def generate_tag_from_exif_plus_misc(image_path, cam_AWIMtag_dictionary, photosh
 		elif obj_type == 'lat long coordinates':
 			source_str += ' Reference was a line defined by two lat long coordinates.'
 			obj_sides = 2
-			latlng1 = photoshoot_dictionary['LatLongPt1']
-			latlng2 = photoshoot_dictionary['LatLongPt2']
+			latlng1 = photoshoot_dictionary['AzRefObjLatLongPt1']
+			latlng2 = photoshoot_dictionary['AzRefObjLatLongPt2']
 			obj_az = 0.0 # TODO: get reference azimuth from two lat long coordinates
 		obj_az = awimlib.closest_to_x_sides(ref_az, obj_az, obj_sides) # adjusts object azimuth to the actual measured azimuth of the object using a close enough guess
 
@@ -444,12 +445,10 @@ def generate_tag_from_exif_plus_misc(image_path, cam_AWIMtag_dictionary, photosh
 	image_location = AWIMtag_dictionary['awim Location Coordinates']
 	grid_RADecs = astropytools.AzArts_to_RADecs(image_location, image_moment, grid_azarts)
 	AWIMtag_dictionary['awim Grid RA Dec'] = grid_RADecs.tolist()
-
-	image_moment = AWIMtag_dictionary['awim Capture Moment']
-	image_location = AWIMtag_dictionary['awim Location Coordinates']
+	AWIMtag_dictionary['DB id'] = photoshoot_dictionary['id']
 
 	AWIMtag_dictionary = formatters.round_AWIMtag(AWIMtag_dictionary)
 
 	AWIMtag_dictionary.update(metadata_dict)
 
-	return AWIMtag_dictionary
+	return AWIMtag_dictionary, dev_dict
