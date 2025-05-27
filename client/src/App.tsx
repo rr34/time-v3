@@ -3,6 +3,7 @@ import { Suspense, useState } from "react";
 import { useEffect } from "react";
 import ClockStrings from "./components/ClockStrings";
 import ClockScreen from './components/ClockScreen';
+import ClockGallery from './components/ClockGallery';
 
 
 export interface ClockTimeObj {
@@ -112,7 +113,7 @@ useEffect(() => {
               checked={selectedScreen === 'screen'}
               onChange={() => setSelectedScreen('screen')}
             />
-            Clock Screen
+            Clock Gallery
           </label>
         </div>
 
@@ -121,7 +122,7 @@ useEffect(() => {
           {
             selectedScreen === 'strings'
               ? <ClockStrings cto={ClockTimeObj} setcto={setClockTimeObj} deo={DailyEventsObj} />
-              : <ClockScreen NowMoments={NowMoments} />
+              : <ClockGallery MomentsArray={NowMoments} TagsInclude={['timhouse']} TagsExclude={['withpeople']} />
           }
         </div>
       </div>

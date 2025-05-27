@@ -1,14 +1,13 @@
 # TODOnext
 - clockscreen is broken with no fetches, clockgallery is added with fetches but untested, interfaces are created and helpful, need to complete the following all at once:
   - started already: frontend uses an object of multiple image basenames to generate multiple ClockScreen instances.
-  - Make awim DB photos list usable for generating awim tag AND searching files for the clock ... NOTE: clock could regenerate the whole relevant portion of the DB with the awim tags from its files
-  - Express API needs to get a list of image basenames from awim DB, which drives the rest. Going to use the DB for stars and now images. Utility. Will make quicker to add images from awim tagging to the clock since tagging is going to use the DB.
   - nowmoments passed into clockgallery from outside. I think going to make clockscreens within a clockgallery all have the same moments array.
   - I think the app can save multiple SVG animations, but can it save multiple images? 20 images? or get PNG files from backend each time displayed?
   - awim API batch generate the bodies_inimage_dict and send multiple of those along with a single astro_dict
   - awim API cache astrodata maybe? maybe save dev time?
   - create L1 sky svg background that changes color
   - maybe add possibility of a background layer L2? L3 is the svg L4 is the foreground.
+- TODO: since awim tags are official source of duplicate information, clock could be able to regenerate the whole relevant portion of the DB with the awim tags from its files (not important for a while)
 - parse bright star catalog (and send file to Aaron and Ahmed).
 - animate moon phase.
 - Standard glockenspiel animations.

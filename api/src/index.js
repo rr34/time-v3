@@ -3,9 +3,8 @@ import cors from "cors";
 import dotenv from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
-import fs from "fs";
+import { getPhotosByTags } from "./database.js";
 
-// Load environment variables
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.join(__dirname, '.env') });
@@ -18,19 +17,24 @@ if (!process.env.CLIENT_IP) {
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Enable CORS with specific origins
+// Middleware to parse JSON bodies
+app.use(express.json());
+
+// Enable CORS for frontend origin
 app.use(
   cors({
-    origin: process.env.CLIENT_IP, // Allow Vite React frontend default port
+    origin: process.env.CLIENT_IP,
     methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
   })
 );
 
-// Serve static images with proper CORS headers
-app.use("/clockimages",(req, res, next) => {
-    res.setHeader("Access-Control-Allow-Origin", CLIENT_IP);
+// Serve static images with CORS headers
+app.use(
+  "/clockimages",
+  (req, res, next) => {
+    res.setHeader("Access-Control-Allow-Origin", process.env.CLIENT_IP);
     res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
     next();
   },
@@ -42,23 +46,17 @@ app.get("/", (req, res) => {
   res.send("Hello from Express + JavaScript!");
 });
 
-// Endpoint to get clock image and metadata
-app.get("/clockimage", (req, res) => {
-  const baseName = "timhouse20220410 - NL100457";
-  const imageFile = `${baseName}.PNG`;
-  const jsonFile = `${baseName}.json`;
+// POST route to query photos by tags
+app.post('/clockimages/query', async (req, res) => {
+  const { TagsInclude = [], TagsExclude = [] } = req.body;
 
-  const imagePath = path.join(__dirname, "public/clockimages", imageFile);
-  const jsonPath = path.join(__dirname, "public/clockimages", jsonFile);
-
-  if (!fs.existsSync(imagePath) || !fs.existsSync(jsonPath)) {
-    return res.status(404).json({ error: "Clock image or metadata not found" });
+  try {
+    const photos = await getPhotosByTags({ TagsInclude, TagsExclude });
+    res.json(photos);
+  } catch (err) {
+    console.error("DB query error:", err);
+    res.status(500).send('DB query failed');
   }
-
-  const metadata = JSON.parse(fs.readFileSync(jsonPath, "utf-8"));
-  const imageUrl = `/clockimages/${imageFile}`;
-
-  res.json({ imageUrl, metadata });
 });
 
 // Start server
