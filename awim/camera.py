@@ -365,9 +365,9 @@ def generate_tag_from_exif_plus_misc(image_path, cam_AWIMtag_dictionary, photosh
 	# Az option 1 ... of several
 	if az_source == 'offset from reference object':
 		source_str = 'Azimuth adjustment from reference using tripod readings.'
-		ref_az = photoshoot_dictionary['RefAz'] # this is the guess which reference object side used, not of the photo direction
+		guess_az = photoshoot_dictionary['AzRefObjGuessAz'] # this is the guess of which reference object side was used, NOT of the photo direction
 		obj_type = photoshoot_dictionary['AzRefObjAzType']
-		obj_az = photoshoot_dictionary['AzRefObjAz']
+		obj_orientation = photoshoot_dictionary['AzRefObjOrientation']
 		if obj_type == 'rectangle':
 			source_str += ' Reference was a rectangular object of known azimuth.'
 			obj_sides = 4
@@ -382,11 +382,11 @@ def generate_tag_from_exif_plus_misc(image_path, cam_AWIMtag_dictionary, photosh
 			obj_sides = 5
 		elif obj_type == 'lat long coordinates':
 			source_str += ' Reference was a line defined by two lat long coordinates.'
-			obj_sides = 2
+			obj_sides = 4 # use 4 here because even though it's a line, I'm going to orient parallel or perpendicular to the line
 			latlng1 = photoshoot_dictionary['AzRefObjLatLongPt1']
 			latlng2 = photoshoot_dictionary['AzRefObjLatLongPt2']
-			obj_az = 0.0 # TODO: get reference azimuth from two lat long coordinates
-		obj_az = awimlib.closest_to_x_sides(ref_az, obj_az, obj_sides) # adjusts object azimuth to the actual measured azimuth of the object using a close enough guess
+			obj_orientation = 0.0 # TODO: get reference line orientation from two lat long coordinates
+		obj_az = awimlib.closest_to_x_sides(guess_az, obj_orientation, obj_sides) # adjusts guess azimuth to the actual measured azimuth of the object using a close-enough guess
 
 		# adjust the photo azimuth from the reference azimuth using tripod readings
 		tripod1 = photoshoot_dictionary['RefTripod1']
@@ -399,6 +399,7 @@ def generate_tag_from_exif_plus_misc(image_path, cam_AWIMtag_dictionary, photosh
 			sign = 1
 		azimuth = obj_az + sign*angle_moved
 		azimuth = (azimuth + 360) % 360
+		dev_dict['AzRefObjAdjAz'] = obj_az
 	# Az option 2 ... TODO
 	elif az_source == 'celestial object in photo':
 		source_str = 'Azimuth from celestial object in photo.' # TODO name the celestial object in this string.

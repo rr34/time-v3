@@ -85,7 +85,7 @@ def generate_image_tags():
         AWIMtag_dict, dev_dict = camera.generate_tag_from_exif_plus_misc(image_path, cam_AWIMtag_dictionary, photoshoot_dictionary)
 
         # 4. Save each awim tag json file, along with a copy of the image file of the same base name.
-        moment_capture = AWIMtag_dict['awim Capture Moment']
+        moment_capture = formatters.format_datetime(AWIMtag_dict['awim Capture Moment'], 'to string for filename')
         photo_basename = photoshoot_dictionary['SiteName'].replace(' ', '').lower() + ' ' + moment_capture + ' ' + camimage_basename
         image_filetype = os.path.splitext(image_path)[1]
         new_image_path = os.path.join(workingpath, photo_basename) + image_filetype
@@ -98,7 +98,7 @@ def generate_image_tags():
 
         # 5. Update the DB with values caluclated for awim tag to show "scratchpad notes". These are duplicate to the awim tag values, but useful mostly for dev.
         dev_dict['PhotoBasename'] = photo_basename
-        dev_dict['awimTag'] = json.dump(AWIMtag_dict)
+        dev_dict['awimTag'] = json.dumps(AWIMtag_dict, indent=4, sort_keys=True)
         DBsqlstatements.update_scratchpad(AWIMtag_dict, dev_dict)
 
     return

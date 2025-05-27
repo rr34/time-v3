@@ -63,10 +63,11 @@ def round_AWIMtag(AWIMtag):
 # numpy datetime64 uses astronomical year numbering, i.e. year 2BC = year -1, 1BC = year 0, 1AD = year 1
 def format_datetime(input_datetime, direction):
     # patterns for generating strings
-    exif_datetime_format = "%Y:%m:%d %H:%M:%S" # directly from exif documentation
-    numpy_datetime_format = "%Y-%m-%dT%H:%M:%S" # from numpy documentation, is timezone naive
     ISO8601_datetime_format = "%Y-%m-%dT%H:%M:%SZ" # ISO 8601
-    filename_format = "%Y-%m-%dT%H%M%SZ" # filename
+    filename_format = "%Y%m%d %H%M%SZ" # filename
+    exif_datetime_format = "%Y:%m:%d %H:%M:%S" # directly from exif documentation
+    MySQL_datetime_format = "%Y-%m-%d %H:%M:%S"
+    numpy_datetime_format = "%Y-%m-%dT%H:%M:%S" # from numpy documentation, is timezone naive
 
     # regex patterns for recognizing strings
     ISO8601_pattern = r'\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}([+-]\d{2}:\d{2}|Z?)\s*'
@@ -93,7 +94,25 @@ def format_datetime(input_datetime, direction):
         if isinstance(input_datetime, datetime.datetime):
             output = input_datetime.strftime(filename_format)
         elif isinstance(input_datetime, np.datetime64):
-            pass # TODO convert this format, necessary?
+            dt = input_datetime.astype('M8[ms]').astype(datetime.datetime)
+            output = dt.strftime(filename_format)
+        elif isinstance(input_datetime, str):
+            if input_datetime.endswith("Z"):
+                input_datetime = input_datetime[:-1]  # Remove 'Z' if present
+            dt = datetime.datetime.fromisoformat(input_datetime)
+            output = dt.strftime(filename_format)
+
+    elif direction == 'to string for mysql':
+        if isinstance(input_datetime, datetime.datetime):
+            output = input_datetime.strftime(MySQL_datetime_format)
+        elif isinstance(input_datetime, np.datetime64):
+            dt = input_datetime.astype('M8[ms]').astype(datetime.datetime)
+            output = dt.strftime(MySQL_datetime_format)
+        elif isinstance(input_datetime, str):
+            if input_datetime.endswith("Z"):
+                input_datetime = input_datetime[:-1]  # Remove 'Z' if present
+            dt = datetime.datetime.fromisoformat(input_datetime)
+            output = dt.strftime(MySQL_datetime_format)
 
     elif direction == 'from string':
         if re.match(ISO8601_pattern, input_datetime):
