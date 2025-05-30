@@ -11,8 +11,8 @@ node_modules
 dist
 dist-ssr
 *.local
-api/src/public/clockimages
-api/src/.env
+api/public/clockimages
+api/.env
 client/.env
 
 # Editor directories and files
