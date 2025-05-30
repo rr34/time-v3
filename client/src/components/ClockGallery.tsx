@@ -21,7 +21,8 @@ function ClockGallery({ MomentsArray, TagsInclude, TagsExclude }: ClockGalleryPr
       });
 
       const imageSets = await imagesRes.json(); // { [baseName]: { imageUrl, metadata, ... } }
-      console.log(imagesRes)
+      console.log('raw response', imagesRes)
+      console.log('after dot json', imageSets)
 
       // 2. Prepare array of metadata for celestial call
       const awimarray = Object.values(imageSets).map(set => set.metadata);

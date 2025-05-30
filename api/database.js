@@ -19,25 +19,29 @@ const pool = mysql.createPool({
 export async function getPhotosByTags({ TagsInclude = [], TagsExclude = [] }) {
   let whereClauses = [];
 
-  // Sanitize tags to avoid SQL injection (basic escaping)
-  const escapeTag = (tag) => tag.replace(/"/g, '\\"');
+  // Basic sanitization (escaping quotes and %/_) to avoid SQL injection
+  const escapeLike = (tag) =>
+    tag.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/%/g, '\\%').replace(/_/g, '\\_');
 
   for (const tag of TagsInclude) {
-    whereClauses.push(`JSON_CONTAINS(Tags, '["${escapeTag(tag)}"]')`);
+    const escaped = escapeLike(tag);
+    whereClauses.push(`Tags LIKE '%"${escaped}"%'`);
   }
 
   for (const tag of TagsExclude) {
-    whereClauses.push(`NOT JSON_CONTAINS(Tags, '["${escapeTag(tag)}"]')`);
+    const escaped = escapeLike(tag);
+    whereClauses.push(`Tags NOT LIKE '%"${escaped}"%'`);
   }
 
   const whereSQL = whereClauses.length ? `WHERE ${whereClauses.join(' AND ')}` : '';
 
   const query = `
-    SELECT * FROM photos_awim
+    SELECT Basename, awimTag FROM photos_awim
     ${whereSQL}
-    ORDER BY MomentCapture DESC
     LIMIT 100
   `;
+
+  console.log(query);
 
   const [rows] = await pool.query(query);
   return rows;
