@@ -28,19 +28,22 @@ async def getevents(request: Request):
 
     return response_dict
 
-@app.post('/celestialinphoto')
+@app.post('/celestialinphotos')
 async def celestialinphoto(request: Request):
     try:
         request_dict = await request.json()
     except:
         print('some error on the post request attempt')
 
-    astro_dict, bodies_inimage_dict = clockactions.get_celestialinphoto(request_dict['awim'], request_dict['momentsarray'], request_dict['requestlist'])
+    # use any awimtag to get the astro data because current assumption is the photos are geographically close to one another.
+    astro_dict, astro_dict_lists = clockactions.get_astrodata(request_dict['awims_dict'][0]['awimTag'], request_dict['momentsarray'], request_dict['requestlist'])
 
-    if request_dict['returnastro'] == 'true':
-        response_dict = {'astro dict': astro_dict, 'bodies in image dict': bodies_inimage_dict}
-    elif request_dict['returnastro'] == 'false':
-        response_dict = {'bodies in image dict': bodies_inimage_dict}
+    bodies_inimage_dicts = {}
+    for key, value in request_dict['awims_dict'].items():
+        bodies_inimage_dict = clockactions.get_celestialinphoto(value['awimTag'], request_dict['momentsarray'], astro_dict)
+        bodies_inimage_dicts[key] = bodies_inimage_dict
+
+    response_dict = {'astro dict': astro_dict_lists, 'bodies in image dicts': bodies_inimage_dicts}
 
     return response_dict
 

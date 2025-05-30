@@ -18,7 +18,7 @@ def get_events(location, elevation_msl, currenttime):
     return response_dict
 
 
-def get_celestialinphoto(awim_dict, momentsarray, requestlist, inimage_threshold=2, padding_percent = 5):
+def get_astrodata(awim_dict, momentsarray, requestlist):
     momentsarray = np.array([np.datetime64(moment) for moment in momentsarray])
     location = awim_dict['awim Location Coordinates']
     elevation = awim_dict['awim Location Terrain Elevation'] + awim_dict['awim Location AGL'] # this should be only if awim Location MSL is null, which it usually is but not always.
@@ -52,6 +52,12 @@ def get_celestialinphoto(awim_dict, momentsarray, requestlist, inimage_threshold
     # astro data function generates a dictionary within it because it uses the common location and times for calculation efficiency
     bodies_astro_dict = astromath.calculate_astro_data(momentsarray, location, bodies_astro_dict)
 
+    bodies_astro_dict_lists = formatters.dict_arrays_tolists(bodies_astro_dict)
+
+    return bodies_astro_dict, bodies_astro_dict_lists
+
+
+def get_celestialinphoto(awim_dict, momentsarray, bodies_astro_dict, inimage_threshold=2, padding_percent=5):
     # bodies in the image dictionary generated here, not inside awimlib, because there is no commonality among the bodies in image for efficiency
     # bodies in the image dictionary has same keys as the astro_dict, but fewer because only includes bodies that pass through the image.
     bodies_image_dict = {}
@@ -87,7 +93,6 @@ def get_celestialinphoto(awim_dict, momentsarray, requestlist, inimage_threshold
     bodiescount_inimage = len(bodies_image_dict)
     print(f'{bodies_total} total bodies, {bodiescount_inimage} bodies in image during period, so {round(bodiescount_inimage/bodies_total * 100, 2)} percent of total passed through image during period.')
 
-    bodies_astro_dict_lists = formatters.dict_arrays_tolists(bodies_astro_dict)
     bodies_image_dict_lists = formatters.dict_arrays_tolists(bodies_image_dict)
 
-    return bodies_astro_dict_lists, bodies_image_dict_lists
+    return bodies_image_dict_lists
