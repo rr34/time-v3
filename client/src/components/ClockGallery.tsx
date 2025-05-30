@@ -10,46 +10,48 @@ interface ClockGalleryProps {
 function ClockGallery({ MomentsArray, TagsInclude, TagsExclude }: ClockGalleryProps) {
   const [screensData, setScreensData] = useState<any[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [astroData, setGlobalAstroData] = useState(null);
 
   useEffect(() => {
     const fetchClockImageData = async () => {
-      // 1. Get image sets matching the tag filters
-      const imagesRes = await fetch(`${import.meta.env.VITE_FRONTEND_URL}/getimageslist/query`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ TagsInclude, TagsExclude }),
-      });
+      try {
+        // 1. Get images set matching the tag filters
+        const imagesRes = await fetch(`${import.meta.env.VITE_FRONTEND_URL}/getimageslist/query`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ TagsInclude, TagsExclude }),
+        });
 
-      const imageSets = await imagesRes.json(); // { [baseName]: { imageUrl, metadata, ... } }
-      console.log('raw response', imagesRes)
-      console.log('after dot json', imageSets)
+        const imagesSet = await imagesRes.json();
 
-      // 2. Prepare array of metadata for celestial call
-      const awimarray = Object.values(imageSets).map(set => set.metadata);
+        // 2. Get celestial data
+        const celestialRes = await fetch(`${import.meta.env.VITE_AWIM_URL}/celestialinphotos`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            awims_dict: imagesSet,
+            momentsarray: MomentsArray,
+            requestlist: ["stars", "sun", "moon", "planets"],
+          }),
+        });
 
-      // 3. Get celestial data
-      const celestialRes = await fetch(`${import.meta.env.VITE_AWIM_URL}/celestialinphoto`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          awimarray,
-          momentsarray: MomentsArray,
-          requestlist: ["stars", "sun", "moon", "planets"],
-          returnastro: "true"
-        }),
-      });
+        const awimAPI_response = await celestialRes.json();
+        const globalAstroData = awimAPI_response["astro dict"];
+        const bodiesInImages = awimAPI_response["bodies in image dicts"];
 
-      const celestialData = await celestialRes.json();
+        setGlobalAstroData(globalAstroData);
 
-      // 4. Combine into screensData
-      const combined = Object.entries(imageSets).map(([baseName, set], idx) => ({
-        imageSrc: `${import.meta.env.VITE_FRONTEND_URL}${set.imageUrl}`,
-        metadata: set.metadata,
-        astroData: celestialData[idx]["astro dict"],
-        bodiesInImage: celestialData[idx]["bodies in image dict"],
-      }));
+        // 3. Combine into screensData
+        const combined = Object.entries(imagesSet).map(([baseName, set]) => ({
+          imageSrc: `${import.meta.env.VITE_FRONTEND_URL}/clockimages/${baseName}.PNG`,
+          awimTag: set.awimTag,
+          bodiesInImage: bodiesInImages[baseName] || {},
+        }));
 
-      setScreensData(combined);
+        setScreensData(combined);
+      } catch (err) {
+        console.error("Error fetching clock image data:", err);
+      }
     };
 
     fetchClockImageData();
@@ -69,13 +71,17 @@ function ClockGallery({ MomentsArray, TagsInclude, TagsExclude }: ClockGalleryPr
     <div>
       <ClockScreen
         imageSrc={screensData[currentIndex].imageSrc}
-        metadata={screensData[currentIndex].metadata}
-        astroData={screensData[currentIndex].astroData}
+        metadata={screensData[currentIndex].awimTag}
+        astroData={astroData}
         bodiesInImage={screensData[currentIndex].bodiesInImage}
         NowMoments={MomentsArray}
       />
-      <button onClick={() => setCurrentIndex((i) => (i - 1 + screensData.length) % screensData.length)}>Previous</button>
-      <button onClick={() => setCurrentIndex((i) => (i + 1) % screensData.length)}>Next</button>
+      <button onClick={() => setCurrentIndex((i) => (i - 1 + screensData.length) % screensData.length)}>
+        Previous
+      </button>
+      <button onClick={() => setCurrentIndex((i) => (i + 1) % screensData.length)}>
+        Next
+      </button>
     </div>
   );
 }

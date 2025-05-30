@@ -22,7 +22,6 @@ app.use(express.json());
 
 // Enable CORS for frontend origin
 const allowedOrigins = [process.env.CLIENT_ORIGIN1, process.env.CLIENT_ORIGIN2];
-
 app.use(
   cors({
     origin: (origin, callback) => {
@@ -51,22 +50,24 @@ app.use(
   express.static(path.join(__dirname, "public/clockimages"))
 );
 
-// Root route
-app.get("/", (req, res) => {
-  res.send("Hello from Express + JavaScript!");
-});
 
 // POST route to query photos by tags
 app.post('/getimageslist/query', async (req, res) => {
   const { TagsInclude = [], TagsExclude = [] } = req.body;
 
-  console.log(TagsInclude)
-  console.log(TagsExclude)
-
   try {
     const photos = await getPhotosByTags({ TagsInclude, TagsExclude });
-    res.json(photos);
-  } catch (err) {
+  // since the Basename is my unique identifier throughout, I want to respond this with the basename as the key:
+  // { 'some basename text 1': {'awimTag': 'json string 1' }, 'some basename text 2': {'awimTag': 'json string 2' } }
+    const response = {};
+    for (const photo of photos) {
+      const { Basename, ...rest } = photo;
+      response[Basename] = rest;
+    }
+
+    res.json(response);
+
+} catch (err) {
     console.error("DB query error:", err);
     res.status(500).send('DB query failed');
   }
