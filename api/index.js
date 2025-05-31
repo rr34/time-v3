@@ -40,10 +40,11 @@ app.use(
 
 
 // Serve static images with CORS headers
-app.use(
-  "/clockimages",
-  (req, res, next) => {
-    res.setHeader("Access-Control-Allow-Origin", process.env.CLIENT_IP);
+app.use("/clockimages", (req, res, next) => {
+    const origin = req.headers.origin;
+    if (allowedOrigins.includes(origin)) {
+      res.setHeader("Access-Control-Allow-Origin", origin);
+    }
     res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
     next();
   },
