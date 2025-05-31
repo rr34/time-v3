@@ -8,80 +8,83 @@ interface ClockGalleryProps {
 }
 
 function ClockGallery({ MomentsArray, TagsInclude, TagsExclude }: ClockGalleryProps) {
-  const [screensData, setScreensData] = useState<any[]>([]);
+  const [imagesSet, setImagesSet] = useState<any[]>([]);
+  const [astroData, setAstroData] = useState<any>(null);
+  const [bodiesInImages, setBodiesInImages] = useState<any>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [astroData, setGlobalAstroData] = useState(null);
 
+  // Fetch the image list based on tags
   useEffect(() => {
-    const fetchClockImageData = async () => {
+    const fetchImageList = async () => {
       try {
-        // 1. Get images set matching the tag filters
         const imagesRes = await fetch(`${import.meta.env.VITE_FRONTEND_URL}/getimageslist/query`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ TagsInclude, TagsExclude }),
         });
 
-        const imagesSet = await imagesRes.json();
+        const imageList = await imagesRes.json();
+        setImagesSet(imageList);
+      } catch (err) {
+        console.error("Error fetching image list:", err);
+      }
+    };
 
-        // 2. Get celestial data
+    fetchImageList();
+  }, [TagsInclude, TagsExclude]);
+
+  // Fetch celestial data after imagesSet is loaded
+  useEffect(() => {
+    const fetchCelestialData = async () => {
+      if (imagesSet.length === 0) return;
+
+      try {
         const celestialRes = await fetch(`${import.meta.env.VITE_AWIM_URL}/celestialinphotos`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            awims_dict: imagesSet,
+            awims_list: imagesSet,
             momentsarray: MomentsArray,
             requestlist: ["stars", "sun", "moon", "planets"],
           }),
         });
 
-        const awimAPI_response = await celestialRes.json();
-        const globalAstroData = awimAPI_response["astro dict"];
-        const bodiesInImages = awimAPI_response["bodies in image dicts"];
-
-        setGlobalAstroData(globalAstroData);
-
-        // 3. Combine into screensData
-        const combined = Object.entries(imagesSet).map(([baseName, set]) => ({
-          imageSrc: `${import.meta.env.VITE_FRONTEND_URL}/clockimages/${baseName}.PNG`,
-          awimTag: set.awimTag,
-          bodiesInImage: bodiesInImages[baseName] || {},
-        }));
-
-        setScreensData(combined);
+        const response = await celestialRes.json();
+        setAstroData(response["astro dict"]);
+        setBodiesInImages(response["bodies in image dicts"]);
       } catch (err) {
-        console.error("Error fetching clock image data:", err);
+        console.error("Error fetching celestial data:", err);
       }
     };
 
-    fetchClockImageData();
-  }, [TagsInclude, TagsExclude, MomentsArray]);
+    fetchCelestialData();
+  }, [imagesSet, MomentsArray]);
 
+  // Auto-advance every 60 seconds
   useEffect(() => {
     const interval = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % screensData.length);
-    }, 60_000);
+      setCurrentIndex((prev) => (prev + 1) % imagesSet.length);
+    }, 60000);
 
     return () => clearInterval(interval);
-  }, [screensData]);
+  }, [imagesSet]);
 
-  if (screensData.length === 0) return <p>Loading...</p>;
+  if (imagesSet.length === 0 || !astroData || !bodiesInImages) return <p>Loading...</p>;
+
+  const currentImage = imagesSet[currentIndex];
+  const baseName = currentImage["Basename"];
 
   return (
     <div>
       <ClockScreen
-        imageSrc={screensData[currentIndex].imageSrc}
-        metadata={screensData[currentIndex].awimTag}
+        imageSrc={`${import.meta.env.VITE_FRONTEND_URL}/clockimages/${baseName}.PNG`}
+        awimtag={currentImage["awimTag"]}
         astroData={astroData}
-        bodiesInImage={screensData[currentIndex].bodiesInImage}
+        bodiesInImage={bodiesInImages[baseName]}
         NowMoments={MomentsArray}
       />
-      <button onClick={() => setCurrentIndex((i) => (i - 1 + screensData.length) % screensData.length)}>
-        Previous
-      </button>
-      <button onClick={() => setCurrentIndex((i) => (i + 1) % screensData.length)}>
-        Next
-      </button>
+      <button onClick={() => setCurrentIndex((i) => (i - 1 + imagesSet.length) % imagesSet.length)}>Previous</button>
+      <button onClick={() => setCurrentIndex((i) => (i + 1) % imagesSet.length)}>Next</button>
     </div>
   );
 }
