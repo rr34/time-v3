@@ -62,14 +62,12 @@ def get_celestialinphoto(awim_dict, momentsarray, bodies_astro_dict, inimage_thr
     # bodies in the image dictionary has same keys as the astro_dict, but fewer because only includes bodies that pass through the image.
     bodies_image_dict = {}
     for key, value in bodies_astro_dict.items():
-        print('Calculating position in image for: ' + key)
         # azart_to_dirarc here?
         body_azarts = np.column_stack((value['azimuths'], value['artifaes']))
         body_xyangs = awimlib.azarts_to_xyangs(awim_dict, body_azarts) # with dirarc, xyangs are just an intermediary, but still necessary and still useful for determining if body is in image.
         body_inimage = awimlib.xyangs_inimage(awim_dict, body_xyangs, padding_percent=padding_percent)
         if body_inimage.sum() >= inimage_threshold:
             bodies_image_dict[key] = {}
-            print(key + ' appears in the image.')
             body_dirarcs = awimlib.xyangs_to_dirarcs(body_xyangs) # dirarcs are useful because possible to correct for tilt. Are they otherwise necessary?
             body_pxs = awimlib.xyangs_to_pxs(awim_dict, body_xyangs, 'for svg') # convert this calculation to dirarcs_to_pixels because more versatile and can implement tilt.
 

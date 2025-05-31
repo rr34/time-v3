@@ -64,7 +64,7 @@ def round_AWIMtag(AWIMtag):
 def format_datetime(input_datetime, direction):
     # patterns for generating strings
     ISO8601_datetime_format = "%Y-%m-%dT%H:%M:%SZ" # ISO 8601
-    filename_format = "%Y%m%d %H%M%SZ" # filename
+    filename_format = "%Y%m%dT%H%M%SZ" # filename
     exif_datetime_format = "%Y:%m:%d %H:%M:%S" # directly from exif documentation
     MySQL_datetime_format = "%Y-%m-%d %H:%M:%S"
     numpy_datetime_format = "%Y-%m-%dT%H:%M:%S" # from numpy documentation, is timezone naive

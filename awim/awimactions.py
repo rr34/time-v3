@@ -86,7 +86,7 @@ def generate_image_tags():
 
         # 4. Save each awim tag json file, along with a copy of the image file of the same base name.
         moment_capture = formatters.format_datetime(AWIMtag_dict['awim Capture Moment'], 'to string for filename')
-        photo_basename = photoshoot_dictionary['SiteName'].replace(' ', '').lower() + ' ' + moment_capture + ' ' + camimage_basename
+        photo_basename = photoshoot_dictionary['SiteName'].replace(' ', '') + '-' + moment_capture + '-' + camimage_basename.replace(' ', '') # todonext regenerate images with no spaces in basenames
         image_filetype = os.path.splitext(image_path)[1]
         new_image_path = os.path.join(workingpath, photo_basename) + image_filetype
         json_path = os.path.join(workingpath, photo_basename) + '.json'
