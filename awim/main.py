@@ -3,6 +3,7 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 import os
+import json
 import clockactions
 
 app = FastAPI()
@@ -35,15 +36,15 @@ async def celestialinphoto(request: Request):
     except:
         print('some error on the post request attempt')
 
-    # use any awimtag to get the astro data because current assumption is the photos are geographically close to one another.
-    astro_dict, astro_dict_lists = clockactions.get_astrodata(request_dict['awims_dict'][0]['awimTag'], request_dict['momentsarray'], request_dict['requestlist'])
+    any_awim = json.loads(request_dict['awims_list'][0]['awimTag'])
+    astro_dict, astro_dict_lists = clockactions.get_astrodata(any_awim, request_dict['momentsarray'], request_dict['requestlist'])
 
     bodies_inimage_dicts = {}
-    for key, value in request_dict['awims_dict'].items():
-        bodies_inimage_dict = clockactions.get_celestialinphoto(value['awimTag'], request_dict['momentsarray'], astro_dict)
-        bodies_inimage_dicts[key] = bodies_inimage_dict
+    for item in request_dict['awims_list']:
+        bodies_inimage_dict = clockactions.get_celestialinphoto(json.loads(item['awimTag']), request_dict['momentsarray'], astro_dict)
+        bodies_inimage_dicts[item['Basename']] = bodies_inimage_dict
 
-    response_dict = {'astro dict': astro_dict_lists, 'bodies in image dicts': bodies_inimage_dicts}
+    response_dict = {'astro dict': astro_dict_lists, 'bodies in images dicts': bodies_inimage_dicts}
 
     return response_dict
 

@@ -52,13 +52,13 @@ WHERE id = ? ;
     return results
 
 
-def get_stars(magnitude):
-    qms_tuple = (magnitude,)
+def get_stars(MagRankAll):
+    qms_tuple = (MagRankAll,)
     results = DBfunctions.sql_execute("""
 SELECT bsc.HarvardRevised , bsc.ReadableName , bsc.RA*15 , bsc.Declination , bsc.Distance , bsc.VisualMagnitude , bsc.MagRankAll , bsc.ConstellationFullName , bsc.MagRankConstellation , bsc.GreekLetter
 FROM bright_star_catalogue bsc
-WHERE bsc.VisualMagnitude < ?
-OR bsc.MagRank = 1
+WHERE bsc.MagRankAll < ?
+OR bsc.MagRankConstellation = 1
 AND RA IS NOT NULL
 AND Declination IS NOT NULL
 order by bsc.VisualMagnitude ;
