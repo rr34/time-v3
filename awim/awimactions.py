@@ -97,7 +97,7 @@ def generate_image_tags():
         shutil.copy2(image_path, new_image_path) # todo: generate the tag in place, then rename the file later? copy2 preserves metadata like time stamps
 
         # 5. Update the DB with values caluclated for awim tag to show "scratchpad notes". These are duplicate to the awim tag values, but useful mostly for dev.
-        dev_dict['PhotoBasename'] = photo_basename
+        dev_dict['Basename'] = photo_basename
         dev_dict['awimTag'] = json.dumps(AWIMtag_dict, indent=4, sort_keys=True)
         DBsqlstatements.update_scratchpad(AWIMtag_dict, dev_dict)
 

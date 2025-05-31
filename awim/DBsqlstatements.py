@@ -27,20 +27,20 @@ WHERE BatchID = ? ;
 # Duplicate data, but this puts the calculated values in the DB for a table view of how the awim tag values were calculated.
 def update_scratchpad(AWIMtag_dictionary, dev_dict):
     momentcapture = formatters.format_datetime(AWIMtag_dictionary['awim Capture Moment'], 'to string for mysql')
-    photobasename = dev_dict['PhotoBasename']
+    basename = dev_dict['Basename']
     photomsl = AWIMtag_dictionary['awim Location MSL']
     objadjaz = dev_dict.get('AzRefObjAdjAz')
     azart = AWIMtag_dictionary['awim Ref Pixel Azimuth Artifae']
     awimtag = dev_dict['awimTag']
     dbid = AWIMtag_dictionary['DB id']
 
-    qms_tuple = (momentcapture, photobasename, photomsl, objadjaz, azart[0], azart[1], awimtag, dbid)
+    qms_tuple = (momentcapture, basename, photomsl, objadjaz, azart[0], azart[1], awimtag, dbid)
 
     results = DBfunctions.sql_execute("""
 UPDATE photos_awim
 SET
     MomentCapture = ?,
-    PhotoBasename = ?,
+    Basename = ?,
     PhotoMSL = ?,
     AzRefObjAdjAz = ?,
     Azimuth = ?,
