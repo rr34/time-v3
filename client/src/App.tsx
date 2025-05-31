@@ -59,10 +59,6 @@ useEffect(() => {
       };
       const response = await fetch('http://localhost:8000/getevents', requestOptions);
       const data = await response.json();
-      console.log('raw data: ', data)
-      console.log('sundaily: ', data['sundaily'])
-      console.log('moondaily: ', data['moondaily'])
-      console.log('newmoon time ', data['newmoon time'])
       
       const sundaily_strings: string[] = data['sundaily'];
       const sundaily_dates: Date[] = sundaily_strings.map(str => new Date(str));

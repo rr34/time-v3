@@ -1,4 +1,4 @@
-# TODOnext
+# TODOnext - remove spaces from basenames and regenerate the files.
 - clockscreen is broken with no fetches, clockgallery is added with fetches but untested, interfaces are created and helpful, need to complete the following all at once:
   - started already: frontend uses an object of multiple image basenames to generate multiple ClockScreen instances.
   - nowmoments passed into clockgallery from outside. I think going to make clockscreens within a clockgallery all have the same moments array.

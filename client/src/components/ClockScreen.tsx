@@ -23,6 +23,7 @@ interface ClockScreenProps {
 }
 
 function ClockScreen({ imageSrc, awimtag, astroData, bodiesInImage, NowMoments }: ClockScreenProps) {
+  console.log(imageSrc)
   const frameDuration = 2;
   const totalFrames = NowMoments.length;
   const totalDuration = frameDuration * totalFrames;

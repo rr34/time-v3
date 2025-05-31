@@ -41,8 +41,6 @@ export async function getPhotosByTags({ TagsInclude = [], TagsExclude = [] }) {
     LIMIT 100
   `;
 
-  console.log(query);
-
   const [rows] = await pool.query(query);
   return rows;
 }
