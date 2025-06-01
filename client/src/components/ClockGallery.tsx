@@ -39,7 +39,7 @@ function ClockGallery({ MomentsArray, TagsInclude, TagsExclude }: ClockGalleryPr
 
         const awimAPI_response = await celestialRes.json();
         setAstroData(awimAPI_response["astro dict"]);
-        setBodiesInImages(awimAPI_response["bodies in image dicts"]);
+        setBodiesInImages(awimAPI_response["bodies in images dicts"]);
       } catch (err) {
         console.error("Error fetching clock image data:", err);
       }
@@ -51,7 +51,7 @@ function ClockGallery({ MomentsArray, TagsInclude, TagsExclude }: ClockGalleryPr
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % imagesSet.length);
-    }, 60_000);
+    }, 30_000);
 
     return () => clearInterval(interval);
   }, [imagesSet]);
@@ -65,7 +65,7 @@ function ClockGallery({ MomentsArray, TagsInclude, TagsExclude }: ClockGalleryPr
         awimtag={JSON.parse(imagesSet[currentIndex]['awimTag'])}
         astroData={astroData}
         bodiesInImage={bodiesInImages?.[imagesSet[currentIndex]['Basename']]}
-        NowMoments={MomentsArray}
+        MomentsArray={MomentsArray}
       />
       <button onClick={() => setCurrentIndex((i) => (i - 1 + imagesSet.length) % imagesSet.length)}>
         Previous

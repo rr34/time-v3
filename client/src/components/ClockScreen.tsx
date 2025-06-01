@@ -19,13 +19,16 @@ interface ClockScreenProps {
   awimtag: awimTag;
   astroData: BodiesDict;
   bodiesInImage: BodiesDict;
-  NowMoments: string[];
+  MomentsArray: string[];
 }
 
-function ClockScreen({ imageSrc, awimtag, astroData, bodiesInImage, NowMoments }: ClockScreenProps) {
-  console.log(imageSrc)
+function ClockScreen({ imageSrc, awimtag, astroData, bodiesInImage, MomentsArray }: ClockScreenProps) {
+  console.log('image source', imageSrc)
+  console.log('astro data', astroData)
+  console.log('bodies in image', bodiesInImage)
+  console.log('moments array', MomentsArray)
   const frameDuration = 2;
-  const totalFrames = NowMoments.length;
+  const totalFrames = MomentsArray.length;
   const totalDuration = frameDuration * totalFrames;
 
   const bodyStyleMap: { [key: string]: { fill: string; radius: number; stroke?: string } } = {

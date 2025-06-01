@@ -36,10 +36,9 @@ function App() {
   // initialize daily events object
   const [DailyEventsObj, setDailyEventsObj] = useState({ sundaily: [new Date()], moondaily: [new Date()], nearestnew: newdate, nearestnewangle: 0, nearestfull: newdate, nearestfullangle: 0 });
 
-  // don't need the following until I start animating SVG
-  const momentscount: number = 48;
+  const momentscount: number = 24;
   const stepminutes: number = 15;
-  const stepsbefore: number = 24;
+  const stepsbefore: number = 8;
   const nowdate: number = Date.now();
   const momentsarray: string[] = [];
   for (let i=-stepsbefore; i<momentscount-stepsbefore; i++) { // generates times from an hour prior to CurrentTime until 4 hours after CurrentTime
@@ -118,7 +117,7 @@ useEffect(() => {
           {
             selectedScreen === 'strings'
               ? <ClockStrings cto={ClockTimeObj} setcto={setClockTimeObj} deo={DailyEventsObj} />
-              : <ClockGallery MomentsArray={NowMoments} TagsInclude={['timhouse']} TagsExclude={['withpeople']} />
+              : <ClockGallery MomentsArray={NowMoments} TagsInclude={['timhouse']} TagsExclude={['withpeople','skipfornow']} />
           }
         </div>
       </div>
