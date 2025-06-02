@@ -48,14 +48,6 @@ function ClockGallery({ MomentsArray, TagsInclude, TagsExclude }: ClockGalleryPr
     fetchClockImageData();
   }, [TagsInclude, TagsExclude, MomentsArray]);
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % imagesSet.length);
-    }, 30_000);
-
-    return () => clearInterval(interval);
-  }, [imagesSet]);
-
   if (imagesSet.length === 0) return <p>Loading...</p>;
 
   return (
@@ -66,6 +58,7 @@ function ClockGallery({ MomentsArray, TagsInclude, TagsExclude }: ClockGalleryPr
         astroData={astroData}
         bodiesInImage={bodiesInImages?.[imagesSet[currentIndex]['Basename']]}
         MomentsArray={MomentsArray}
+        onAnimationComplete={() => {setCurrentIndex((i) => (i + 1) % imagesSet.length);}}
       />
       <button onClick={() => setCurrentIndex((i) => (i - 1 + imagesSet.length) % imagesSet.length)}>
         Previous

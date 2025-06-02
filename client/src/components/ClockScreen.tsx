@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import { BodiesDict, awimTag } from "../types/interfaces";
 
 function radiusFromMagnitude(mag: number): number {
@@ -40,13 +41,30 @@ interface ClockScreenProps {
   astroData: BodiesDict;
   bodiesInImage: BodiesDict;
   MomentsArray: string[];
+  onAnimationComplete?: () => void;
 }
 
-function ClockScreen({ imageSrc, awimtag, astroData, bodiesInImage, MomentsArray }: ClockScreenProps) {
-  console.log('image source', imageSrc)
+function ClockScreen({ imageSrc, awimtag, astroData, bodiesInImage, MomentsArray, onAnimationComplete }: ClockScreenProps) {
   const frameDuration = 2;
   const totalFrames = MomentsArray.length;
   const totalDuration = frameDuration * totalFrames;
+
+  const animationRef = useRef<SVGAnimateElement | null>(null);
+  const repeatCount = useRef(0);
+  useEffect(() => {
+    const anim = animationRef.current;
+    if (!anim) return;
+
+    const handleRepeat = () => {
+      repeatCount.current += 1;
+      if (repeatCount.current === 2 && onAnimationComplete) {
+        onAnimationComplete();
+      }
+    };
+
+    anim.addEventListener("repeatEvent", handleRepeat);
+    return () => anim.removeEventListener("repeatEvent", handleRepeat);
+  }, [onAnimationComplete]);
 
   const bodyStyleMap: { [key: string]: { fill: string; radius: number; stroke?: string } } = {
     sun: { fill: "yellow", radius: 50 },
@@ -65,8 +83,8 @@ function ClockScreen({ imageSrc, awimtag, astroData, bodiesInImage, MomentsArray
   const refDims = awimtag['awim Ref Image Size in Pixels']; // unless the awimtag was broken, this will always be type number[] with two numbers in it
   const [refWidth, refHeight] = refDims;
 
-const artifaeArr: number[] = astroData?.sun?.artifaes || [];
-const skyColorValues = artifaeArr.map(getSkyColorFromArtifae).join(";");
+  const artifaeArr: number[] = astroData?.sun?.artifaes || [];
+  const skyColorValues = artifaeArr.map(getSkyColorFromArtifae).join(";");
 
   return (
     <div
@@ -82,7 +100,7 @@ const skyColorValues = artifaeArr.map(getSkyColorFromArtifae).join(";");
           preserveAspectRatio="xMidYMid meet"
         >
           <rect x="0" y="0" width={refWidth} height={refHeight} fill={artifaeArr.length ? getSkyColorFromArtifae(artifaeArr[0]) : "black"}>
-            <animate attributeName="fill" values={skyColorValues} dur={`${totalDuration}s`} repeatCount="indefinite" calcMode="linear"/>
+            <animate ref={animationRef} attributeName="fill" values={skyColorValues} dur={`${totalDuration}s`} repeatCount="indefinite" calcMode="linear"/>
           </rect>
           {Object.entries(bodiesInImage).map(([bodyName, bodyData], index) => {
             const xArr: number[] = bodyData['pixelpos x'];
