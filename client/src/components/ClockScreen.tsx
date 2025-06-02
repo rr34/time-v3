@@ -2,7 +2,7 @@ import { BodiesDict, awimTag } from "../types/interfaces";
 
 function radiusFromMagnitude(mag: number): number {
   const minMag = -1.46;
-  const maxMag = 4;
+  const maxMag = 5.17; // AKA limiting magnitude. This should come from the minimum visibility being shown, but currently this comes from the 2000th brightest star.
   const minRadius = 3;
   const maxRadius = 20;
   const magRange = maxMag - minMag;
@@ -14,6 +14,26 @@ function radiusFromMagnitude(mag: number): number {
   return clampedRad;
 }
 
+function getSkyColorFromArtifae(angle: number): string {
+  if (angle < -18) return "#000000"; // deep night
+  if (angle < -12) return "#00051b"; // astronomical twilight
+  if (angle < -6)  return "#01266c"; // nautical twilight
+  if (angle < 0)   return "#1e1e6e"; // civil twilight
+  if (angle < 6)  return "#46148c"; // sunrise/sunset
+  return "#000fda"; // day
+}
+
+  const skyColorMap: { [key: string]: string } = {
+    night: "#",
+    AT: "#",
+    NT: "#",
+    CT: "#",
+    transition: "#",
+    evening: "#3214af",
+    day: "#",
+  };
+
+
 interface ClockScreenProps {
   imageSrc: string; // can the whole image itself be passed in here, not just the src url?
   awimtag: awimTag;
@@ -24,16 +44,13 @@ interface ClockScreenProps {
 
 function ClockScreen({ imageSrc, awimtag, astroData, bodiesInImage, MomentsArray }: ClockScreenProps) {
   console.log('image source', imageSrc)
-  console.log('astro data', astroData)
-  console.log('bodies in image', bodiesInImage)
-  console.log('moments array', MomentsArray)
   const frameDuration = 2;
   const totalFrames = MomentsArray.length;
   const totalDuration = frameDuration * totalFrames;
 
   const bodyStyleMap: { [key: string]: { fill: string; radius: number; stroke?: string } } = {
     sun: { fill: "yellow", radius: 50 },
-    moon: { fill: "white", radius: 50 },
+    moon: { fill: "#e8e8e8", radius: 50 },
     mercury: { fill: "#b0b0b0", radius: 20 },
     venus: { fill: "#e6c07b", radius: 20 },
     mars: { fill: "#d95f02", radius: 20 },
@@ -48,6 +65,9 @@ function ClockScreen({ imageSrc, awimtag, astroData, bodiesInImage, MomentsArray
   const refDims = awimtag['awim Ref Image Size in Pixels']; // unless the awimtag was broken, this will always be type number[] with two numbers in it
   const [refWidth, refHeight] = refDims;
 
+const artifaeArr: number[] = astroData?.sun?.artifaes || [];
+const skyColorValues = artifaeArr.map(getSkyColorFromArtifae).join(";");
+
   return (
     <div
       className="aspect-container"
@@ -55,18 +75,16 @@ function ClockScreen({ imageSrc, awimtag, astroData, bodiesInImage, MomentsArray
         aspectRatio: `${refWidth} / ${refHeight}`,
       }}
     >
-      {imageSrc && (
-        <img src={imageSrc} className="clock-image" alt="Clock" />
-      )}
-
       {astroData && bodiesInImage && (
         <svg
           className="celestial-overlay"
           viewBox={`0 0 ${refWidth} ${refHeight}`}
           preserveAspectRatio="xMidYMid meet"
         >
+          <rect x="0" y="0" width={refWidth} height={refHeight} fill={artifaeArr.length ? getSkyColorFromArtifae(artifaeArr[0]) : "black"}>
+            <animate attributeName="fill" values={skyColorValues} dur={`${totalDuration}s`} repeatCount="indefinite" calcMode="linear"/>
+          </rect>
           {Object.entries(bodiesInImage).map(([bodyName, bodyData], index) => {
-            console.log("bodyData:", bodyData);
             const xArr: number[] = bodyData['pixelpos x'];
             const yArr: number[] = bodyData['pixelpos y'];
             const type: string = (bodyData['type'] || "").toLowerCase();
@@ -115,15 +133,15 @@ function ClockScreen({ imageSrc, awimtag, astroData, bodiesInImage, MomentsArray
                 </circle>
 
                 <g>
-                  <g transform="translate(0, -20)">
-                    <text
-                      fill="white"
-                      fontSize="24"
-                      textAnchor="middle"
-                      dominantBaseline="middle"
-                    >
-                      {bodyData['ReadableName']?.trim() || bodyName}
+                  <g transform="translate(0, -30)">
+                    {bodyData['ReadableName'] && (<text fill="white" fontSize="24" textAnchor="middle" dominantBaseline="middle">
+                      {bodyData['ReadableName']?.trim() || ''}
+                    </text> )}
+                    {bodyData['MagRankConstellation'] === 1 && bodyData['ConstellationFullName'] && (<text fill="lightblue" fontSize="24" textAnchor="middle" dominantBaseline="middle" transform="translate(0, 60)">
+                    α {bodyData['ConstellationFullName']}
                     </text>
+)}
+
                   </g>
                   <animateMotion dur={`${totalDuration}s`} repeatCount="indefinite" rotate="auto">
                     <mpath href={`#${pathId}`} />
@@ -133,6 +151,10 @@ function ClockScreen({ imageSrc, awimtag, astroData, bodiesInImage, MomentsArray
             );
           })}
         </svg>
+      )}
+
+      {imageSrc && (
+        <img src={imageSrc} className="clock-image" alt="Clock" />
       )}
     </div>
   );

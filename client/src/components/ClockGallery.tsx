@@ -61,7 +61,7 @@ function ClockGallery({ MomentsArray, TagsInclude, TagsExclude }: ClockGalleryPr
   return (
     <div>
       <ClockScreen
-        imageSrc={`${import.meta.env.VITE_FRONTEND_URL}/clockimages/${imagesSet[currentIndex]['Basename']}.PNG`}
+        imageSrc={`${import.meta.env.VITE_FRONTEND_URL}/clockimages/${imagesSet[currentIndex]['Basename']}.png`}
         awimtag={JSON.parse(imagesSet[currentIndex]['awimTag'])}
         astroData={astroData}
         bodiesInImage={bodiesInImages?.[imagesSet[currentIndex]['Basename']]}
