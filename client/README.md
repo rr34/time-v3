@@ -1,15 +1,14 @@
-# TODOnext - remove spaces from basenames and regenerate the files.
-- clockscreen is broken with no fetches, clockgallery is added with fetches but untested, interfaces are created and helpful, need to complete the following all at once:
-  - started already: frontend uses an object of multiple image basenames to generate multiple ClockScreen instances.
-  - nowmoments passed into clockgallery from outside. I think going to make clockscreens within a clockgallery all have the same moments array.
+# TODOnext
+- the progress indicator is out of sync from the animation. Fix.
+- generate files from our house photoshoot.
+- generate files from Aaron photoshoot.
+- move the next / previous image controls to the control panel thing (and restart the animation when change image?)
+- add moon phases to animation. Good shapes are here: D:\Documents NMR\02 Time v3 Clock Projects\astroclock\images
   - I think the app can save multiple SVG animations, but can it save multiple images? 20 images? or get PNG files from backend each time displayed?
-  - awim API batch generate the bodies_inimage_dict and send multiple of those along with a single astro_dict
   - awim API cache astrodata maybe? maybe save dev time?
-  - create L1 sky svg background that changes color
   - maybe add possibility of a background layer L2? L3 is the svg L4 is the foreground.
 - TODO: since awim tags are official source of duplicate information, clock could be able to regenerate the whole relevant portion of the DB with the awim tags from its files (not important for a while)
 - parse bright star catalog (and send file to Aaron and Ahmed).
-- animate moon phase.
 - Standard glockenspiel animations.
 - frontend needs to be able to generate and work with transparency files to determine if objects are visible / above the horizon, etc. See awim_png_littleblur = awim_png.filter(filter=BoxBlur(pxs_per_minute*5)) and awim_png_bigblur = awim_png.filter(filter=BoxBlur(pxs_per_minute*17))
 # animation problems
