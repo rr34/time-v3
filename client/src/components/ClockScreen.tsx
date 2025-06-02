@@ -1,4 +1,5 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { msToTime } from "../utils/functions";
 import { BodiesDict, awimTag } from "../types/interfaces";
 
 function radiusFromMagnitude(mag: number): number {
@@ -41,16 +42,18 @@ interface ClockScreenProps {
   astroData: BodiesDict;
   bodiesInImage: BodiesDict;
   MomentsArray: string[];
+  nowMS: number;
   onAnimationComplete?: () => void;
 }
 
-function ClockScreen({ imageSrc, awimtag, astroData, bodiesInImage, MomentsArray, onAnimationComplete }: ClockScreenProps) {
+function ClockScreen({ imageSrc, awimtag, astroData, bodiesInImage, MomentsArray, nowMS, onAnimationComplete }: ClockScreenProps) {
   const frameDuration = 2;
   const totalFrames = MomentsArray.length;
   const totalDuration = frameDuration * totalFrames;
 
   const animationRef = useRef<SVGAnimateElement | null>(null);
   const repeatCount = useRef(0);
+
   useEffect(() => {
     const anim = animationRef.current;
     if (!anim) return;
@@ -65,6 +68,18 @@ function ClockScreen({ imageSrc, awimtag, astroData, bodiesInImage, MomentsArray
     anim.addEventListener("repeatEvent", handleRepeat);
     return () => anim.removeEventListener("repeatEvent", handleRepeat);
   }, [onAnimationComplete]);
+
+  const [frameIndex, setFrameIndex] = useState(0);
+
+useEffect(() => {
+  const interval = setInterval(() => {
+    setFrameIndex((prev) => (prev + 1) % totalFrames);
+  }, frameDuration * 1000);
+
+  return () => clearInterval(interval);
+}, [frameDuration, totalFrames]);
+  
+  const momentsMS = Date.parse(MomentsArray[frameIndex])
 
   const bodyStyleMap: { [key: string]: { fill: string; radius: number; stroke?: string } } = {
     sun: { fill: "yellow", radius: 50 },
@@ -152,10 +167,10 @@ function ClockScreen({ imageSrc, awimtag, astroData, bodiesInImage, MomentsArray
 
                 <g>
                   <g transform="translate(0, -30)">
-                    {bodyData['ReadableName'] && (<text fill="white" fontSize="24" textAnchor="middle" dominantBaseline="middle">
+                    {bodyData['ReadableName'] && (<text fill="white" fontSize="30" textAnchor="middle" dominantBaseline="middle">
                       {bodyData['ReadableName']?.trim() || ''}
                     </text> )}
-                    {bodyData['MagRankConstellation'] === 1 && bodyData['ConstellationFullName'] && (<text fill="lightblue" fontSize="24" textAnchor="middle" dominantBaseline="middle" transform="translate(0, 60)">
+                    {bodyData['MagRankConstellation'] === 1 && bodyData['ConstellationFullName'] && (<text fill="lightblue" fontSize="30" textAnchor="middle" dominantBaseline="middle" transform="translate(0, 60)">
                     α {bodyData['ConstellationFullName']}
                     </text>
 )}
@@ -174,6 +189,11 @@ function ClockScreen({ imageSrc, awimtag, astroData, bodiesInImage, MomentsArray
       {imageSrc && (
         <img src={imageSrc} className="clock-image" alt="Clock" />
       )}
+      <div
+        style={{ position: "absolute", bottom: 10, left: 10, color: "white", fontSize: "20px", backgroundColor: "rgba(0, 0, 0, 0.4)", padding: "4px 8px", borderRadius: "6px",}}>
+        {'Now ' + (Date.parse(MomentsArray[frameIndex]) - nowMS < 0 ? '-' : '+') + msToTime(Math.abs(Date.parse(MomentsArray[frameIndex]) - nowMS))}
+
+      </div>
     </div>
   );
 }

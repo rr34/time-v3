@@ -46,6 +46,7 @@ function App() {
     momentsarray.push(idate.toISOString());
   }
   const [NowMoments, setNowMoments] = useState<string[]>(momentsarray);
+  const [nowMS, setNowMS] = useState<number>(nowdate);
 
   // todo: this is firing twice on initialization and making a duplicate request to the API
 useEffect(() => {
@@ -117,7 +118,7 @@ useEffect(() => {
           {
             selectedScreen === 'strings'
               ? <ClockStrings cto={ClockTimeObj} setcto={setClockTimeObj} deo={DailyEventsObj} />
-              : <ClockGallery MomentsArray={NowMoments} TagsInclude={['timhouse']} TagsExclude={['withpeople','skipfornow']} />
+              : <ClockGallery MomentsArray={NowMoments} nowMS={nowMS} TagsInclude={['timhouse']} TagsExclude={['withpeople','skipfornow']} />
           }
         </div>
       </div>

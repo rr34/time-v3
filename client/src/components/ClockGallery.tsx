@@ -3,11 +3,11 @@ import ClockScreen from "./ClockScreen";
 
 interface ClockGalleryProps {
   MomentsArray: string[];
+  nowMS: number;
   TagsInclude: string[];
   TagsExclude: string[];
 }
-
-function ClockGallery({ MomentsArray, TagsInclude, TagsExclude }: ClockGalleryProps) {
+function ClockGallery({ MomentsArray, nowMS, TagsInclude, TagsExclude }: ClockGalleryProps) {
   const [imagesSet, setImagesSet] = useState<any[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [astroData, setAstroData] = useState(null);
@@ -58,6 +58,7 @@ function ClockGallery({ MomentsArray, TagsInclude, TagsExclude }: ClockGalleryPr
         astroData={astroData}
         bodiesInImage={bodiesInImages?.[imagesSet[currentIndex]['Basename']]}
         MomentsArray={MomentsArray}
+        nowMS={nowMS}
         onAnimationComplete={() => {setCurrentIndex((i) => (i + 1) % imagesSet.length);}}
       />
       <button onClick={() => setCurrentIndex((i) => (i - 1 + imagesSet.length) % imagesSet.length)}>
