@@ -34,7 +34,7 @@ def get_astrodata(awim_dict, momentsarray, requestlist):
             for planet in planetslist:
                 bodies_astro_dict[planet] = {'type': 'planet'}
         elif request == 'stars':
-            stars_tuples = DBsqlstatements.get_stars(MagRankAll=2500)
+            stars_tuples = DBsqlstatements.get_stars(MagRankAll=2000)
             for star in stars_tuples:
                 bodies_astro_dict['HR ' + str(star[0])] = {
                 'type': 'star', # string

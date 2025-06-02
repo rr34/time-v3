@@ -1,3 +1,4 @@
+from typing import AnyStr, Dict, NoReturn
 import os, shutil
 import json
 import numpy as np
@@ -36,8 +37,7 @@ def generate_metatext_files():
     return
 
 
-def generate_image_tags():
-    batchID = 'timhouse20220410'
+def generate_image_tags(batchID: AnyStr) -> NoReturn:
     # 1. Get lists of photo files and entries in the database.
     photoshoot_basenames = DBsqlstatements.get_basenames(batchID)
     workingpath = os.path.join(os.getcwd(), 'working')
@@ -86,9 +86,9 @@ def generate_image_tags():
 
         # 4. Save each awim tag json file, along with a copy of the image file of the same base name.
         moment_capture = formatters.format_datetime(AWIMtag_dict['awim Capture Moment'], 'to string for filename')
-        photo_basename = photoshoot_dictionary['SiteName'].replace(' ', '') + '-' + moment_capture + '-' + camimage_basename.replace(' ', '') # todonext regenerate images with no spaces in basenames
+        photo_basename = photoshoot_dictionary['SiteName'].replace(' ', '') + '-' + moment_capture + '-' + camimage_basename.replace(' ', '').replace('_', '')
         image_filetype = os.path.splitext(image_path)[1]
-        new_image_path = os.path.join(workingpath, photo_basename) + image_filetype
+        new_image_path = os.path.join(workingpath, photo_basename) + image_filetype.lower()
         json_path = os.path.join(workingpath, photo_basename) + '.json'
 
         with open(json_path, "w") as text_file:
