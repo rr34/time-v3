@@ -1,5 +1,6 @@
 # TODOnext
 - the progress indicator is out of sync from the animation. Fix.
+- Show each animation once and cycle to the clock strings in between.
 - generate files from our house photoshoot.
 - generate files from Aaron photoshoot.
 - move the next / previous image controls to the control panel thing (and restart the animation when change image?)

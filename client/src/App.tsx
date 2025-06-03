@@ -36,12 +36,12 @@ function App() {
   // initialize daily events object
   const [DailyEventsObj, setDailyEventsObj] = useState({ sundaily: [new Date()], moondaily: [new Date()], nearestnew: newdate, nearestnewangle: 0, nearestfull: newdate, nearestfullangle: 0 });
 
-  const momentscount: number = 24;
-  const stepminutes: number = 15;
-  const stepsbefore: number = 8;
+  const momentscount: number = 40;
+  const stepminutes: number = 6;
+  const stepsbefore: number = 10;
   const nowdate: number = Date.now();
   const momentsarray: string[] = [];
-  for (let i=-stepsbefore; i<momentscount-stepsbefore; i++) { // generates times from an hour prior to CurrentTime until 4 hours after CurrentTime
+  for (let i=-stepsbefore; i<momentscount-stepsbefore; i++) {
     const idate = new Date(nowdate + i * stepminutes*1000*60);
     momentsarray.push(idate.toISOString());
   }
