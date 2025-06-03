@@ -1,4 +1,4 @@
-from typing import AnyStr, Dict, NoReturn
+from typing import AnyStr, Dict
 import os, shutil
 import json
 import numpy as np
@@ -37,7 +37,20 @@ def generate_metatext_files():
     return
 
 
-def generate_image_tags(batchID: AnyStr) -> NoReturn:
+def add_camfilenames_todb() -> None:
+    workingpath = os.path.join(os.getcwd(), 'working')
+    camfilenames_list = []
+    for file in os.listdir(workingpath):
+        file_type = os.path.splitext(file)[-1]
+        file_base = os.path.splitext(file)[0]
+        if file_type.lower() in ('.jpg', '.png', 'jpeg'):
+            file_path = os.path.join(workingpath, file)
+            camfilenames_list.append(file_base)
+    DBsqlstatements.insert_camfilenames(camfilenames_list)
+
+
+
+def generate_image_tags(batchID: AnyStr) -> None:
     # 1. Get lists of photo files and entries in the database.
     photoshoot_basenames = DBsqlstatements.get_basenames(batchID)
     workingpath = os.path.join(os.getcwd(), 'working')

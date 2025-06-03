@@ -1,5 +1,16 @@
+from typing import List, Any
 import DBfunctions
 import formatters
+
+def insert_camfilenames(camfilenames: List[str]) -> None:
+    qms_tuple = [(camfilename,) for camfilename in camfilenames]
+    results = DBfunctions.sql_execute("""
+INSERT INTO photos_awim (CamFilename)
+VALUES (%s) ;
+""", qms_tuple, result_type='updatedb', many=True)
+
+    return results
+
 
 def get_photo(batchID, basename):
     qms_tuple = (batchID, basename)

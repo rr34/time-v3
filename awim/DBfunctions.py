@@ -3,7 +3,7 @@ import mariadb
 import pandas as pd
 import json
 
-def sql_execute(text, user_input, result_type):
+def sql_execute(text, user_input=None, result_type=None, many=False):
     try:
         conn = mariadb.connect(
             user=os.getenv('MYSQL_USER'),
@@ -17,7 +17,9 @@ def sql_execute(text, user_input, result_type):
         sys.exit(1)
     cur = conn.cursor()
 
-    if user_input and result_type:
+    if many and user_input:
+        cur.executemany(text, user_input)
+    elif user_input and result_type:
         cur.execute(text, user_input)
     elif not user_input:
         cur.execute(text)
