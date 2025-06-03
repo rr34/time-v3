@@ -10,7 +10,7 @@ def get_metadata(image_file_path):
     metadata_src_type = os.path.splitext(image_file_path)[-1]
     # file_base = os.path.splitext(image_file_path)[0]
 
-    if metadata_src_type.lower() == '.png':
+    if metadata_src_type.lower() == '.png': # todonext this case needs to be more inclusive
         png_file_1 = PIL.Image.open(image_file_path)
         png_text_dictionary = png_file_1.text
 

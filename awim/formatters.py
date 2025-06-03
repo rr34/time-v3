@@ -211,8 +211,8 @@ def simplify_keys(metadata_dict):
     return metadata_dict
 
 
-def AdobeXML_to_dict(AdobeXML):
-    metadata_dict = xmltodict.parse(AdobeXML)
+def AdobeXML_to_dict(XML):
+    metadata_dict = xmltodict.parse(XML)
     metadata_dict = flatten_dict(metadata_dict)
     metadata_dict = simplify_keys(metadata_dict)
 
