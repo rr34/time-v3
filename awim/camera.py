@@ -339,6 +339,8 @@ def generate_tag_from_exif_plus_misc(image_path, cam_AWIMtag_dictionary, photosh
 
 	datetime_str, datetime_source = metadata_tools.capture_moment_from_metadata(metadata_dict)
 	camtime_adjustment = photoshoot_dictionary['CamTimeError']
+	if camtime_adjustment == None:
+		camtime_adjustment = 0
 	datetime_str = formatters.adjust_datetime_byseconds(datetime_str, camtime_adjustment)
 	AWIMtag_dictionary['awim Capture Moment'] = datetime_str
 	AWIMtag_dictionary['awim Capture Moment Source'] = datetime_source

@@ -21,7 +21,9 @@ def get_events(location, elevation_msl, currenttime):
 def get_astrodata(awim_dict, momentsarray, requestlist):
     momentsarray = np.array([np.datetime64(moment) for moment in momentsarray])
     location = awim_dict['awim Location Coordinates']
-    elevation = awim_dict['awim Location Terrain Elevation'] + awim_dict['awim Location AGL'] # this should be only if awim Location MSL is null, which it usually is but not always.
+    if not awim_dict['awim Location MSL']:
+        if awim_dict['awim Location Terrain Elevation'] and awim_dict['awim Location AGL']:
+            elevation = awim_dict['awim Location Terrain Elevation'] and awim_dict['awim Location AGL']
     bodies_astro_dict = {}
     # The following loop just creates the expanded list of bodies. Within solar system just get a name because RA, Dec has to be calculated. Outside solar system (stars) are a tuple of name with the RA, Dec given.
     for request in requestlist:
@@ -32,7 +34,7 @@ def get_astrodata(awim_dict, momentsarray, requestlist):
         elif request == 'planets':
             planetslist = ['mercury', 'venus', 'mars', 'jupiter', 'saturn', 'uranus', 'neptune']
             for planet in planetslist:
-                bodies_astro_dict[planet] = {'type': 'planet'}
+                bodies_astro_dict[planet] = {'type': 'planet', 'ReadableName': planet.capitalize()}
         elif request == 'stars':
             stars_tuples = DBsqlstatements.get_stars(MagRankAll=2000)
             for star in stars_tuples:

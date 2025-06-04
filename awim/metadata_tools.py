@@ -25,7 +25,7 @@ def get_metadata(image_file_path):
 
         else: # this is for the few old awim png files I made where there was a separate text chunk for each parameter that results in a dictionary where the keys are awim
             metadata_dict = png_text_dictionary
-            metadata_dict['Metadata Source'] = 'PNG text chunks, possibly from old awim tag method'
+            metadata_dict['origmeta metadata source'] = 'PNG text chunks, possibly from old awim tag method'
 
     elif metadata_src_type.lower() in ('.raw', '.arw', '.jpg', '.jpeg'):
         img_pyexiv2 = pyexiv2.Image(image_file_path)
@@ -83,7 +83,7 @@ def capture_moment_from_metadata(metadata_dict, tz_default=False):
     elif metadata_dict.get('origmeta DateTimeOriginal'):
          metadata_datetime = metadata_dict['origmeta DateTimeOriginal']
          UTC_datetime_str = formatters.format_datetime(metadata_datetime, 'to string for AWIMtag')
-         UTC_source = 'PNG XML DateTimeOriginal, which includes the timezone offset used by the camera. NMR camera set to not use DST, so offset should match location standard time.'
+         UTC_source = 'DateTimeOriginal, which includes the timezone offset used by the camera. NMR camera set to not use DST, so offset should match location standard time.'
 
     if exif_UTC:
         UTC_datetime_str = formatters.format_datetime(exif_UTC, 'to string for AWIMtag')
