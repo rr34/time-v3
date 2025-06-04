@@ -53,34 +53,48 @@ function ClockScreen({ imageSrc, awimtag, astroData, bodiesInImage, MomentsArray
 
   const animationRef = useRef<SVGAnimateElement | null>(null);
   const repeatCount = useRef(0);
+  const hasCalledRef = useRef(false);
+
+  const [frameIndex, setFrameIndex] = useState(0);
+  const startTimestampRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    repeatCount.current = 0;
+    hasCalledRef.current = false;
+  }, [imageSrc, MomentsArray]);
 
   useEffect(() => {
     const anim = animationRef.current;
     if (!anim) return;
 
+    if (startTimestampRef.current === null) {
+      startTimestampRef.current = Date.now(); // record the animation start time
+    }
+
     const handleRepeat = () => {
       repeatCount.current += 1;
-      if (repeatCount.current === 2 && onAnimationComplete) {
+      if (repeatCount.current >= 2 && !hasCalledRef.current && onAnimationComplete) {
+        hasCalledRef.current = true;
         onAnimationComplete();
       }
     };
-
     anim.addEventListener("repeatEvent", handleRepeat);
     return () => anim.removeEventListener("repeatEvent", handleRepeat);
   }, [onAnimationComplete]);
 
-  const [frameIndex, setFrameIndex] = useState(0);
 
 useEffect(() => {
   const interval = setInterval(() => {
-    setFrameIndex((prev) => (prev + 1) % totalFrames);
-  }, frameDuration * 1000);
+    if (startTimestampRef.current !== null) {
+      const elapsed = Date.now() - startTimestampRef.current;
+      const newIndex = Math.floor(elapsed / (frameDuration * 1000)) % totalFrames;
+      setFrameIndex(newIndex);
+    }
+  }, 100);
 
   return () => clearInterval(interval);
 }, [frameDuration, totalFrames]);
   
-  const momentsMS = Date.parse(MomentsArray[frameIndex])
-
   const bodyStyleMap: { [key: string]: { fill: string; radius: number; stroke?: string } } = {
     sun: { fill: "yellow", radius: 50 },
     moon: { fill: "#e8e8e8", radius: 50 },
@@ -173,9 +187,9 @@ useEffect(() => {
                     {bodyData['MagRankConstellation'] === 1 && bodyData['ConstellationFullName'] && (<text fill="lightblue" fontSize="30" textAnchor="middle" dominantBaseline="middle" transform="translate(0, 60)">
                     α {bodyData['ConstellationFullName']}
                     </text>
-)}
-
+                    )}
                   </g>
+
                   <animateMotion dur={`${totalDuration}s`} repeatCount="indefinite" rotate="auto">
                     <mpath href={`#${pathId}`} />
                   </animateMotion>
@@ -189,10 +203,17 @@ useEffect(() => {
       {imageSrc && (
         <img src={imageSrc} className="clock-image" alt="Clock" />
       )}
-      <div
-        style={{ position: "absolute", bottom: 10, left: 10, color: "white", fontSize: "20px", backgroundColor: "rgba(0, 0, 0, 0.4)", padding: "4px 8px", borderRadius: "6px",}}>
-        {'Now ' + (Date.parse(MomentsArray[frameIndex]) - nowMS < 0 ? '-' : '+') + msToTime(Math.abs(Date.parse(MomentsArray[frameIndex]) - nowMS))}
-
+      <div style={{ position: "absolute", bottom: 10, left: 10, color: "white", fontSize: "20px", backgroundColor: "rgba(0, 0, 0, 0.4)", padding: "4px 8px", borderRadius: "6px",}}>
+      <div>
+        {'Now ' + (() => {
+          const momentTime = Date.parse(MomentsArray[frameIndex]);
+          const diff = momentTime - Date.now();
+          return (diff < 0 ? '-' : '+') + msToTime(Math.abs(diff), false) + ' moments array at index ' + MomentsArray[frameIndex] + ' index ' + frameIndex;
+        })()}
+      </div>
+      <div>
+          {imageSrc}
+        </div>
       </div>
     </div>
   );

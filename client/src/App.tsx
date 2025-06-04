@@ -36,7 +36,7 @@ function App() {
   // initialize daily events object
   const [DailyEventsObj, setDailyEventsObj] = useState({ sundaily: [new Date()], moondaily: [new Date()], nearestnew: newdate, nearestnewangle: 0, nearestfull: newdate, nearestfullangle: 0 });
 
-  const momentscount: number = 40;
+  const momentscount: number = 40 + 1; // plus one makes the duration from the beginning to end match stepminutes times momentscount
   const stepminutes: number = 6;
   const stepsbefore: number = 10;
   const nowdate: number = Date.now();
@@ -118,7 +118,7 @@ useEffect(() => {
           {
             selectedScreen === 'strings'
               ? <ClockStrings cto={ClockTimeObj} setcto={setClockTimeObj} deo={DailyEventsObj} />
-              : <ClockGallery MomentsArray={NowMoments} nowMS={nowMS} TagsInclude={['timhouse']} TagsExclude={['withpeople','skipfornow']} />
+              : <ClockGallery MomentsArray={NowMoments} nowMS={nowMS} TagsInclude={['ourhouse']} TagsExclude={[]} />
           }
         </div>
       </div>
