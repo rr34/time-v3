@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from "react";
-import { msToTime } from "../utils/functions";
+import { msToTime, moonSVGPath } from "../utils/functions";
 import { BodiesDict, awimTag } from "../types/interfaces";
 
 function radiusFromMagnitude(mag: number): number {
-  const minMag = -1.46;
-  const maxMag = 5.17; // AKA limiting magnitude. This should come from the minimum visibility being shown, but currently this comes from the 2000th brightest star.
+  const minMag = -1.46; // This is the magnitude of Sirius, the brightest star.
+  const maxMag = 5.17; // AKA limiting magnitude. This comes from the minimum visibility being shown, currently the 2000th brightest star. todo: make this dynamic.
   const minRadius = 3;
   const maxRadius = 20;
   const magRange = maxMag - minMag;
@@ -103,8 +103,10 @@ function ClockScreen({ imageSrc, awimtag, astroData, bodiesInImage, MomentsArray
   if (!awimtag) return <p>Loading image, awimtag, astrodata, bodiesInImage data...</p>;
 
   const [refWidth, refHeight] = awimtag['awim Ref Image Size in Pixels']; // unless the awimtag was broken, this will always be type number[] with two numbers in it
-  const sunArtifaeArr: number[] = astroData?.sun?.artifaes || [];
-  const skyColorValues = sunArtifaeArr.map(getSkyColorFromArtifae).join(";");
+  const sunArtifaesArr: number[] = astroData?.sun?.artifaes || [];
+  const skyColorValues = sunArtifaesArr.map(getSkyColorFromArtifae).join(";");
+  const phaseAnglesArr: number[] = bodiesInImage?.moon?.phaseangles || [];
+  const brightSideDirectionsArr: number[] = bodiesInImage?.moon?.brightsidedirections || [];
 
   const bodyStyleMap: { [key: string]: { fill: string; radius: number; stroke?: string } } = {
     sun: { fill: "yellow", radius: 50 },
@@ -116,13 +118,15 @@ function ClockScreen({ imageSrc, awimtag, astroData, bodiesInImage, MomentsArray
     saturn: { fill: "#deb887", radius: 20 },
     uranus: { fill: "#76d7ea", radius: 20 },
     neptune: { fill: "#4169e1", radius: 20 },
-  };  
+  };
+  
+
 
   return (
     <div className="aspect-container" style={{ aspectRatio: `${refWidth} / ${refHeight}`, }}>
       {astroData && bodiesInImage && (
         <svg className="celestial-overlay" viewBox={`0 0 ${refWidth} ${refHeight}`} preserveAspectRatio="xMidYMid meet">
-          <rect x="0" y="0" width={refWidth} height={refHeight} fill={sunArtifaeArr.length ? getSkyColorFromArtifae(sunArtifaeArr[0]) : "black"}>
+          <rect x="0" y="0" width={refWidth} height={refHeight} fill={sunArtifaesArr.length ? getSkyColorFromArtifae(sunArtifaesArr[0]) : "black"}>
             <animate ref={animationRef} attributeName="fill" values={skyColorValues} dur={`${totalDuration}s`} repeatCount="indefinite" calcMode="linear"/>
           </rect>
 {Object.entries(bodiesInImage).map(([bodyName, bodyData], index) => {
@@ -154,47 +158,57 @@ function ClockScreen({ imageSrc, awimtag, astroData, bodiesInImage, MomentsArray
   }).join(" ");
 
   const isMoon = nameKey === "moon";
-  const maskId = `moonMask-${index}`;
-  let maskElement = null;
 
   if (isMoon) {
-    const phaseAngleArr = astroData?.moon?.phaseangle || [];
-    const phaseCxValues = phaseAngleArr.map(angle => {
-      const normalized = Math.cos((angle * Math.PI) / 180); // -1 to 1
-      return (normalized * radius).toFixed(2);
-    }).join(";");
+    const middleValue = Math.floor(phaseAnglesArr.length / 2);
+    const phaseAngleSingle: number = phaseAnglesArr[middleValue] || 90;
+    const brightSideDirectionSingle: number = brightSideDirectionsArr[middleValue] || 0;
+    const moonSVG = moonSVGPath(phaseAngleSingle);
 
-    maskElement = (
-      <mask id={maskId}>
-        <rect width="100%" height="100%" fill="black" />
-        <circle r={radius} fill="white">
+    return (
+      <g key={bodyName}>
+        <path id={pathId} d={pathD} fill="none" stroke="none" />
+        
+        {/* Moon path with rotation */}
+        <path d={moonSVG} fill={fill} transform={`rotate(${-brightSideDirectionSingle})`} stroke={stroke}>
           <animateMotion dur={`${totalDuration}s`} repeatCount="indefinite">
             <mpath href={`#${pathId}`} />
           </animateMotion>
-        </circle>
-        <circle r={radius} fill="black">
-          <animate attributeName="cx" values={phaseCxValues} dur={`${totalDuration}s`} repeatCount="indefinite" calcMode="linear" />
-          <animateMotion dur={`${totalDuration}s`} repeatCount="indefinite">
+          <animate attributeName="opacity" values={visibleArr.join(";")} dur={`${totalDuration}s`} repeatCount="indefinite" calcMode="discrete" />
+        </path>
+
+        {/* Labels and text */}
+        <g>
+          <g transform="translate(0, -30)">
+            {bodyData['ReadableName'] && (
+              <text fill="white" fontSize="30" textAnchor="middle" dominantBaseline="middle">
+                {bodyData['ReadableName']?.trim()}
+              </text>
+            )}
+            {bodyData['MagRankConstellation'] === 1 && bodyData['ConstellationFullName'] && (
+              <text fill="lightblue" fontSize="30" textAnchor="middle" dominantBaseline="middle" transform="translate(0, 60)">
+                α {bodyData['ConstellationFullName']}
+              </text>
+            )}
+          </g>
+          <animateMotion dur={`${totalDuration}s`} repeatCount="indefinite" rotate="auto">
             <mpath href={`#${pathId}`} />
           </animateMotion>
-        </circle>
-      </mask>
+        </g>
+      </g>
     );
   }
 
   return (
     <g key={bodyName}>
       <path id={pathId} d={pathD} fill="none" stroke="none" />
-      {maskElement}
-      <circle r={radius} fill={fill} stroke={stroke}
-      // {...(isMoon ? { mask: `url(#${maskId})` } : {})}
+      <circle r={radius} fill={fill} stroke={stroke} // chatgpt: if moon, instead of a circle, this should be the moonSVG rotated by negative brightSideDirectionSingle with the moon color from bodyStyleMap
       >
         <animateMotion dur={`${totalDuration}s`} repeatCount="indefinite">
           <mpath href={`#${pathId}`} />
         </animateMotion>
         <animate attributeName="opacity" values={visibleArr.join(";")} dur={`${totalDuration}s`} repeatCount="indefinite" calcMode="discrete"/>
       </circle>
-
       <g>
         <g transform="translate(0, -30)">
           {bodyData['ReadableName'] && (

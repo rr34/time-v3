@@ -24,8 +24,8 @@ export interface BodyData {
   'pixelpos y'?: number[];
 
   // Moon-specific optional fields
-  'phaseangle'?: number;
-  'brightsidedirection'?: number;
+  'phaseangles'?: number[];
+  'brightsidedirections'?: number[];
 }
 
 export type BodiesDict = Record<string, BodyData>;

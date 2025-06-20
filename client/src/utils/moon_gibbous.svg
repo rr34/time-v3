@@ -1,4 +1,5 @@
+<!-- The bright side is down because that is the convention I chose for the awim function calculate_astro_moon_brightsidedirection -->
 <svg width="200" height="200" viewBox="-50 -50 100 100" xmlns="http://www.w3.org/2000/svg">
-      <path id="crescent" d="M 0 -40 A 40 40 0 0 1 0 40 A 30 40 0 0 1 0 -40 " fill="gray">
+      <path id="crescent" d="M 50 0 A 50 50 0 0 1 -50 0 A 50 40 0 0 1 50 0 " fill="gray">
       </path>
 </svg>
