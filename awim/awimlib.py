@@ -206,6 +206,9 @@ def xyangs_to_dirarcs(xyangs, return_sphtri=False):
     # A is 90 degrees
     # B is useful to find the area of the image on the unit sphere
     # C is PXDIRECTION
+    # So, a dirarc is [PXDIRECTION, pxarc] where 
+    # PXDIRECTION ranges from -90 straight down to 0 straight to the right (+ pxarc) / left (- pxarc) to 90 straight up and
+    # pxarc positive is to the right, negative is to the left and ranges from 0 straight forward to 90 directly to the side to 180 directly behind.
     xang_compliment = np.subtract(math.pi/2, xyangs[:,0]) # always (+) because xang < 90
     r2 = 1*np.sin(xang_compliment) # always (+), correct here because pt2 = pt1 and is on the surface of the unit sphere
     art_seg_ = np.multiply(np.sin(xyangs[:,1]), r2) # (-) for (-) yangs
@@ -215,7 +218,7 @@ def xyangs_to_dirarcs(xyangs, return_sphtri=False):
     sph_solved = _sphtri_solve(b=xyangs[:,0], c=yang_arcs, A=np.full(xyangs_count, math.pi/2))
     pxarc = sph_solved[:,0]
     PXDIRECTION = sph_solved[:,5]
-    PXDIRECTION = np.where(pxarc != 0, PXDIRECTION, 0) # PXDIRECTION undefined for origin, set to zero
+    PXDIRECTION = np.where(pxarc != 0, PXDIRECTION, 0) # PXDIRECTION undefined for origin, set to zero based on when the pxarc = 0, which is origin
 
     px_dirarc = np.zeros([xyangs_count,2])
     px_dirarc[:,0] = np.multiply(PXDIRECTION * 180/math.pi, yangs_direction) # pxdir goes with yang direction

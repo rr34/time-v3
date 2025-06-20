@@ -175,7 +175,7 @@ def calculate_astro_newfullmoon(moment_now, discretize=150):
 
 def calculate_astro_moonphaseangle(moments):
     moments_astropy = Time(moments)
-    moon_phase = astroplan.moon_phase_angle(moments_astropy).to_value()
+    moon_phase = (astroplan.moon_phase_angle(moments_astropy).to_value()) * 180/math.pi
 
     return moon_phase
 
@@ -210,7 +210,7 @@ def calculate_astro_data(moments, earth_latlng, celestial_objects_dict):
 
 
 # to display the moon partially illuminated I need the angle it appears to be illuminated.
-# return degrees. straight down = sun straight below moon = 0°. (+) angle is CCW = illum up the right side. (-) angle is CW = illum up the left side.
+# return degrees. straight down = sun straight below moon = 0°. (+) angle is CCW = illum up the right side. (-) angle is CW = illum up the left side. This is unfortunately opposite of the svg animation convention but whatever.
 # see diagrams for variable meanings.
 def calculate_astro_moon_brightsidedirection(moon_azalts_deg, sun_azalts_deg):
     # moon_azalts[:,2] = np.where(np.greater_equal(moon_azalts[:,2], 0), moon_azalts[:,2], 0)

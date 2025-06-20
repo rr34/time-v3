@@ -28,9 +28,9 @@ def get_astrodata(awim_dict, momentsarray, requestlist):
     # The following loop just creates the expanded list of bodies. Within solar system just get a name because RA, Dec has to be calculated. Outside solar system (stars) are a tuple of name with the RA, Dec given.
     for request in requestlist:
         if request == 'sun':
-            bodies_astro_dict['sun'] = {'type': 'sun'}
+            bodies_astro_dict['sun'] = {'type': 'sun', 'ReadableName': 'Sun'}
         elif request == 'moon':
-            bodies_astro_dict['moon'] = {'type': 'moon'}
+            bodies_astro_dict['moon'] = {'type': 'moon', 'ReadableName': 'Moon'}
         elif request == 'planets':
             planetslist = ['mercury', 'venus', 'mars', 'jupiter', 'saturn', 'uranus', 'neptune']
             for planet in planetslist:
@@ -83,11 +83,11 @@ def get_celestialinphoto(awim_dict, momentsarray, bodies_astro_dict, inimage_thr
                 bodies_image_dict[key][astrokey] = astrovalue
 
             if key == 'moon':
-                phase_angle = astromath.calculate_astro_moonphaseangle(momentsarray)
-                bodies_image_dict[key]['phaseangle'] = phase_angle
+                phase_angles = astromath.calculate_astro_moonphaseangle(momentsarray)
+                bodies_image_dict[key]['phaseangles'] = phase_angles
                 sun_azarts = np.column_stack((bodies_astro_dict['sun']['azimuths'], bodies_astro_dict['sun']['artifaes']))
-                brightside_direction = astromath.calculate_astro_moon_brightsidedirection(body_azarts, sun_azarts)
-                bodies_image_dict[key]['brightsidedirection'] = brightside_direction
+                brightside_directions = astromath.calculate_astro_moon_brightsidedirection(body_azarts, sun_azarts)
+                bodies_image_dict[key]['brightsidedirections'] = brightside_directions
     
     bodies_total = len(bodies_astro_dict)
     bodiescount_inimage = len(bodies_image_dict)
