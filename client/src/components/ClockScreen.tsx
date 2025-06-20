@@ -47,14 +47,13 @@ interface ClockScreenProps {
 }
 
 function ClockScreen({ imageSrc, awimtag, astroData, bodiesInImage, MomentsArray, nowMS, onAnimationComplete }: ClockScreenProps) {
-  const frameDuration = 0.75;
+  const frameDuration = 0.25;
   const totalFrames = MomentsArray.length;
   const totalDuration = frameDuration * totalFrames;
 
   const animationRef = useRef<SVGAnimateElement | null>(null);
   const repeatCount = useRef(0);
   const hasCalledRef = useRef(false);
-
   const [frameIndex, setFrameIndex] = useState(0);
   const startTimestampRef = useRef<number | null>(null);
 
@@ -64,37 +63,49 @@ function ClockScreen({ imageSrc, awimtag, astroData, bodiesInImage, MomentsArray
   }, [imageSrc, MomentsArray]);
 
   useEffect(() => {
-    const anim = animationRef.current;
-    if (!anim) return;
+    const ready = imageSrc && awimtag && astroData && bodiesInImage && MomentsArray.length > 0;
+    if (!ready) return;
 
-    if (startTimestampRef.current === null) {
-      startTimestampRef.current = Date.now(); // record the animation start time
-    }
+    repeatCount.current = 0;
+    hasCalledRef.current = false
+    startTimestampRef.current = null;
 
-    const handleRepeat = () => {
-      repeatCount.current += 1;
-      if (repeatCount.current >= 2 && !hasCalledRef.current && onAnimationComplete) {
-        hasCalledRef.current = true;
-        onAnimationComplete();
+    let animationFrameId: number;
+    const repeatLimit = 1;
+
+    const animate = (timestamp: number) => {
+      if (startTimestampRef.current === null) {
+        startTimestampRef.current = timestamp;
       }
-    };
-    anim.addEventListener("repeatEvent", handleRepeat);
-    return () => anim.removeEventListener("repeatEvent", handleRepeat);
-  }, [onAnimationComplete]);
 
+      const elapsed = (timestamp - startTimestampRef.current) / 1000; // in seconds
+      const fullCycles = Math.floor(elapsed / totalDuration);
 
-useEffect(() => {
-  const interval = setInterval(() => {
-    if (startTimestampRef.current !== null) {
-      const elapsed = Date.now() - startTimestampRef.current;
-      const newIndex = Math.floor(elapsed / (frameDuration * 1000)) % totalFrames;
+      if (fullCycles >= repeatLimit) {
+        if (onAnimationComplete && !hasCalledRef.current) {
+          hasCalledRef.current = true;
+          onAnimationComplete();
+        }
+        return; // stop the animation
+      }
+
+      const localElapsed = elapsed % totalDuration;
+      const newIndex = Math.floor(localElapsed / frameDuration) % totalFrames;
       setFrameIndex(newIndex);
-    }
-  }, 100);
 
-  return () => clearInterval(interval);
-}, [frameDuration, totalFrames]);
-  
+      animationFrameId = requestAnimationFrame(animate);
+    };
+
+    animationFrameId = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(animationFrameId);
+  }, [imageSrc, awimtag, astroData, bodiesInImage, MomentsArray, frameDuration, totalFrames, totalDuration, onAnimationComplete]);
+
+  if (!awimtag) return <p>Loading image, awimtag, astrodata, bodiesInImage data...</p>;
+
+  const [refWidth, refHeight] = awimtag['awim Ref Image Size in Pixels']; // unless the awimtag was broken, this will always be type number[] with two numbers in it
+  const sunArtifaeArr: number[] = astroData?.sun?.artifaes || [];
+  const skyColorValues = sunArtifaeArr.map(getSkyColorFromArtifae).join(";");
+
   const bodyStyleMap: { [key: string]: { fill: string; radius: number; stroke?: string } } = {
     sun: { fill: "yellow", radius: 50 },
     moon: { fill: "#e8e8e8", radius: 50 },
@@ -105,98 +116,105 @@ useEffect(() => {
     saturn: { fill: "#deb887", radius: 20 },
     uranus: { fill: "#76d7ea", radius: 20 },
     neptune: { fill: "#4169e1", radius: 20 },
-  };
-
-  if (!awimtag) return <p>Loading image, awimtag, astrodata, bodiesInImage data...</p>;
-
-  const refDims = awimtag['awim Ref Image Size in Pixels']; // unless the awimtag was broken, this will always be type number[] with two numbers in it
-  const [refWidth, refHeight] = refDims;
-
-  const artifaeArr: number[] = astroData?.sun?.artifaes || [];
-  const skyColorValues = artifaeArr.map(getSkyColorFromArtifae).join(";");
+  };  
 
   return (
-    <div
-      className="aspect-container"
-      style={{
-        aspectRatio: `${refWidth} / ${refHeight}`,
-      }}
-    >
+    <div className="aspect-container" style={{ aspectRatio: `${refWidth} / ${refHeight}`, }}>
       {astroData && bodiesInImage && (
-        <svg
-          className="celestial-overlay"
-          viewBox={`0 0 ${refWidth} ${refHeight}`}
-          preserveAspectRatio="xMidYMid meet"
-        >
-          <rect x="0" y="0" width={refWidth} height={refHeight} fill={artifaeArr.length ? getSkyColorFromArtifae(artifaeArr[0]) : "black"}>
+        <svg className="celestial-overlay" viewBox={`0 0 ${refWidth} ${refHeight}`} preserveAspectRatio="xMidYMid meet">
+          <rect x="0" y="0" width={refWidth} height={refHeight} fill={sunArtifaeArr.length ? getSkyColorFromArtifae(sunArtifaeArr[0]) : "black"}>
             <animate ref={animationRef} attributeName="fill" values={skyColorValues} dur={`${totalDuration}s`} repeatCount="indefinite" calcMode="linear"/>
           </rect>
-          {Object.entries(bodiesInImage).map(([bodyName, bodyData], index) => {
-            const xArr: number[] = bodyData['pixelpos x'];
-            const yArr: number[] = bodyData['pixelpos y'];
-            const type: string = (bodyData['type'] || "").toLowerCase();
-            const nameKey = bodyName.toLowerCase();
-            const baseStyle = bodyStyleMap[nameKey] || bodyStyleMap[type] || { fill: "white", radius: 3 };
+{Object.entries(bodiesInImage).map(([bodyName, bodyData], index) => {
+  const xArr = bodyData['pixelpos x'];
+  const yArr = bodyData['pixelpos y'];
+  const type = (bodyData['type'] || "").toLowerCase();
+  const nameKey = bodyName.toLowerCase();
+  const baseStyle = bodyStyleMap[nameKey] || bodyStyleMap[type] || { fill: "white", radius: 3 };
 
-            let radius = baseStyle.radius;
-            if (type === "star") {
-              const visualMag = bodyData['VisualMagnitude'] !== undefined
-                ? parseFloat(bodyData['VisualMagnitude'])
-                : 6;
-              radius = radiusFromMagnitude(visualMag);
-            }
+  let radius = baseStyle.radius;
+  if (type === "star") {
+    const visualMag = bodyData['VisualMagnitude'] !== undefined ? bodyData['VisualMagnitude'] : 6;
+    radius = radiusFromMagnitude(visualMag);
+  }
 
-            const fill = baseStyle.fill;
-            const stroke = baseStyle.stroke || "none";
+  const fill = baseStyle.fill;
+  const stroke = baseStyle.stroke || "none";
+  const visibleArr = xArr.map((x, i) => {
+    const y = yArr[i];
+    return (x >= 0 && x <= refWidth && y >= 0 && y <= refHeight) ? 1 : 0;
+  });
 
-            const visibleArr = xArr.map((x, i) => {
-              const y = yArr[i];
-              return (x >= 0 && x <= refWidth && y >= 0 && y <= refHeight) ? 1 : 0;
-            });
+  if (visibleArr.every(v => v === 0)) return null;
 
-            if (visibleArr.every((v) => v === 0)) return null;
+  const pathId = `motionPath-${index}`;
+  const pathD = xArr.map((x, i) => {
+    const y = yArr[i];
+    return i === 0 ? `M ${x},${y}` : `L ${x},${y}`;
+  }).join(" ");
 
-            const pathId = `motionPath-${index}`;
-            const pathD = xArr.map((x, i) => {
-              const y = yArr[i];
-              return i === 0 ? `M ${x},${y}` : `L ${x},${y}`;
-            }).join(" ");
+  const isMoon = nameKey === "moon";
+  const maskId = `moonMask-${index}`;
+  let maskElement = null;
 
-            return (
-              <g key={bodyName}>
-                <path id={pathId} d={pathD} fill="none" stroke="none" />
+  if (isMoon) {
+    const phaseAngleArr = astroData?.moon?.phaseangle || [];
+    const phaseCxValues = phaseAngleArr.map(angle => {
+      const normalized = Math.cos((angle * Math.PI) / 180); // -1 to 1
+      return (normalized * radius).toFixed(2);
+    }).join(";");
 
-                <circle r={radius} fill={fill} stroke={stroke}>
-                  <animateMotion dur={`${totalDuration}s`} repeatCount="indefinite">
-                    <mpath href={`#${pathId}`} />
-                  </animateMotion>
-                  <animate
-                    attributeName="opacity"
-                    values={visibleArr.join(";")}
-                    dur={`${totalDuration}s`}
-                    repeatCount="indefinite"
-                    calcMode="discrete"
-                  />
-                </circle>
+    maskElement = (
+      <mask id={maskId}>
+        <rect width="100%" height="100%" fill="black" />
+        <circle r={radius} fill="white">
+          <animateMotion dur={`${totalDuration}s`} repeatCount="indefinite">
+            <mpath href={`#${pathId}`} />
+          </animateMotion>
+        </circle>
+        <circle r={radius} fill="black">
+          <animate attributeName="cx" values={phaseCxValues} dur={`${totalDuration}s`} repeatCount="indefinite" calcMode="linear" />
+          <animateMotion dur={`${totalDuration}s`} repeatCount="indefinite">
+            <mpath href={`#${pathId}`} />
+          </animateMotion>
+        </circle>
+      </mask>
+    );
+  }
 
-                <g>
-                  <g transform="translate(0, -30)">
-                    {bodyData['ReadableName'] && (<text fill="white" fontSize="30" textAnchor="middle" dominantBaseline="middle">
-                      {bodyData['ReadableName']?.trim() || ''}
-                    </text> )}
-                    {bodyData['MagRankConstellation'] === 1 && bodyData['ConstellationFullName'] && (<text fill="lightblue" fontSize="30" textAnchor="middle" dominantBaseline="middle" transform="translate(0, 60)">
-                    α {bodyData['ConstellationFullName']}
-                    </text>
-                    )}
-                  </g>
+  return (
+    <g key={bodyName}>
+      <path id={pathId} d={pathD} fill="none" stroke="none" />
+      {maskElement}
+      <circle r={radius} fill={fill} stroke={stroke}
+      // {...(isMoon ? { mask: `url(#${maskId})` } : {})}
+      >
+        <animateMotion dur={`${totalDuration}s`} repeatCount="indefinite">
+          <mpath href={`#${pathId}`} />
+        </animateMotion>
+        <animate attributeName="opacity" values={visibleArr.join(";")} dur={`${totalDuration}s`} repeatCount="indefinite" calcMode="discrete"/>
+      </circle>
 
-                  <animateMotion dur={`${totalDuration}s`} repeatCount="indefinite" rotate="auto">
-                    <mpath href={`#${pathId}`} />
-                  </animateMotion>
-                </g>
-              </g>
-            );
-          })}
+      <g>
+        <g transform="translate(0, -30)">
+          {bodyData['ReadableName'] && (
+            <text fill="white" fontSize="30" textAnchor="middle" dominantBaseline="middle">
+              {bodyData['ReadableName']?.trim()}
+            </text>
+          )}
+          {bodyData['MagRankConstellation'] === 1 && bodyData['ConstellationFullName'] && (
+            <text fill="lightblue" fontSize="30" textAnchor="middle" dominantBaseline="middle" transform="translate(0, 60)">
+              α {bodyData['ConstellationFullName']}
+            </text>
+          )}
+        </g>
+        <animateMotion dur={`${totalDuration}s`} repeatCount="indefinite" rotate="auto">
+          <mpath href={`#${pathId}`} />
+        </animateMotion>
+      </g>
+    </g>
+  );
+})}
         </svg>
       )}
 
@@ -208,7 +226,7 @@ useEffect(() => {
         {'Now ' + (() => {
           const momentTime = Date.parse(MomentsArray[frameIndex]);
           const diff = momentTime - Date.now();
-          return (diff < 0 ? '-' : '+') + msToTime(Math.abs(diff), false) + ' moments array at index ' + MomentsArray[frameIndex] + ' index ' + frameIndex;
+          return (diff < 0 ? '-' : '+') + msToTime(Math.abs(diff), false);
         })()}
       </div>
       <div>

@@ -36,10 +36,11 @@ function App() {
   // initialize daily events object
   const [DailyEventsObj, setDailyEventsObj] = useState({ sundaily: [new Date()], moondaily: [new Date()], nearestnew: newdate, nearestnewangle: 0, nearestfull: newdate, nearestfullangle: 0 });
 
-  const momentscount: number = 40 + 1; // plus one makes the duration from the beginning to end match stepminutes times momentscount
+  const momentscount: number = 20 + 1; // plus one makes the duration from the beginning to end match stepminutes times momentscount
   const stepminutes: number = 6;
   const stepsbefore: number = 10;
-  const nowdate: number = Date.now();
+  const dev_minutes_offset = 0;
+  const nowdate: number = Date.now() + dev_minutes_offset*60*1000;
   const momentsarray: string[] = [];
   for (let i=-stepsbefore; i<momentscount-stepsbefore; i++) {
     const idate = new Date(nowdate + i * stepminutes*1000*60);

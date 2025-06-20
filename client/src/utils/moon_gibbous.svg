@@ -1,0 +1,4 @@
+<svg width="200" height="200" viewBox="-50 -50 100 100" xmlns="http://www.w3.org/2000/svg">
+      <path id="crescent" d="M 0 -40 A 40 40 0 0 1 0 40 A 30 40 0 0 1 0 -40 " fill="gray">
+      </path>
+</svg>

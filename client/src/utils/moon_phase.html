@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Moon Phase Animation</title>
+  <style>
+    body {
+      background: black;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    svg {
+      width: 300px;
+      height: 300px;
+    }
+  </style>
+</head>
+<body>
+
+<svg viewBox="-50 -50 100 100" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="0" cy="0" r="40" fill="black"/>
+  <path id="crescent" fill="gray"/>
+</svg>
+
+<script>
+  function moonPhasePath(phaseAngle) {
+    // Clamp between 0–180
+    const angle = Math.max(0, Math.min(180, phaseAngle));
+    // Interpolate rx from 40 (at 0 or 180) to 0 (at 90)
+    const rx = (40 - Math.abs(angle - 90) * (40 / 90)).toFixed(3);
+    const sweep = angle > 90 ? 0 : 1;
+    return `M 0 -40 A 40 40 0 0 1 0 40 A ${rx} 40 0 0 ${sweep} 0 -40`;
+  }
+
+  const path = document.getElementById("crescent");
+
+  let angle = 0;
+  let direction = 1;
+
+  function animateMoon() {
+    path.setAttribute("d", moonPhasePath(angle));
+    angle += direction;
+    if (angle >= 180 || angle <= 0) direction *= -1;
+    requestAnimationFrame(animateMoon);
+  }
+
+  animateMoon();
+</script>
+
+</body>
+</html>
