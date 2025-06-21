@@ -2,137 +2,188 @@ import { useEffect } from "react";
 import { msToTime } from "../utils/functions";
 import { ClockTimeObj, DailyEventsObj } from "../App";
 
-
 interface ClockStringsProps {
-    cto: ClockTimeObj;
-    setcto: React.Dispatch<React.SetStateAction<{ currenttime: Date; sunindex: number }>>;
-    deo: DailyEventsObj;
+  cto: ClockTimeObj;
+  setcto: React.Dispatch<React.SetStateAction<{ currenttime: Date; sunindex: number }>>;
+  deo: DailyEventsObj;
 }
+
 const ClockStrings = ({ cto, setcto, deo }: ClockStringsProps) => {
-    // update the clock strings every second. todo: fix this because it causes the entire app to reload twice every second when it fires.
-    useEffect(() => {
-        const intervalID = setInterval(() => {
-            const addhours = 0;
-            const newdate = new Date(Date.now() + addhours*1000*60*60);
-            const sunindex = deo.sundaily.findIndex((date, i) => newdate < date);
-            setcto({ currenttime: newdate, sunindex: sunindex })
-        }, 1*1000);
+  useEffect(() => {
+    const intervalID = setInterval(() => {
+      const addhours = 0;
+      const newdate = new Date(Date.now() + addhours * 1000 * 60 * 60);
+      const sunindex = deo.sundaily.findIndex((date) => newdate < date);
+      setcto({ currenttime: newdate, sunindex });
+    }, 1000);
 
     return () => clearInterval(intervalID);
-    });
+  }, [deo.sundaily, setcto]);
 
+  const timeStyle: React.CSSProperties = {
+    fontFamily: "'Courier New', monospace, 'Orbitron'",
+    fontSize: '1.8rem',
+    color: '#F5EBFF',
+    margin: '0 0.3rem',
+    fontWeight: 800,
+  };
 
-    console.log("reloaded the clock strings") // todo: Why does this log twice every second when this component should be rendering a single time every second? Tried wrapping in React memo and tried making the time variables a single object so there's only one state variable updating at a time to trigger the rerender, but still rerenders twice for some reason.
-    
-    let suneventsstring = "sun events string";
-    let daynightlengthstring = "day and night lengths string";
-    let moonphasestring = "moon phase string";
-    let mooneventstring = "moon events string";
-    let industrialdtstring = "industrial datetime string";
-    let comptime = "computer time";
+    let suneventsstring: React.ReactNode = "sun events string";
+    let daynightlengthstring: React.ReactNode = "day and night lengths string";
+    let moonphasestring: React.ReactNode = "moon phase string";
+    let mooneventstring: React.ReactNode = "moon events string";
+    let industrialdtstring: React.ReactNode = "industrial datetime string";
+    let comptime: React.ReactNode = "computer time";
 
-    // sun events string
-    if (cto.sunindex === 4 || cto.sunindex === 8) {
-        const since_ms = cto.currenttime.getTime() - deo.sundaily[cto.sunindex - 1].getTime();
-        const until_ms = deo.sundaily[cto.sunindex].getTime() - cto.currenttime.getTime();
-        suneventsstring = msToTime(since_ms) + " since midnight. " + msToTime(until_ms) + " until sunrise.";
-    }
-    else if (cto.sunindex === 5 || cto.sunindex === 9) {
-        const since_ms = cto.currenttime.getTime() - deo.sundaily[cto.sunindex - 1].getTime();
-        const until_ms = deo.sundaily[cto.sunindex].getTime() - cto.currenttime.getTime();
-        suneventsstring = msToTime(since_ms) + " since sunrise. " + msToTime(until_ms) + " until high noon.";
-    }
-    else if (cto.sunindex === 6) {
-        const since_ms = cto.currenttime.getTime() - deo.sundaily[cto.sunindex - 1].getTime();
-        const until_ms = deo.sundaily[cto.sunindex].getTime() - cto.currenttime.getTime();
-        suneventsstring = msToTime(since_ms) + " since high noon. " + msToTime(until_ms) + " until sunset.";
-    }
-    else if (cto.sunindex === 7) {
-        const since_ms = cto.currenttime.getTime() - deo.sundaily[cto.sunindex - 1].getTime();
-        const until_ms = deo.sundaily[cto.sunindex].getTime() - cto.currenttime.getTime();
-        suneventsstring = msToTime(since_ms) + " since sunset. " + msToTime(until_ms) + " until midnight.";
-    }
+  const { currenttime, sunindex } = cto;
 
-    // moon events string
-    const moon_index = deo.moondaily.findIndex((date, i) => cto.currenttime < date);
-    if (moon_index === 2 || moon_index === 4) {
-        const since_ms = cto.currenttime.getTime() - deo.moondaily[moon_index - 1].getTime();
-        const until_ms = deo.moondaily[moon_index].getTime() - cto.currenttime.getTime();
-        mooneventstring = msToTime(since_ms) + " since moonset. " + msToTime(until_ms) + " until moonrise.";
-    }
-    else if (moon_index === 3 || moon_index === 5) {
-        const since_ms = cto.currenttime.getTime() - deo.moondaily[moon_index - 1].getTime();
-        const until_ms = deo.moondaily[moon_index].getTime() - cto.currenttime.getTime();
-        mooneventstring = msToTime(since_ms) + " since moonrise. " + msToTime(until_ms) + " until moonset.";
-    }
+  // sun events string
+  if (sunindex === 4 || sunindex === 8) {
+    const since_ms = currenttime.getTime() - deo.sundaily[sunindex - 1].getTime();
+    const until_ms = deo.sundaily[sunindex].getTime() - currenttime.getTime();
+    suneventsstring = <>
+      <span style={timeStyle}>{msToTime(since_ms)}</span> since midnight.{" "}
+      <span style={timeStyle}>{msToTime(until_ms)}</span> until sunrise.
+    </>;
+  } else if (sunindex === 5 || sunindex === 9) {
+    const since_ms = currenttime.getTime() - deo.sundaily[sunindex - 1].getTime();
+    const until_ms = deo.sundaily[sunindex].getTime() - currenttime.getTime();
+    suneventsstring = <>
+      <span style={timeStyle}>{msToTime(since_ms)}</span> since sunrise.{" "}
+      <span style={timeStyle}>{msToTime(until_ms)}</span> until high noon.
+    </>;
+  } else if (sunindex === 6) {
+    const since_ms = currenttime.getTime() - deo.sundaily[sunindex - 1].getTime();
+    const until_ms = deo.sundaily[sunindex].getTime() - currenttime.getTime();
+    suneventsstring = <>
+      <span style={timeStyle}>{msToTime(since_ms)}</span> since high noon.{" "}
+      <span style={timeStyle}>{msToTime(until_ms)}</span> until sunset.
+    </>;
+  } else if (sunindex === 7) {
+    const since_ms = currenttime.getTime() - deo.sundaily[sunindex - 1].getTime();
+    const until_ms = deo.sundaily[sunindex].getTime() - currenttime.getTime();
+    suneventsstring = <>
+      <span style={timeStyle}>{msToTime(since_ms)}</span> since sunset.{" "}
+      <span style={timeStyle}>{msToTime(until_ms)}</span> until midnight.
+    </>;
+  }
 
-    // moon phase string
-    const timedelta_new = cto.currenttime.getTime() - deo.nearestnew.getTime();
-    const timedelta_full = cto.currenttime.getTime() - deo.nearestfull.getTime();
-    if (Math.abs(timedelta_new) < Math.abs(timedelta_full) && Math.sign(timedelta_new) > 0) {
-        const timedelta_str: string = msToTime(Math.abs(timedelta_new));
-        const eclipse_string: string = (deo.nearestnewangle > 178.5) ? ' > ~~178.5° means solar eclipse.' : '';
-        moonphasestring = timedelta_str + ' since new moon at ' + deo.nearestnewangle.toString() + '° phase angle.' + eclipse_string;
-    }
-    else if (Math.abs(timedelta_new) < Math.abs(timedelta_full) && Math.sign(timedelta_new) < 0) {
-        const timedelta_str: string = msToTime(Math.abs(timedelta_new));
-        const eclipse_string: string = (deo.nearestnewangle > 178.5) ? ' > than ~~178.5° means solar eclipse.' : '';
-        moonphasestring = timedelta_str + ' until new moon at ' + deo.nearestnewangle.toString() + '° phase angle.' + eclipse_string;
-    }
-    else if (Math.abs(timedelta_new) > Math.abs(timedelta_full) && Math.sign(timedelta_full) > 0) {
-        const timedelta_str: string = msToTime(Math.abs(timedelta_full));
-        const eclipse_string: string = (deo.nearestfullangle < 1.5) ? ' < ~1.5° means lunar eclipse.' : '';
-        moonphasestring = timedelta_str + ' since full moon at ' + deo.nearestfullangle.toString() + '° phase angle.' + eclipse_string;
-    }
-    else if (Math.abs(timedelta_new) > Math.abs(timedelta_full) && Math.sign(timedelta_full) < 0) {
-        const timedelta_str: string = msToTime(Math.abs(timedelta_full));
-        const eclipse_string: string = (deo.nearestfullangle < 1.5) ? ' < ~1.5° means lunar eclipse.' : '';
-        moonphasestring = timedelta_str + ' until full moon at ' + deo.nearestfullangle.toString() + '° phase angle.' + eclipse_string;
-    }
+  // moon events string
+  const moon_index = deo.moondaily.findIndex((date) => currenttime < date);
+  if (moon_index === 2 || moon_index === 4) {
+    const since_ms = currenttime.getTime() - deo.moondaily[moon_index - 1].getTime();
+    const until_ms = deo.moondaily[moon_index].getTime() - currenttime.getTime();
+    mooneventstring = <>
+      <span style={timeStyle}>{msToTime(since_ms)}</span> since moonset.{" "}
+      <span style={timeStyle}>{msToTime(until_ms)}</span> until moonrise.
+    </>;
+  } else if (moon_index === 3 || moon_index === 5) {
+    const since_ms = currenttime.getTime() - deo.moondaily[moon_index - 1].getTime();
+    const until_ms = deo.moondaily[moon_index].getTime() - currenttime.getTime();
+    mooneventstring = <>
+      <span style={timeStyle}>{msToTime(since_ms)}</span> since moonrise.{" "}
+      <span style={timeStyle}>{msToTime(until_ms)}</span> until moonset.
+    </>;
+  }
 
-    // day and night length string. todo: only update when sunindex changes
-    if (cto.sunindex === 4 || cto.sunindex === 5) { // until noon
-        const day_ms = deo.sundaily[6].getTime() - deo.sundaily[4].getTime();
-        const night_ms = deo.sundaily[4].getTime() - deo.sundaily[2].getTime();
-        daynightlengthstring = msToTime(day_ms, false) + " day length / " + msToTime(night_ms, false) + " night length.";
-    }
-    else if (cto.sunindex === 6 || cto.sunindex === 7) { // change the night length after noon
-        const day_ms = deo.sundaily[6].getTime() - deo.sundaily[4].getTime();
-        const night_ms = deo.sundaily[8].getTime() - deo.sundaily[6].getTime();
-        daynightlengthstring = msToTime(day_ms, false) + " day length / " + msToTime(night_ms, false) + " night length.";
-    }
-    else if (cto.sunindex === 8 || cto.sunindex === 9) { // change the day length after midnight
-        const day_ms = deo.sundaily[10].getTime() - deo.sundaily[8].getTime();
-        const night_ms = deo.sundaily[8].getTime() - deo.sundaily[6].getTime();
-        daynightlengthstring = msToTime(day_ms, false) + " day length / " + msToTime(night_ms, false) + " night length.";
-    }
+  // moon phase string todo: correct the calculation of the moon phase name to be from phase angle instead of time-based.
+  const timedelta_new = currenttime.getTime() - deo.nearestnew.getTime();
+  const timedelta_full = currenttime.getTime() - deo.nearestfull.getTime();
+  if (Math.abs(timedelta_new) < Math.abs(timedelta_full) && Math.sign(timedelta_new) > 0) {
+    const timedelta_str: string = msToTime(Math.abs(timedelta_new));
+    const eclipse_string: string = (deo.nearestnewangle > 178.5) ? ' > ~~178.5° means solar eclipse.' : '';
+    moonphasestring = <>
+      Waxing crescent. <span style={timeStyle}>{timedelta_str}</span> since new moon at {deo.nearestnewangle.toString()}° phase angle.{eclipse_string}
+    </>;
+  } else if (Math.abs(timedelta_new) < Math.abs(timedelta_full) && Math.sign(timedelta_new) < 0) {
+    const timedelta_str: string = msToTime(Math.abs(timedelta_new));
+    const eclipse_string: string = (deo.nearestnewangle > 178.5) ? ' > than ~~178.5° means solar eclipse.' : '';
+    moonphasestring = <>
+      Waning crescent. <span style={timeStyle}>{timedelta_str}</span> until new moon at {deo.nearestnewangle.toString()}° phase angle.{eclipse_string}
+    </>;
+  } else if (Math.abs(timedelta_new) > Math.abs(timedelta_full) && Math.sign(timedelta_full) > 0) {
+    const timedelta_str: string = msToTime(Math.abs(timedelta_full));
+    const eclipse_string: string = (deo.nearestfullangle < 1.5) ? ' < ~1.5° means lunar eclipse.' : '';
+    moonphasestring = <>
+      Waning gibbous. <span style={timeStyle}>{timedelta_str}</span> since full moon at {deo.nearestfullangle.toString()}° phase angle.{eclipse_string}
+    </>;
+  } else if (Math.abs(timedelta_new) > Math.abs(timedelta_full) && Math.sign(timedelta_full) < 0) {
+    const timedelta_str: string = msToTime(Math.abs(timedelta_full));
+    const eclipse_string: string = (deo.nearestfullangle < 1.5) ? ' < ~1.5° means lunar eclipse.' : '';
+    moonphasestring = <>
+      Waxing gibbous. <span style={timeStyle}>{timedelta_str}</span> until full moon at {deo.nearestfullangle.toString()}° phase angle.{eclipse_string}
+    </>;
+  }
 
-    // industrial time string
-    const options: Intl.DateTimeFormatOptions = {
-        weekday: 'long',
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric',
-        hour12: false,
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-        timeZone: 'US/Eastern',
-        timeZoneName: 'shortOffset',
-    };
-    industrialdtstring = ('Industrial Time: ' + new Intl.DateTimeFormat("en-GB", options).format(cto.currenttime));
-    comptime = cto.currenttime.toISOString();
+  // day and night length string. todo: only update when sunindex changes
+  if (sunindex === 4 || sunindex === 5) {
+    const day_ms = deo.sundaily[6].getTime() - deo.sundaily[4].getTime();
+    const night_ms = deo.sundaily[4].getTime() - deo.sundaily[2].getTime();
+    const daylengthchange_ms = day_ms - (deo.sundaily[2].getTime() - deo.sundaily[0].getTime());
+    daynightlengthstring = <>
+      <span style={timeStyle}>{msToTime(day_ms, false)}</span> day length / <span style={timeStyle}>{msToTime(night_ms, false)}</span> night length. Day length change since yesterday: <span style={timeStyle}>{msToTime(daylengthchange_ms, false)}</span>
+    </>;
+  } else if (sunindex === 6 || sunindex === 7) {
+      const day_ms = deo.sundaily[6].getTime() - deo.sundaily[4].getTime();
+      const night_ms = deo.sundaily[8].getTime() - deo.sundaily[6].getTime();
+      const daylengthchange_ms = day_ms - (deo.sundaily[2].getTime() - deo.sundaily[0].getTime());
+      daynightlengthstring = <>
+      <span style={timeStyle}>{msToTime(day_ms, false)}</span> day length / <span style={timeStyle}>{msToTime(night_ms, false)}</span> night length. Day length change since yesterday: <span style={timeStyle}>{msToTime(daylengthchange_ms, false)}</span>
+    </>;
+  } else if (sunindex === 8 || sunindex === 9) {
+      const day_ms = deo.sundaily[10].getTime() - deo.sundaily[8].getTime();
+      const night_ms = deo.sundaily[8].getTime() - deo.sundaily[6].getTime();
+      const daylengthchange_ms = day_ms - (deo.sundaily[6].getTime() - deo.sundaily[4].getTime());
+    daynightlengthstring = <>
+      <span style={timeStyle}>{msToTime(day_ms, false)}</span> day length / <span style={timeStyle}>{msToTime(night_ms, false)}</span> night length. Day length change since yesterday: <span style={timeStyle}>{msToTime(daylengthchange_ms, false)}</span>
+    </>;
+  }
 
-    return (
-        <div>
-            <p>{ suneventsstring }<br></br>
-            { daynightlengthstring }<br></br>
-            { moonphasestring }<br></br>
-            { mooneventstring }<br></br>
-            { industrialdtstring }<br></br>
-            { comptime }</p>
-        </div>
-    )
+  // industrial time string
+  const options: Intl.DateTimeFormatOptions = {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+    hour12: false,
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    timeZone: 'US/Eastern',
+    timeZoneName: 'shortOffset',
+  };
+  industrialdtstring = (
+    <><br/>Industrial Time: <span style={timeStyle}>{new Intl.DateTimeFormat("en-GB", options).format(currenttime)}</span></>
+  );
+  comptime = <><span style={timeStyle}>{currenttime.toISOString()}</span></>;
+
+  return (
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: '100vh',
+        width: '100vw',
+        backgroundColor: 'black',
+        color: 'white',
+        padding: '1rem',
+        textAlign: 'center',
+        fontFamily: 'Georgia, serif',
+        fontSize: '1.5rem',
+      }}
+    >
+      <p>
+        {suneventsstring}<br />
+        {daynightlengthstring}<br />
+        {moonphasestring}<br />
+        {mooneventstring}<br />
+        {industrialdtstring}<br />
+        {comptime}
+      </p>
+    </div>
+  );
 };
 
 export default ClockStrings;

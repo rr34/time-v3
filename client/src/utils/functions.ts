@@ -1,27 +1,29 @@
 export function msToTime(timeperiod: number, include_seconds = true) {
-    const seconds = Math.floor((timeperiod / 1000) % 60),
-        minutes = Math.floor((timeperiod / (1000 * 60)) % 60),
-        hours = Math.floor((timeperiod / (1000 * 60 * 60)) % 24),
-        days = Math.floor(timeperiod / (1000 * 60 * 60 * 24));
+    const isNegative = timeperiod < 0;
+    const absTime = Math.abs(timeperiod);
+
+    const seconds = Math.floor((absTime / 1000) % 60),
+        minutes = Math.floor((absTime / (1000 * 60)) % 60),
+        hours = Math.floor((absTime / (1000 * 60 * 60)) % 24),
+        days = Math.floor(absTime / (1000 * 60 * 60 * 24));
 
     let days_str = "";
-    if (days > 1) {
-        days_str = days.toString() + " days, ";
+    if (days === 1) {
+        days_str = "1 day, ";
+    } else if (days > 1) {
+        days_str = `${days} days, `;
     }
-    else if (days == 1) {
-        days_str = days.toString() + " day, ";
-    }
-    else {
-        days_str = "";
-    }
-    const hours_str = hours.toString() + ":",
-    minutes_str = (minutes < 10) ? "0" + minutes.toString() : minutes.toString()
+
+    const hours_str = hours.toString() + ":";
+    const minutes_str = minutes < 10 ? "0" + minutes : minutes.toString();
     let seconds_str = "";
+
     if (include_seconds) {
-        seconds_str = (seconds < 10) ? ":0" + seconds.toString() : ":" + seconds.toString();
+        seconds_str = seconds < 10 ? ":0" + seconds : ":" + seconds;
     }
-  
-    return days_str + hours_str + minutes_str + seconds_str;
+
+    const result = days_str + hours_str + minutes_str + seconds_str;
+    return isNegative ? "-" + result : result;
 }
 
 
@@ -34,8 +36,6 @@ export function moonSVGPath(phaseAngle: number, moonRadius: number) {
     const sweepDirection = ry > 0 ? 1 : 0;
 
     const svgPath: string = `M 50 0 A 50 50 0 0 1 -50 0 A 50 ${ry} 0 0 ${sweepDirection} 50 0`;
-
-    console.log(`for phase angle ${phaseAngle}, the svg path is ${svgPath}`)
 
     return svgPath;
 }

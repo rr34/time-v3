@@ -1,9 +1,9 @@
-import './App.css';
-import { Suspense, useState } from "react";
+import { useState } from "react";
 import { useEffect } from "react";
+import './App.css';
 import ClockStrings from "./components/ClockStrings";
-import ClockScreen from './components/ClockScreen';
 import ClockGallery from './components/ClockGallery';
+import { useSearchParams } from "react-router-dom";
 
 
 export interface ClockTimeObj {
@@ -24,7 +24,15 @@ export interface DailyEventsObj {
 function App() {
   const [selectedScreen, setSelectedScreen] = useState<'screen' | 'strings'>('strings');
 
-  // initialize location variables
+  const [searchParams] = useSearchParams();
+  const tagsIncludeParam = searchParams.get("tagsinclude");  // comma-separated
+  const tagsExcludeParam = searchParams.get("tagsexclude");
+
+  const TagsInclude = tagsIncludeParam ? tagsIncludeParam.split(",") : [];
+  const TagsExclude = tagsExcludeParam ? tagsExcludeParam.split(",") : [];
+
+
+  // initialize location variables. todo get the location(s) and MSL from the photo tags
   const clockLatLong: number[] = [40.229,-83.2092];
   const clockMSL: number = 280;
 
@@ -36,10 +44,10 @@ function App() {
   // initialize daily events object
   const [DailyEventsObj, setDailyEventsObj] = useState({ sundaily: [new Date()], moondaily: [new Date()], nearestnew: newdate, nearestnewangle: 0, nearestfull: newdate, nearestfullangle: 0 });
 
-  const momentscount: number = 20 + 1; // plus one makes the duration from the beginning to end match stepminutes times momentscount
-  const stepminutes: number = 6;
+  const momentscount: number = 40 + 1; // plus one makes the duration from the beginning to end match stepminutes times the first number.
+  const stepminutes: number = 6; // 6 minutes is ten steps per hour, which makes a good animation up to ~12 hours.
   const stepsbefore: number = 10;
-  const dev_minutes_offset = 0;
+  const dev_minutes_offset = 0; // just to be able to set a different time for development.
   const nowdate: number = Date.now() + dev_minutes_offset*60*1000;
   const momentsarray: string[] = [];
   for (let i=-stepsbefore; i<momentscount-stepsbefore; i++) {
@@ -49,45 +57,44 @@ function App() {
   const [NowMoments, setNowMoments] = useState<string[]>(momentsarray);
   const [nowMS, setNowMS] = useState<number>(nowdate);
 
-  // todo: this is firing twice on initialization and making a duplicate request to the API
-useEffect(() => {
-  const fetchDailyEvents = async () => {
-    try {
-      const requestOptions = {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ location: clockLatLong, elevation: clockMSL, currenttime: ClockTimeObj.currenttime }),
-      };
-      const response = await fetch('http://localhost:8000/getevents', requestOptions);
-      const data = await response.json();
-      
-      const sundaily_strings: string[] = data['sundaily'];
-      const sundaily_dates: Date[] = sundaily_strings.map(str => new Date(str));
+  useEffect(() => {
+    const fetchDailyEvents = async () => {
+      try {
+        const requestOptions = {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ location: clockLatLong, elevation: clockMSL, currenttime: ClockTimeObj.currenttime }),
+        };
+        const response = await fetch('http://localhost:8000/getevents', requestOptions);
+        const data = await response.json();
+        
+        const sundaily_strings: string[] = data['sundaily'];
+        const sundaily_dates: Date[] = sundaily_strings.map(str => new Date(str));
 
-      const moondaily_strings: string[] = data['moondaily'];
-      const moondaily_dates: Date[] = moondaily_strings.map(str => new Date(str));
+        const moondaily_strings: string[] = data['moondaily'];
+        const moondaily_dates: Date[] = moondaily_strings.map(str => new Date(str));
 
-      const newmoon_time: string = data['newmoon time'];
-      const newmoon_angle: number = Math.round(data['newmoon angle'] * 100) / 100;
+        const newmoon_time: string = data['newmoon time'];
+        const newmoon_angle: number = Math.round(data['newmoon angle'] * 100) / 100;
 
-      const fullmoon_time: string = data['fullmoon time'];
-      const fullmoon_angle: number = Math.round(data['fullmoon angle'] * 100) / 100;
+        const fullmoon_time: string = data['fullmoon time'];
+        const fullmoon_angle: number = Math.round(data['fullmoon angle'] * 100) / 100;
 
-      setDailyEventsObj({
-        sundaily: sundaily_dates,
-        moondaily: moondaily_dates,
-        nearestnew: new Date(newmoon_time),
-        nearestnewangle: newmoon_angle,
-        nearestfull: new Date(fullmoon_time),
-        nearestfullangle: fullmoon_angle,
-      });
-    } catch (error) {
-      console.error("Error fetching daily events:", error);
-    }
-  };
+        setDailyEventsObj({
+          sundaily: sundaily_dates,
+          moondaily: moondaily_dates,
+          nearestnew: new Date(newmoon_time),
+          nearestnewangle: newmoon_angle,
+          nearestfull: new Date(fullmoon_time),
+          nearestfullangle: fullmoon_angle,
+        });
+      } catch (error) {
+        console.error("Error fetching daily events:", error);
+      }
+    };
 
-  fetchDailyEvents();
-}, []);
+    fetchDailyEvents();
+  }, []);
 
   return (
     <>
@@ -119,7 +126,7 @@ useEffect(() => {
           {
             selectedScreen === 'strings'
               ? <ClockStrings cto={ClockTimeObj} setcto={setClockTimeObj} deo={DailyEventsObj} />
-              : <ClockGallery MomentsArray={NowMoments} nowMS={nowMS} TagsInclude={['ourhouse']} TagsExclude={[]} />
+              : <ClockGallery MomentsArray={NowMoments} nowMS={nowMS} TagsInclude={TagsInclude} TagsExclude={TagsExclude} />
           }
         </div>
       </div>
