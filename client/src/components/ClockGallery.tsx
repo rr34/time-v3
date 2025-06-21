@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import ClockScreen from "./ClockScreen";
+import { BodiesDict, ImagesSet } from "../types/interfaces";
 
 interface ClockGalleryProps {
   MomentsArray: string[];
@@ -8,10 +9,11 @@ interface ClockGalleryProps {
   TagsExclude: string[];
 }
 function ClockGallery({ MomentsArray, nowMS, TagsInclude, TagsExclude }: ClockGalleryProps) {
-  const [imagesSet, setImagesSet] = useState<any[]>([]);
+  const [imagesSet, setImagesSet] = useState<ImagesSet>({});
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [astroData, setAstroData] = useState(null);
-  const [bodiesInImages, setBodiesInImages] = useState(null);
+  const [basenameList, setBasenameList] = useState<string[]>([]);
+  const [astroData, setAstroData] = useState<BodiesDict>({});
+  const [bodiesInImages, setBodiesInImages] = useState<Record<string, BodiesDict>>({});
 
   useEffect(() => {
     const fetchClockImageData = async () => {
@@ -23,15 +25,16 @@ function ClockGallery({ MomentsArray, nowMS, TagsInclude, TagsExclude }: ClockGa
           body: JSON.stringify({ TagsInclude, TagsExclude }),
         });
 
-        const images = await imagesRes.json(); // local variable
-        setImagesSet(images); // also store in state for rendering
+        const imagesSetLocal = await imagesRes.json(); // local variable
+        setImagesSet(imagesSetLocal); // also store in state for rendering
+        setBasenameList(Object.keys(imagesSetLocal))
 
         // Step 2: Fetch celestial data using the same images list
         const celestialRes = await fetch(`${import.meta.env.VITE_AWIM_URL}/celestialinphotos`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            awims_list: images, // use local variable, not state
+            awims_dict: imagesSetLocal, // use local variable, not state
             momentsarray: MomentsArray,
             requestlist: ["stars", "sun", "moon", "planets"],
           }),
@@ -48,23 +51,23 @@ function ClockGallery({ MomentsArray, nowMS, TagsInclude, TagsExclude }: ClockGa
     fetchClockImageData();
   }, [TagsInclude, TagsExclude, MomentsArray]);
 
-  if (imagesSet.length === 0) return <p>Loading...</p>;
+  if (basenameList.length === 0) return <p>Loading...</p>;
 
   return (
     <div>
       <ClockScreen
-        imageSrc={`${import.meta.env.VITE_FRONTEND_URL}/clockimages/${imagesSet[currentIndex]['Basename']}.png`}
-        awimtag={JSON.parse(imagesSet[currentIndex]['awimTag'])}
+        imageSrc={`${import.meta.env.VITE_FRONTEND_URL}/clockimages/${basenameList[currentIndex]}.png`}
+        awimtag={imagesSet[basenameList[currentIndex]]['awimTag']} // JSON.parse not necessary here because the Express backend parses the json string it receives from the DB
         astroData={astroData}
-        bodiesInImage={bodiesInImages?.[imagesSet[currentIndex]['Basename']]}
+        bodiesInImage={bodiesInImages?.[basenameList[currentIndex]]}
         MomentsArray={MomentsArray}
         nowMS={nowMS}
-        onAnimationComplete={() => {setCurrentIndex((i) => (i + 1) % imagesSet.length);}}
+        onAnimationComplete={() => {setCurrentIndex((i) => (i + 1) % basenameList.length);}}
       />
-      <button onClick={() => setCurrentIndex((i) => (i - 1 + imagesSet.length) % imagesSet.length)}>
+      <button onClick={() => setCurrentIndex((i) => (i - 1 + basenameList.length) % basenameList.length)}>
         Previous
       </button>
-      <button onClick={() => setCurrentIndex((i) => (i + 1) % imagesSet.length)}>
+      <button onClick={() => setCurrentIndex((i) => (i + 1) % basenameList.length)}>
         Next
       </button>
     </div>

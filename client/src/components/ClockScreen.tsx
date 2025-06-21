@@ -25,16 +25,6 @@ function getSkyColorFromArtifae(angle: number): string {
   return "#000fda"; // day
 }
 
-  const skyColorMap: { [key: string]: string } = {
-    night: "#",
-    AT: "#",
-    NT: "#",
-    CT: "#",
-    transition: "#",
-    evening: "#3214af",
-    day: "#",
-  };
-
 
 interface ClockScreenProps {
   imageSrc: string; // can the whole image itself be passed in here, not just the src url?
@@ -47,7 +37,7 @@ interface ClockScreenProps {
 }
 
 function ClockScreen({ imageSrc, awimtag, astroData, bodiesInImage, MomentsArray, nowMS, onAnimationComplete }: ClockScreenProps) {
-  const frameDuration = 0.25;
+  const frameDuration = 0.75;
   const totalFrames = MomentsArray.length;
   const totalDuration = frameDuration * totalFrames;
 
@@ -119,8 +109,6 @@ function ClockScreen({ imageSrc, awimtag, astroData, bodiesInImage, MomentsArray
     uranus: { fill: "#76d7ea", radius: 20 },
     neptune: { fill: "#4169e1", radius: 20 },
   };
-  
-
 
   return (
     <div className="aspect-container" style={{ aspectRatio: `${refWidth} / ${refHeight}`, }}>
@@ -129,106 +117,106 @@ function ClockScreen({ imageSrc, awimtag, astroData, bodiesInImage, MomentsArray
           <rect x="0" y="0" width={refWidth} height={refHeight} fill={sunArtifaesArr.length ? getSkyColorFromArtifae(sunArtifaesArr[0]) : "black"}>
             <animate ref={animationRef} attributeName="fill" values={skyColorValues} dur={`${totalDuration}s`} repeatCount="indefinite" calcMode="linear"/>
           </rect>
-{Object.entries(bodiesInImage).map(([bodyName, bodyData], index) => {
-  const xArr = bodyData['pixelpos x'];
-  const yArr = bodyData['pixelpos y'];
-  const type = (bodyData['type'] || "").toLowerCase();
-  const nameKey = bodyName.toLowerCase();
-  const baseStyle = bodyStyleMap[nameKey] || bodyStyleMap[type] || { fill: "white", radius: 3 };
+          {Object.entries(bodiesInImage).map(([bodyName, bodyData], index) => {
+            const xArr = bodyData['pixelpos x'];
+            const yArr = bodyData['pixelpos y'];
+            const type = (bodyData['type'] || "").toLowerCase();
+            const nameKey = bodyName.toLowerCase();
+            const baseStyle = bodyStyleMap[nameKey] || bodyStyleMap[type] || { fill: "white", radius: 3 };
 
-  let radius = baseStyle.radius;
-  if (type === "star") {
-    const visualMag = bodyData['VisualMagnitude'] !== undefined ? bodyData['VisualMagnitude'] : 6;
-    radius = radiusFromMagnitude(visualMag);
-  }
+            let radius = baseStyle.radius;
+            if (type === "star") {
+              const visualMag = bodyData['VisualMagnitude'] !== undefined ? bodyData['VisualMagnitude'] : 6;
+              radius = radiusFromMagnitude(visualMag);
+            }
 
-  const fill = baseStyle.fill;
-  const stroke = baseStyle.stroke || "none";
-  const visibleArr = xArr.map((x, i) => {
-    const y = yArr[i];
-    return (x >= 0 && x <= refWidth && y >= 0 && y <= refHeight) ? 1 : 0;
-  });
+            const fill = baseStyle.fill;
+            const stroke = baseStyle.stroke || "none";
+            const visibleArr = xArr.map((x, i) => {
+              const y = yArr[i];
+              return (x >= 0 && x <= refWidth && y >= 0 && y <= refHeight) ? 1 : 0;
+            });
 
-  if (visibleArr.every(v => v === 0)) return null;
+            if (visibleArr.every(v => v === 0)) return null;
 
-  const pathId = `motionPath-${index}`;
-  const pathD = xArr.map((x, i) => {
-    const y = yArr[i];
-    return i === 0 ? `M ${x},${y}` : `L ${x},${y}`;
-  }).join(" ");
+            const pathId = `motionPath-${index}`;
+            const pathD = xArr.map((x, i) => {
+              const y = yArr[i];
+              return i === 0 ? `M ${x},${y}` : `L ${x},${y}`;
+            }).join(" ");
 
-  const isMoon = nameKey === "moon";
+            const isMoon = nameKey === "moon";
 
-  if (isMoon) {
-    const middleValue = Math.floor(phaseAnglesArr.length / 2);
-    const phaseAngleSingle: number = phaseAnglesArr[middleValue] || 90;
-    const brightSideDirectionSingle: number = brightSideDirectionsArr[middleValue] || 0;
-    const moonSVG = moonSVGPath(phaseAngleSingle);
+            if (isMoon) {
+              const middleValue = Math.floor(phaseAnglesArr.length / 2);
+              const phaseAngleSingle: number = phaseAnglesArr[middleValue] || 90;
+              const brightSideDirectionSingle: number = brightSideDirectionsArr[middleValue] || 0;
+              const moonSVG = moonSVGPath(phaseAngleSingle, bodyStyleMap.moon.radius);
 
-    return (
-      <g key={bodyName}>
-        <path id={pathId} d={pathD} fill="none" stroke="none" />
-        
-        {/* Moon path with rotation */}
-        <path d={moonSVG} fill={fill} transform={`rotate(${-brightSideDirectionSingle})`} stroke={stroke}>
-          <animateMotion dur={`${totalDuration}s`} repeatCount="indefinite">
-            <mpath href={`#${pathId}`} />
-          </animateMotion>
-          <animate attributeName="opacity" values={visibleArr.join(";")} dur={`${totalDuration}s`} repeatCount="indefinite" calcMode="discrete" />
-        </path>
+              return (
+                <g key={bodyName}>
+                  <path id={pathId} d={pathD} fill="none" stroke="none" />
+                  
+                  {/* Moon path with rotation */}
+                  <path d={moonSVG} fill={fill} transform={`rotate(${-brightSideDirectionSingle})`} stroke={stroke}>
+                    <animateMotion dur={`${totalDuration}s`} repeatCount="indefinite">
+                      <mpath href={`#${pathId}`} />
+                    </animateMotion>
+                    <animate attributeName="opacity" values={visibleArr.join(";")} dur={`${totalDuration}s`} repeatCount="indefinite" calcMode="discrete" />
+                  </path>
 
-        {/* Labels and text */}
-        <g>
-          <g transform="translate(0, -30)">
-            {bodyData['ReadableName'] && (
-              <text fill="white" fontSize="30" textAnchor="middle" dominantBaseline="middle">
-                {bodyData['ReadableName']?.trim()}
-              </text>
-            )}
-            {bodyData['MagRankConstellation'] === 1 && bodyData['ConstellationFullName'] && (
-              <text fill="lightblue" fontSize="30" textAnchor="middle" dominantBaseline="middle" transform="translate(0, 60)">
-                α {bodyData['ConstellationFullName']}
-              </text>
-            )}
-          </g>
-          <animateMotion dur={`${totalDuration}s`} repeatCount="indefinite" rotate="auto">
-            <mpath href={`#${pathId}`} />
-          </animateMotion>
-        </g>
-      </g>
-    );
-  }
+                  {/* Labels and text */}
+                  <g>
+                    <g transform="translate(0, -30)">
+                      {bodyData['ReadableName'] && (
+                        <text fill="white" fontSize="30" textAnchor="middle" dominantBaseline="middle">
+                          {bodyData['ReadableName']?.trim()}
+                        </text>
+                      )}
+                      {bodyData['MagRankConstellation'] === 1 && bodyData['ConstellationFullName'] && (
+                        <text fill="lightblue" fontSize="30" textAnchor="middle" dominantBaseline="middle" transform="translate(0, 60)">
+                          α {bodyData['ConstellationFullName']}
+                        </text>
+                      )}
+                    </g>
+                    <animateMotion dur={`${totalDuration}s`} repeatCount="indefinite" rotate="auto">
+                      <mpath href={`#${pathId}`} />
+                    </animateMotion>
+                  </g>
+                </g>
+              );
+            }
 
-  return (
-    <g key={bodyName}>
-      <path id={pathId} d={pathD} fill="none" stroke="none" />
-      <circle r={radius} fill={fill} stroke={stroke} // chatgpt: if moon, instead of a circle, this should be the moonSVG rotated by negative brightSideDirectionSingle with the moon color from bodyStyleMap
-      >
-        <animateMotion dur={`${totalDuration}s`} repeatCount="indefinite">
-          <mpath href={`#${pathId}`} />
-        </animateMotion>
-        <animate attributeName="opacity" values={visibleArr.join(";")} dur={`${totalDuration}s`} repeatCount="indefinite" calcMode="discrete"/>
-      </circle>
-      <g>
-        <g transform="translate(0, -30)">
-          {bodyData['ReadableName'] && (
-            <text fill="white" fontSize="30" textAnchor="middle" dominantBaseline="middle">
-              {bodyData['ReadableName']?.trim()}
-            </text>
-          )}
-          {bodyData['MagRankConstellation'] === 1 && bodyData['ConstellationFullName'] && (
-            <text fill="lightblue" fontSize="30" textAnchor="middle" dominantBaseline="middle" transform="translate(0, 60)">
-              α {bodyData['ConstellationFullName']}
-            </text>
-          )}
-        </g>
-        <animateMotion dur={`${totalDuration}s`} repeatCount="indefinite" rotate="auto">
-          <mpath href={`#${pathId}`} />
-        </animateMotion>
-      </g>
-    </g>
-  );
-})}
+            return (
+              <g key={bodyName}>
+                <path id={pathId} d={pathD} fill="none" stroke="none" />
+                <circle r={radius} fill={fill} stroke={stroke} // chatgpt: if moon, instead of a circle, this should be the moonSVG rotated by negative brightSideDirectionSingle with the moon color from bodyStyleMap
+                >
+                  <animateMotion dur={`${totalDuration}s`} repeatCount="indefinite">
+                    <mpath href={`#${pathId}`} />
+                  </animateMotion>
+                  <animate attributeName="opacity" values={visibleArr.join(";")} dur={`${totalDuration}s`} repeatCount="indefinite" calcMode="discrete"/>
+                </circle>
+                <g>
+                  <g transform="translate(0, -30)">
+                    {bodyData['ReadableName'] && (
+                      <text fill="white" fontSize="30" textAnchor="middle" dominantBaseline="middle">
+                        {bodyData['ReadableName']?.trim()}
+                      </text>
+                    )}
+                    {bodyData['MagRankConstellation'] === 1 && bodyData['ConstellationFullName'] && (
+                      <text fill="lightblue" fontSize="30" textAnchor="middle" dominantBaseline="middle" transform="translate(0, 60)">
+                        α {bodyData['ConstellationFullName']}
+                      </text>
+                    )}
+                  </g>
+                  <animateMotion dur={`${totalDuration}s`} repeatCount="indefinite" rotate="auto">
+                    <mpath href={`#${pathId}`} />
+                  </animateMotion>
+                </g>
+              </g>
+            );
+          })}
         </svg>
       )}
 

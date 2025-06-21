@@ -58,16 +58,21 @@ app.post('/getimageslist/query', async (req, res) => {
 
   try {
     const photos = await getPhotosByTags({ TagsInclude, TagsExclude });
-  // since the Basename is my unique identifier throughout, I want to respond this with the basename as the key:
-  // { 'some basename text 1': {'awimTag': 'json string 1' }, 'some basename text 2': {'awimTag': 'json string 2' } }
 
-    res.json(photos);
+    // Transform array into object keyed by Basename
+    const formatted = {};
+    for (const { Basename, awimTag } of photos) {
+      formatted[Basename] = { awimTag: JSON.parse(awimTag) };
+    }
 
-} catch (err) {
+    res.json(formatted);
+
+  } catch (err) {
     console.error("DB query error:", err);
     res.status(500).send('DB query failed');
   }
 });
+
 
 // Start server
 app.listen(PORT, "127.0.0.1", () => {

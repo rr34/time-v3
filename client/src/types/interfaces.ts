@@ -28,7 +28,9 @@ export interface BodyData {
   'brightsidedirections'?: number[];
 }
 
+
 export type BodiesDict = Record<string, BodyData>;
+
 
 export interface awimTag {
   "awim Version": string;
@@ -77,3 +79,10 @@ export interface awimTag {
   "awim Image Field of View Fraction": number;
   "awim Image Field of View Fraction Unit": string;
 }
+
+
+export type ImagesSet = {
+  [basename: string]: {
+    awimTag: awimTag;
+  };
+};

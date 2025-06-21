@@ -25,21 +25,17 @@ export function msToTime(timeperiod: number, include_seconds = true) {
 }
 
 
-export function moonSVGPath(phaseAngle: number) {
-  // Clamp angle between 0 and 180
-  const angle = Math.max(0, Math.min(180, phaseAngle));
+export function moonSVGPath(phaseAngle: number, moonRadius: number) {
+    // Radius of ellipse drawn for day/night demarcation line. Zero at 90° because when the radius is zero it's a line.
+    const ry = moonRadius * Math.cos(phaseAngle * Math.PI/ 180);
 
-  // Interpolate rx: 50 at full/new (0 or 180), 0 at quarter (90)
-  const ry = (Math.abs(angle - 90) * (50 / 90)).toFixed(3);
+    // Sweep flag for second arc. Negative ry values in the SVG would work, but unfortunately are treated same as positive, so this flag needs to change.
+    // Greater than zero when phase angle less than 90°, means gibbous. Less than zero when phase angle greater than 90°, means crescent.
+    const sweepDirection = ry > 0 ? 1 : 0;
 
-  // Sweep flag for second arc
-  const sweep = angle > 90 ? 0 : 1;
+    const svgPath: string = `M 50 0 A 50 50 0 0 1 -50 0 A 50 ${ry} 0 0 ${sweepDirection} 50 0`;
 
-  const svgPath: string = `M 50 0 A 50 50 0 0 1 -50 0 A 50 ${ry} 0 0 ${sweep} 50 0`;
+    console.log(`for phase angle ${phaseAngle}, the svg path is ${svgPath}`)
 
-  console.log(`for phase angle ${phaseAngle}, the svg path is ${svgPath}`)
-
-  return svgPath;
+    return svgPath;
 }
-
-// normalized = Math.cos((angle * Math.PI) / 180); // -1 to 1 todo maybe use something like this to translate from the angle to the radius?
