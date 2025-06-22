@@ -20,7 +20,6 @@ function ClockGallery({ loading, MomentsArray, nowMinute, nowFast, basenamesList
   return (
     <div>
       <ClockScreen
-        loading={loading}
         MomentsArray={MomentsArray}
         nowMinute={nowMinute}
         nowFast={nowFast}

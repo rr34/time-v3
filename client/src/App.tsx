@@ -110,7 +110,7 @@ useEffect(() => {
   }
 }, [nowSecond, DailyEventsObj.sundaily]);
 
-    const { loading, error, basenamesList, imagesSet, astroData, bodiesInImages } = useClockGalleryData(momentsarray, TagsInclude, TagsExclude);
+    const { loading, basenamesList, imagesSet, astroData, bodiesInImages } = useClockGalleryData(momentsarray, TagsInclude, TagsExclude);
 
   return (
     <>

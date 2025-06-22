@@ -7,7 +7,6 @@ export function useClockGalleryData (MomentsArray: string[], TagsInclude: string
   const [astroData, setAstroData] = useState<BodiesDict>({});
   const [bodiesInImages, setBodiesInImages] = useState<Record<string, BodiesDict>>({});
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
 const tagsIncludeKey = TagsInclude.join(',');
 const tagsExcludeKey = TagsExclude.join(',');
@@ -17,7 +16,6 @@ const momentsArrayKey = MomentsArray.join(',');
     const fetchClockImageData = async () => {
       try {
         setLoading(true);
-        setError(null);
         // Step 1: Fetch matching images
         const imagesRes = await fetch(`${import.meta.env.VITE_BACKEND_URL}/getimageslist/query`, {
           method: "POST",
@@ -47,7 +45,6 @@ const momentsArrayKey = MomentsArray.join(',');
         setLoading(false);
       } catch (err) {
         console.error("Error fetching clock image data:", err);
-        setError(false);
         setLoading(false);
       }
     };
@@ -55,5 +52,5 @@ const momentsArrayKey = MomentsArray.join(',');
     fetchClockImageData();
   }, [tagsIncludeKey, tagsExcludeKey, momentsArrayKey]);
 
-  return { loading, error, basenamesList, imagesSet, astroData, bodiesInImages};
+  return { loading, basenamesList, imagesSet, astroData, bodiesInImages};
 }
