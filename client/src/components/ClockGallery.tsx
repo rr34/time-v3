@@ -15,7 +15,7 @@ interface ClockGalleryProps {
 function ClockGallery({ loading, MomentsArray, nowMinute, nowFast, basenamesList, imagesSet, astroData, bodiesInImages }: ClockGalleryProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  if (loading) return <p>Loading image, awimtag, astrodata, bodiesInImage data...</p>;
+  if (loading) return <p>Loading image, awimtag, astroData, bodiesInImageData. This can take some minutes.</p>;
 
   return (
     <div>

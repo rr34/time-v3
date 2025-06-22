@@ -76,5 +76,5 @@ app.post('/getimageslist/query', async (req, res) => {
 
 // Start server
 app.listen(PORT, "127.0.0.1", () => {
-  console.log(`🚀 Server is running on http://localhost:${PORT}`);
+  console.log(`🚀 Server is running on http://127.0.0.1:${PORT}`);
 });

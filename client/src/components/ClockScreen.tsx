@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { msToTime, moonSVGPath } from "../utils/functions";
 import { BodiesDict, awimTag } from "../types/interfaces";
 
@@ -37,48 +37,41 @@ interface ClockScreenProps {
   onAnimationComplete?: () => void;
 }
 
-function ClockScreen({ MomentsArray, nowMinute, imageSrc, awimtag, astroData, bodiesInImage, onAnimationComplete }: ClockScreenProps) {
+function ClockScreen({ MomentsArray, nowMinute, nowFast, imageSrc, awimtag, astroData, bodiesInImage, onAnimationComplete }: ClockScreenProps) {
   const frameDuration = 0.75;
   const totalFrames = MomentsArray.length;
   const totalDuration = frameDuration * totalFrames;
   const repeatLimit = "1";
 
-  const repeatCount = useRef(0);
-  const hasCalledRef = useRef(false);
-
   const animateRef = useRef<SVGAnimateElement | null>(null);
+  const repeatCount = useRef(0);
+
 
   useEffect(() => {
-    const el = animateRef.current;
-    if (!el) return;
+    const anim = animateRef.current;
+    if (!anim) return;
 
-    function handleEnd() {
-      if (onAnimationComplete) onAnimationComplete();
-    }
-
-    el.addEventListener("endEvent", handleEnd);
-
-    return () => {
-      el.removeEventListener("endEvent", handleEnd);
-    };
-  }, [onAnimationComplete]);
-  
-  useEffect(() => {
-  repeatCount.current = 0;
-  hasCalledRef.current = false;
-
-  if (onAnimationComplete && totalDuration > 0) {
-    const timeout = setTimeout(() => {
-      if (!hasCalledRef.current) {
-        hasCalledRef.current = true;
+    const handleRepeat = () => {
+      repeatCount.current += 1;
+      if (repeatCount.current === 2 && onAnimationComplete) {
         onAnimationComplete();
       }
-    }, totalDuration * 1000); // Convert seconds to milliseconds
+    };
 
-    return () => clearTimeout(timeout); // Clear timeout on unmount or update
-  }
-}, [imageSrc, MomentsArray, totalDuration, onAnimationComplete]);
+    anim.addEventListener("repeatEvent", handleRepeat);
+    return () => anim.removeEventListener("repeatEvent", handleRepeat);
+  }, [onAnimationComplete]);
+  
+  const [frameIndex, setFrameIndex] = useState(0);
+  
+  useEffect(() => {
+  const interval = setInterval(() => {
+    setFrameIndex((prev) => (prev + 1) % totalFrames);
+  }, frameDuration * 1000);
 
+  return () => clearInterval(interval);
+}, [frameDuration, totalFrames]);
+  
   const [refWidth, refHeight] = awimtag['awim Ref Image Size in Pixels']; // unless the awimtag was broken, this will always be type number[] with two numbers in it
   const sunArtifaesArr: number[] = astroData?.sun?.artifaes || [];
   const skyColorValues = sunArtifaesArr.map(getSkyColorFromArtifae).join(";");
@@ -102,7 +95,7 @@ function ClockScreen({ MomentsArray, nowMinute, imageSrc, awimtag, astroData, bo
       {astroData && bodiesInImage && (
         <svg key={imageSrc} className="celestial-overlay" viewBox={`0 0 ${refWidth} ${refHeight}`} preserveAspectRatio="xMidYMid meet">
           <rect x="0" y="0" width={refWidth} height={refHeight} fill={sunArtifaesArr.length ? getSkyColorFromArtifae(sunArtifaesArr[0]) : "black"}>
-            <animate ref={animateRef} attributeName="fill" values={skyColorValues} dur={`${totalDuration}s`} repeatCount={repeatLimit} calcMode="linear" begin="0s" />
+            <animate ref={animateRef} attributeName="fill" values={skyColorValues} dur={`${totalDuration}s`} repeatCount="indefinite" calcMode="linear" begin="0s" />
           </rect>
           {Object.entries(bodiesInImage).map(([bodyName, bodyData], index) => {
             const xArr: number[] | undefined = bodyData['pixelpos x'];
@@ -147,10 +140,10 @@ function ClockScreen({ MomentsArray, nowMinute, imageSrc, awimtag, astroData, bo
                   
                   {/* Moon path with rotation */}
                   <path d={moonSVG} fill={fill} transform={`rotate(${-brightSideDirectionSingle})`} stroke={stroke}>
-                    <animateMotion dur={`${totalDuration}s`} repeatCount={repeatLimit}>
+                    <animateMotion dur={`${totalDuration}s`} repeatCount="indefinite">
                       <mpath href={`#${pathId}`} />
                     </animateMotion>
-                    <animate attributeName="opacity" values={visibleArr.join(";")} dur={`${totalDuration}s`} repeatCount={repeatLimit} calcMode="discrete" />
+                    <animate attributeName="opacity" values={visibleArr.join(";")} dur={`${totalDuration}s`} repeatCount="indefinite" calcMode="discrete" />
                   </path>
 
                   {/* Labels and text */}
@@ -167,7 +160,7 @@ function ClockScreen({ MomentsArray, nowMinute, imageSrc, awimtag, astroData, bo
                         </text>
                       )}
                     </g>
-                    <animateMotion dur={`${totalDuration}s`} repeatCount={repeatLimit} rotate="auto">
+                    <animateMotion dur={`${totalDuration}s`} repeatCount="indefinite" rotate="auto">
                       <mpath href={`#${pathId}`} />
                     </animateMotion>
                   </g>
@@ -180,10 +173,10 @@ function ClockScreen({ MomentsArray, nowMinute, imageSrc, awimtag, astroData, bo
                 <path id={pathId} d={pathD} fill="none" stroke="none" />
                 <circle r={radius} fill={fill} stroke={stroke} // chatgpt: if moon, instead of a circle, this should be the moonSVG rotated by negative brightSideDirectionSingle with the moon color from bodyStyleMap
                 >
-                  <animateMotion dur={`${totalDuration}s`} repeatCount={repeatLimit}>
+                  <animateMotion dur={`${totalDuration}s`} repeatCount="indefinite">
                     <mpath href={`#${pathId}`} />
                   </animateMotion>
-                  <animate attributeName="opacity" values={visibleArr.join(";")} dur={`${totalDuration}s`} repeatCount={repeatLimit} calcMode="discrete"/>
+                  <animate attributeName="opacity" values={visibleArr.join(";")} dur={`${totalDuration}s`} repeatCount="indefinite" calcMode="discrete"/>
                 </circle>
                 <g>
                   <g transform="translate(0, -30)">
@@ -198,7 +191,7 @@ function ClockScreen({ MomentsArray, nowMinute, imageSrc, awimtag, astroData, bo
                       </text>
                     )}
                   </g>
-                  <animateMotion dur={`${totalDuration}s`} repeatCount={repeatLimit} rotate="auto">
+                  <animateMotion dur={`${totalDuration}s`} repeatCount="indefinite" rotate="auto">
                     <mpath href={`#${pathId}`} />
                   </animateMotion>
                 </g>
@@ -216,8 +209,11 @@ function ClockScreen({ MomentsArray, nowMinute, imageSrc, awimtag, astroData, bo
         {(() => {
           const beginning_relative = Date.parse(MomentsArray[0]) - nowMinute;
           const end_relative = Date.parse(MomentsArray[MomentsArray.length - 1]) - nowMinute;
-          return 'Showing time period' + msToTime(beginning_relative, false) + ' to ' + msToTime(end_relative, false);
+          return 'Showing time period ' + msToTime(beginning_relative, false) + ' to ' + msToTime(end_relative, false);
           })()}
+      </div>
+      <div>
+        {'Lapse progress: now ' + (Date.parse(MomentsArray[frameIndex]) - nowFast < 0 ? '-' : '+') + msToTime(Math.abs(Date.parse(MomentsArray[frameIndex]) - nowFast), false)}
       </div>
       <div>
           {imageSrc}

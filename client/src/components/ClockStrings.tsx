@@ -107,21 +107,21 @@ const ClockStrings = ({ nowSecond, sunIndex, deo }: ClockStringsProps) => {
     const night_ms = deo.sundaily[4] - deo.sundaily[2];
     const daylengthchange_ms = day_ms - (deo.sundaily[2] - deo.sundaily[0]);
     daynightlengthstring = <>
-      <span style={timeStyle}>{msToTime(day_ms, false)}</span> day length / <span style={timeStyle}>{msToTime(night_ms, false)}</span> night length. Day length change since yesterday: <span style={timeStyle}>{msToTime(daylengthchange_ms, true)}</span>
+      <span style={timeStyle}>{msToTime(day_ms, false)}</span> day length / <span style={timeStyle}>{msToTime(night_ms, false)}</span> night length. Change: <span style={timeStyle}>{msToTime(daylengthchange_ms, true)}</span>
     </>;
   } else if (sunIndex === 6 || sunIndex === 7) {
       const day_ms = deo.sundaily[6] - deo.sundaily[4];
       const night_ms = deo.sundaily[8] - deo.sundaily[6];
       const daylengthchange_ms = day_ms - (deo.sundaily[2] - deo.sundaily[0]);
       daynightlengthstring = <>
-      <span style={timeStyle}>{msToTime(day_ms, false)}</span> day length / <span style={timeStyle}>{msToTime(night_ms, false)}</span> night length. Day length change since yesterday: <span style={timeStyle}>{msToTime(daylengthchange_ms, true)}</span>
+      <span style={timeStyle}>{msToTime(day_ms, false)}</span> day length / <span style={timeStyle}>{msToTime(night_ms, false)}</span> night length. Change: <span style={timeStyle}>{msToTime(daylengthchange_ms, true)}</span>
     </>;
   } else if (sunIndex === 8 || sunIndex === 9) {
       const day_ms = deo.sundaily[10] - deo.sundaily[8];
       const night_ms = deo.sundaily[8] - deo.sundaily[6];
       const daylengthchange_ms = day_ms - (deo.sundaily[6] - deo.sundaily[4]);
     daynightlengthstring = <>
-      <span style={timeStyle}>{msToTime(day_ms, false)}</span> day length / <span style={timeStyle}>{msToTime(night_ms, false)}</span> night length. Day length change since yesterday: <span style={timeStyle}>{msToTime(daylengthchange_ms, true)}</span>
+      <span style={timeStyle}>{msToTime(day_ms, false)}</span> day length / <span style={timeStyle}>{msToTime(night_ms, false)}</span> night length. Change: <span style={timeStyle}>{msToTime(daylengthchange_ms, true)}</span>
     </>;
   }
 

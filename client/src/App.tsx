@@ -6,6 +6,8 @@ import ClockGallery from './components/ClockGallery';
 import { useSearchParams } from "react-router-dom";
 import { useClockGalleryData } from "./utils/useClockGalleryData";
 import { DailyEventsObj } from "./types/interfaces";
+import ClockScreen from "./components/ClockScreen";
+import ClockScreenFresh from "./components/ClockScreenFresh";
 
 
 function useIntervalTimestamp(intervalMs: number) {
@@ -144,6 +146,11 @@ useEffect(() => {
               ? <ClockStrings nowSecond={nowSecond} sunIndex={sunIndex} deo={DailyEventsObj} />
               : <ClockGallery loading={loading} MomentsArray={momentsarray} nowMinute={nowMinute} nowFast={nowFast} basenamesList={basenamesList} imagesSet={imagesSet} astroData={astroData} bodiesInImages={bodiesInImages} />
           }
+          {/* {
+            selectedScreen === 'strings_remove_this'
+              ? <ClockScreenFresh totalDuration={15} repeatLimit={"1"} />
+              : <ClockScreenFresh totalDuration={15} repeatLimit={"1"} />
+          } */}
         </div>
       </div>
     </>
