@@ -3,7 +3,6 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 import os
-import json
 import clockactions
 
 app = FastAPI()
@@ -20,6 +19,7 @@ app.add_middleware(
 
 @app.post('/getevents')
 async def getevents(request: Request):
+    print('got here')
     try:
         request_dict = await request.json()
     except:
