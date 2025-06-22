@@ -10,7 +10,7 @@ const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.join(__dirname, '.env') });
 
 if (!process.env.CLIENT_ORIGIN1 || !process.env.CLIENT_ORIGIN2) {
-  console.error("CLIENT_IP environment variable not set!");
+  console.error("CLIENT_ORIGIN1 or CLIENT_ORIGIN2 environment variable not set!");
   process.exit(1);
 }
 
@@ -75,6 +75,6 @@ app.post('/getimageslist/query', async (req, res) => {
 
 
 // Start server
-app.listen(PORT, "127.0.0.1", () => {
-  console.log(`🚀 Server is running on http://127.0.0.1:${PORT}`);
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`🚀 Server is running on http://0.0.0.0:${PORT}`);
 });
