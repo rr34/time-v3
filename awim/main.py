@@ -52,4 +52,6 @@ async def celestialinphoto(request: Request):
     return response_dict
 
 if __name__ == '__main__':
-    uvicorn.run(app)
+    host = os.getenv("HOST", "127.0.0.1")   # fallback to localhost
+    port = int(os.getenv("PORT", 8000))     # fallback to 8000d
+    uvicorn.run(app, host=host, port=port)
