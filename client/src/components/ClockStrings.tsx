@@ -1,25 +1,13 @@
-import { useEffect } from "react";
 import { msToTime } from "../utils/functions";
-import { ClockTimeObj, DailyEventsObj } from "../App";
+import { DailyEventsObj } from "../types/interfaces";
 
 interface ClockStringsProps {
-  cto: ClockTimeObj;
-  setcto: React.Dispatch<React.SetStateAction<{ currenttime: Date; sunindex: number }>>;
+  nowSecond: number;
+  sunIndex: number;
   deo: DailyEventsObj;
 }
 
-const ClockStrings = ({ cto, setcto, deo }: ClockStringsProps) => {
-  useEffect(() => {
-    const intervalID = setInterval(() => {
-      const addhours = 0;
-      const newdate = new Date(Date.now() + addhours * 1000 * 60 * 60);
-      const sunindex = deo.sundaily.findIndex((date) => newdate < date);
-      setcto({ currenttime: newdate, sunindex });
-    }, 1000);
-
-    return () => clearInterval(intervalID);
-  }, [deo.sundaily, setcto]);
-
+const ClockStrings = ({ nowSecond, sunIndex, deo }: ClockStringsProps) => {
   const timeStyle: React.CSSProperties = {
     fontFamily: "'Courier New', monospace, 'Orbitron'",
     fontSize: '1.8rem',
@@ -35,33 +23,31 @@ const ClockStrings = ({ cto, setcto, deo }: ClockStringsProps) => {
     let industrialdtstring: React.ReactNode = "industrial datetime string";
     let comptime: React.ReactNode = "computer time";
 
-  const { currenttime, sunindex } = cto;
-
   // sun events string
-  if (sunindex === 4 || sunindex === 8) {
-    const since_ms = currenttime.getTime() - deo.sundaily[sunindex - 1].getTime();
-    const until_ms = deo.sundaily[sunindex].getTime() - currenttime.getTime();
+  if (sunIndex === 4 || sunIndex === 8) {
+    const since_ms = nowSecond - deo.sundaily[sunIndex - 1];
+    const until_ms = deo.sundaily[sunIndex] - nowSecond;
     suneventsstring = <>
       <span style={timeStyle}>{msToTime(since_ms)}</span> since midnight.{" "}
       <span style={timeStyle}>{msToTime(until_ms)}</span> until sunrise.
     </>;
-  } else if (sunindex === 5 || sunindex === 9) {
-    const since_ms = currenttime.getTime() - deo.sundaily[sunindex - 1].getTime();
-    const until_ms = deo.sundaily[sunindex].getTime() - currenttime.getTime();
+  } else if (sunIndex === 5 || sunIndex === 9) {
+    const since_ms = nowSecond - deo.sundaily[sunIndex - 1];
+    const until_ms = deo.sundaily[sunIndex] - nowSecond;
     suneventsstring = <>
       <span style={timeStyle}>{msToTime(since_ms)}</span> since sunrise.{" "}
       <span style={timeStyle}>{msToTime(until_ms)}</span> until high noon.
     </>;
-  } else if (sunindex === 6) {
-    const since_ms = currenttime.getTime() - deo.sundaily[sunindex - 1].getTime();
-    const until_ms = deo.sundaily[sunindex].getTime() - currenttime.getTime();
+  } else if (sunIndex === 6) {
+    const since_ms = nowSecond - deo.sundaily[sunIndex - 1];
+    const until_ms = deo.sundaily[sunIndex] - nowSecond;
     suneventsstring = <>
       <span style={timeStyle}>{msToTime(since_ms)}</span> since high noon.{" "}
       <span style={timeStyle}>{msToTime(until_ms)}</span> until sunset.
     </>;
-  } else if (sunindex === 7) {
-    const since_ms = currenttime.getTime() - deo.sundaily[sunindex - 1].getTime();
-    const until_ms = deo.sundaily[sunindex].getTime() - currenttime.getTime();
+  } else if (sunIndex === 7) {
+    const since_ms = nowSecond - deo.sundaily[sunIndex - 1];
+    const until_ms = deo.sundaily[sunIndex] - nowSecond;
     suneventsstring = <>
       <span style={timeStyle}>{msToTime(since_ms)}</span> since sunset.{" "}
       <span style={timeStyle}>{msToTime(until_ms)}</span> until midnight.
@@ -69,17 +55,17 @@ const ClockStrings = ({ cto, setcto, deo }: ClockStringsProps) => {
   }
 
   // moon events string
-  const moon_index = deo.moondaily.findIndex((date) => currenttime < date);
+  const moon_index = deo.moondaily.findIndex((date) => nowSecond < date);
   if (moon_index === 2 || moon_index === 4) {
-    const since_ms = currenttime.getTime() - deo.moondaily[moon_index - 1].getTime();
-    const until_ms = deo.moondaily[moon_index].getTime() - currenttime.getTime();
+    const since_ms = nowSecond - deo.moondaily[moon_index - 1];
+    const until_ms = deo.moondaily[moon_index] - nowSecond;
     mooneventstring = <>
       <span style={timeStyle}>{msToTime(since_ms)}</span> since moonset.{" "}
       <span style={timeStyle}>{msToTime(until_ms)}</span> until moonrise.
     </>;
   } else if (moon_index === 3 || moon_index === 5) {
-    const since_ms = currenttime.getTime() - deo.moondaily[moon_index - 1].getTime();
-    const until_ms = deo.moondaily[moon_index].getTime() - currenttime.getTime();
+    const since_ms = nowSecond - deo.moondaily[moon_index - 1];
+    const until_ms = deo.moondaily[moon_index] - nowSecond;
     mooneventstring = <>
       <span style={timeStyle}>{msToTime(since_ms)}</span> since moonrise.{" "}
       <span style={timeStyle}>{msToTime(until_ms)}</span> until moonset.
@@ -87,8 +73,8 @@ const ClockStrings = ({ cto, setcto, deo }: ClockStringsProps) => {
   }
 
   // moon phase string todo: correct the calculation of the moon phase name to be from phase angle instead of time-based.
-  const timedelta_new = currenttime.getTime() - deo.nearestnew.getTime();
-  const timedelta_full = currenttime.getTime() - deo.nearestfull.getTime();
+  const timedelta_new = nowSecond - deo.nearestnew;
+  const timedelta_full = nowSecond - deo.nearestfull;
   if (Math.abs(timedelta_new) < Math.abs(timedelta_full) && Math.sign(timedelta_new) > 0) {
     const timedelta_str: string = msToTime(Math.abs(timedelta_new));
     const eclipse_string: string = (deo.nearestnewangle > 178.5) ? ' > ~~178.5° means solar eclipse.' : '';
@@ -115,27 +101,27 @@ const ClockStrings = ({ cto, setcto, deo }: ClockStringsProps) => {
     </>;
   }
 
-  // day and night length string. todo: only update when sunindex changes
-  if (sunindex === 4 || sunindex === 5) {
-    const day_ms = deo.sundaily[6].getTime() - deo.sundaily[4].getTime();
-    const night_ms = deo.sundaily[4].getTime() - deo.sundaily[2].getTime();
-    const daylengthchange_ms = day_ms - (deo.sundaily[2].getTime() - deo.sundaily[0].getTime());
+  // day and night length string. todo: only update when sunIndex changes
+  if (sunIndex === 4 || sunIndex === 5) {
+    const day_ms = deo.sundaily[6] - deo.sundaily[4];
+    const night_ms = deo.sundaily[4] - deo.sundaily[2];
+    const daylengthchange_ms = day_ms - (deo.sundaily[2] - deo.sundaily[0]);
     daynightlengthstring = <>
-      <span style={timeStyle}>{msToTime(day_ms, false)}</span> day length / <span style={timeStyle}>{msToTime(night_ms, false)}</span> night length. Day length change since yesterday: <span style={timeStyle}>{msToTime(daylengthchange_ms, false)}</span>
+      <span style={timeStyle}>{msToTime(day_ms, false)}</span> day length / <span style={timeStyle}>{msToTime(night_ms, false)}</span> night length. Day length change since yesterday: <span style={timeStyle}>{msToTime(daylengthchange_ms, true)}</span>
     </>;
-  } else if (sunindex === 6 || sunindex === 7) {
-      const day_ms = deo.sundaily[6].getTime() - deo.sundaily[4].getTime();
-      const night_ms = deo.sundaily[8].getTime() - deo.sundaily[6].getTime();
-      const daylengthchange_ms = day_ms - (deo.sundaily[2].getTime() - deo.sundaily[0].getTime());
+  } else if (sunIndex === 6 || sunIndex === 7) {
+      const day_ms = deo.sundaily[6] - deo.sundaily[4];
+      const night_ms = deo.sundaily[8] - deo.sundaily[6];
+      const daylengthchange_ms = day_ms - (deo.sundaily[2] - deo.sundaily[0]);
       daynightlengthstring = <>
-      <span style={timeStyle}>{msToTime(day_ms, false)}</span> day length / <span style={timeStyle}>{msToTime(night_ms, false)}</span> night length. Day length change since yesterday: <span style={timeStyle}>{msToTime(daylengthchange_ms, false)}</span>
+      <span style={timeStyle}>{msToTime(day_ms, false)}</span> day length / <span style={timeStyle}>{msToTime(night_ms, false)}</span> night length. Day length change since yesterday: <span style={timeStyle}>{msToTime(daylengthchange_ms, true)}</span>
     </>;
-  } else if (sunindex === 8 || sunindex === 9) {
-      const day_ms = deo.sundaily[10].getTime() - deo.sundaily[8].getTime();
-      const night_ms = deo.sundaily[8].getTime() - deo.sundaily[6].getTime();
-      const daylengthchange_ms = day_ms - (deo.sundaily[6].getTime() - deo.sundaily[4].getTime());
+  } else if (sunIndex === 8 || sunIndex === 9) {
+      const day_ms = deo.sundaily[10] - deo.sundaily[8];
+      const night_ms = deo.sundaily[8] - deo.sundaily[6];
+      const daylengthchange_ms = day_ms - (deo.sundaily[6] - deo.sundaily[4]);
     daynightlengthstring = <>
-      <span style={timeStyle}>{msToTime(day_ms, false)}</span> day length / <span style={timeStyle}>{msToTime(night_ms, false)}</span> night length. Day length change since yesterday: <span style={timeStyle}>{msToTime(daylengthchange_ms, false)}</span>
+      <span style={timeStyle}>{msToTime(day_ms, false)}</span> day length / <span style={timeStyle}>{msToTime(night_ms, false)}</span> night length. Day length change since yesterday: <span style={timeStyle}>{msToTime(daylengthchange_ms, true)}</span>
     </>;
   }
 
@@ -153,9 +139,9 @@ const ClockStrings = ({ cto, setcto, deo }: ClockStringsProps) => {
     timeZoneName: 'shortOffset',
   };
   industrialdtstring = (
-    <><br/>Industrial Time: <span style={timeStyle}>{new Intl.DateTimeFormat("en-GB", options).format(currenttime)}</span></>
+    <><br/>Industrial Time: <span style={timeStyle}>{new Intl.DateTimeFormat("en-GB", options).format(nowSecond)}</span></>
   );
-  comptime = <><span style={timeStyle}>{currenttime.toISOString()}</span></>;
+  comptime = <><span style={timeStyle}>{new Date(nowSecond).toISOString()}</span></>;
 
   return (
     <div

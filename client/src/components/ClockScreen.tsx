@@ -27,70 +27,49 @@ function getSkyColorFromArtifae(angle: number): string {
 
 
 interface ClockScreenProps {
+  loading: boolean;
+  MomentsArray: string[];
+  nowMinute: number;
+  nowFast: number;
   imageSrc: string; // can the whole image itself be passed in here, not just the src url?
   awimtag: awimTag;
   astroData: BodiesDict;
   bodiesInImage: BodiesDict;
-  MomentsArray: string[];
-  nowMS: number;
   onAnimationComplete?: () => void;
 }
 
-function ClockScreen({ imageSrc, awimtag, astroData, bodiesInImage, MomentsArray, nowMS, onAnimationComplete }: ClockScreenProps) {
+function ClockScreen({ loading, MomentsArray, nowMinute, nowFast, imageSrc, awimtag, astroData, bodiesInImage, onAnimationComplete }: ClockScreenProps) {
   const frameDuration = 0.75;
   const totalFrames = MomentsArray.length;
   const totalDuration = frameDuration * totalFrames;
 
   const animationRef = useRef<SVGAnimateElement | null>(null);
+  const [animationStart, setAnimationStart] = useState<number | null>(null);
   const repeatCount = useRef(0);
   const hasCalledRef = useRef(false);
-  const [frameIndex, setFrameIndex] = useState(0);
-  const startTimestampRef = useRef<number | null>(null);
 
   useEffect(() => {
     repeatCount.current = 0;
     hasCalledRef.current = false;
   }, [imageSrc, MomentsArray]);
 
+  // this fires when the animation starts to mark the time it started.
   useEffect(() => {
-    const ready = imageSrc && awimtag && astroData && bodiesInImage && MomentsArray.length > 0;
-    if (!ready) return;
+    const animateEl = animationRef.current;
+    if (!animateEl) return;
 
-    repeatCount.current = 0;
-    hasCalledRef.current = false
-    startTimestampRef.current = null;
+    const handleBegin = () => {
+      const now = performance.now(); // more precise than Date.now()
+      setAnimationStart(now);
+      console.log("SVG animation started at", now);
+    };  
 
-    let animationFrameId: number;
-    const repeatLimit = 1;
+    animateEl.addEventListener("beginEvent", handleBegin);
 
-    const animate = (timestamp: number) => {
-      if (startTimestampRef.current === null) {
-        startTimestampRef.current = timestamp;
-      }
-
-      const elapsed = (timestamp - startTimestampRef.current) / 1000; // in seconds
-      const fullCycles = Math.floor(elapsed / totalDuration);
-
-      if (fullCycles >= repeatLimit) {
-        if (onAnimationComplete && !hasCalledRef.current) {
-          hasCalledRef.current = true;
-          onAnimationComplete();
-        }
-        return; // stop the animation
-      }
-
-      const localElapsed = elapsed % totalDuration;
-      const newIndex = Math.floor(localElapsed / frameDuration) % totalFrames;
-      setFrameIndex(newIndex);
-
-      animationFrameId = requestAnimationFrame(animate);
-    };
-
-    animationFrameId = requestAnimationFrame(animate);
-    return () => cancelAnimationFrame(animationFrameId);
-  }, [imageSrc, awimtag, astroData, bodiesInImage, MomentsArray, frameDuration, totalFrames, totalDuration, onAnimationComplete]);
-
-  if (!awimtag) return <p>Loading image, awimtag, astrodata, bodiesInImage data...</p>;
+    return () => {
+      animateEl.removeEventListener("beginEvent", handleBegin);
+    };  
+  }, [imageSrc, MomentsArray]); // or whatever re-triggers animation  
 
   const [refWidth, refHeight] = awimtag['awim Ref Image Size in Pixels']; // unless the awimtag was broken, this will always be type number[] with two numbers in it
   const sunArtifaesArr: number[] = astroData?.sun?.artifaes || [];
@@ -115,7 +94,7 @@ function ClockScreen({ imageSrc, awimtag, astroData, bodiesInImage, MomentsArray
       {astroData && bodiesInImage && (
         <svg className="celestial-overlay" viewBox={`0 0 ${refWidth} ${refHeight}`} preserveAspectRatio="xMidYMid meet">
           <rect x="0" y="0" width={refWidth} height={refHeight} fill={sunArtifaesArr.length ? getSkyColorFromArtifae(sunArtifaesArr[0]) : "black"}>
-            <animate ref={animationRef} attributeName="fill" values={skyColorValues} dur={`${totalDuration}s`} repeatCount="indefinite" calcMode="linear"/>
+            <animate ref={animationRef} attributeName="fill" values={skyColorValues} dur={`${totalDuration}s`} repeatCount="indefinite" calcMode="linear" begin="0s" />
           </rect>
           {Object.entries(bodiesInImage).map(([bodyName, bodyData], index) => {
             const xArr = bodyData['pixelpos x'];
@@ -225,11 +204,11 @@ function ClockScreen({ imageSrc, awimtag, astroData, bodiesInImage, MomentsArray
       )}
       <div style={{ position: "absolute", bottom: 10, left: 10, color: "white", fontSize: "20px", backgroundColor: "rgba(0, 0, 0, 0.4)", padding: "4px 8px", borderRadius: "6px",}}>
       <div>
-        {'Now ' + (() => {
-          const momentTime = Date.parse(MomentsArray[frameIndex]);
-          const diff = momentTime - Date.now();
-          return (diff < 0 ? '-' : '+') + msToTime(Math.abs(diff), false);
-        })()}
+        {(() => {
+          const beginning_relative = Date.parse(MomentsArray[0]) - nowMinute;
+          const end_relative = Date.parse(MomentsArray[MomentsArray.length - 1]) - nowMinute;
+          return 'Showing time period' + msToTime(beginning_relative, false) + ' to ' + msToTime(end_relative, false);
+          })()}
       </div>
       <div>
           {imageSrc}

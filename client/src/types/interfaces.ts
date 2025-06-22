@@ -1,3 +1,13 @@
+export interface DailyEventsObj {
+  sundaily: number[];
+  moondaily: number[];
+  nearestnew: number;
+  nearestnewangle: number; // this is the phase angle associated with the nearest new moon
+  nearestfull: number;
+  nearestfullangle: number; // this is the phase angle associated with the nearest full moon
+}
+
+
 export interface BodyData {
   // Required
   'type': 'sun' | 'moon' | 'planet' | 'star';

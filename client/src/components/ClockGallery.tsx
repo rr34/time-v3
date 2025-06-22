@@ -1,73 +1,39 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import ClockScreen from "./ClockScreen";
 import { BodiesDict, ImagesSet } from "../types/interfaces";
 
 interface ClockGalleryProps {
+  loading: boolean;
   MomentsArray: string[];
-  nowMS: number;
-  TagsInclude: string[];
-  TagsExclude: string[];
+  nowMinute: number;
+  nowFast: number;
+  basenamesList: string[];
+  imagesSet: ImagesSet;
+  astroData: BodiesDict;
+  bodiesInImages: Record<string, BodiesDict>;
 }
-function ClockGallery({ MomentsArray, nowMS, TagsInclude, TagsExclude }: ClockGalleryProps) {
-  const [imagesSet, setImagesSet] = useState<ImagesSet>({});
+function ClockGallery({ loading, MomentsArray, nowMinute, nowFast, basenamesList, imagesSet, astroData, bodiesInImages }: ClockGalleryProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [basenameList, setBasenameList] = useState<string[]>([]);
-  const [astroData, setAstroData] = useState<BodiesDict>({});
-  const [bodiesInImages, setBodiesInImages] = useState<Record<string, BodiesDict>>({});
 
-  useEffect(() => {
-    const fetchClockImageData = async () => {
-      try {
-        // Step 1: Fetch matching images
-        const imagesRes = await fetch(`${import.meta.env.VITE_FRONTEND_URL}/getimageslist/query`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ TagsInclude, TagsExclude }),
-        });
-
-        const imagesSetLocal = await imagesRes.json(); // local variable
-        setImagesSet(imagesSetLocal); // also store in state for rendering
-        setBasenameList(Object.keys(imagesSetLocal))
-
-        // Step 2: Fetch celestial data using the same images list
-        const celestialRes = await fetch(`${import.meta.env.VITE_AWIM_URL}/celestialinphotos`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            awims_dict: imagesSetLocal, // use local variable, not state
-            momentsarray: MomentsArray,
-            requestlist: ["stars", "sun", "moon", "planets"],
-          }),
-        });
-
-        const awimAPI_response = await celestialRes.json();
-        setAstroData(awimAPI_response["astro dict"]);
-        setBodiesInImages(awimAPI_response["bodies in images dicts"]);
-      } catch (err) {
-        console.error("Error fetching clock image data:", err);
-      }
-    };
-
-    fetchClockImageData();
-  }, [TagsInclude, TagsExclude, MomentsArray]);
-
-  if (basenameList.length === 0) return <p>Loading...</p>;
+  if (loading) return <p>Loading image, awimtag, astrodata, bodiesInImage data...</p>;
 
   return (
     <div>
       <ClockScreen
-        imageSrc={`${import.meta.env.VITE_FRONTEND_URL}/clockimages/${basenameList[currentIndex]}.png`}
-        awimtag={imagesSet[basenameList[currentIndex]]['awimTag']} // JSON.parse not necessary here because the Express backend parses the json string it receives from the DB
-        astroData={astroData}
-        bodiesInImage={bodiesInImages?.[basenameList[currentIndex]]}
+        loading={loading}
         MomentsArray={MomentsArray}
-        nowMS={nowMS}
-        onAnimationComplete={() => {setCurrentIndex((i) => (i + 1) % basenameList.length);}}
+        nowMinute={nowMinute}
+        nowFast={nowFast}
+        imageSrc={`${import.meta.env.VITE_BACKEND_URL}/clockimages/${basenamesList[currentIndex]}.png`}
+        awimtag={imagesSet[basenamesList[currentIndex]]['awimTag']} // JSON.parse not necessary here because the Express backend parses the json string it receives from the DB
+        astroData={astroData}
+        bodiesInImage={bodiesInImages?.[basenamesList[currentIndex]]}
+        onAnimationComplete={() => {setCurrentIndex((i) => (i + 1) % basenamesList.length);}}
       />
-      <button onClick={() => setCurrentIndex((i) => (i - 1 + basenameList.length) % basenameList.length)}>
+      <button onClick={() => setCurrentIndex((i) => (i - 1 + basenamesList.length) % basenamesList.length)}>
         Previous
       </button>
-      <button onClick={() => setCurrentIndex((i) => (i + 1) % basenameList.length)}>
+      <button onClick={() => setCurrentIndex((i) => (i + 1) % basenamesList.length)}>
         Next
       </button>
     </div>
