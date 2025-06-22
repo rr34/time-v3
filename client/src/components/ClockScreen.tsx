@@ -41,7 +41,6 @@ function ClockScreen({ MomentsArray, nowMinute, nowFast, imageSrc, awimtag, astr
   const frameDuration = 0.75;
   const totalFrames = MomentsArray.length;
   const totalDuration = frameDuration * totalFrames;
-  const repeatLimit = "1";
 
   const animateRef = useRef<SVGAnimateElement | null>(null);
   const repeatCount = useRef(0);

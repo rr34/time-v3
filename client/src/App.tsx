@@ -6,8 +6,6 @@ import ClockGallery from './components/ClockGallery';
 import { useSearchParams } from "react-router-dom";
 import { useClockGalleryData } from "./utils/useClockGalleryData";
 import { DailyEventsObj } from "./types/interfaces";
-import ClockScreen from "./components/ClockScreen";
-import ClockScreenFresh from "./components/ClockScreenFresh";
 
 
 function useIntervalTimestamp(intervalMs: number) {
