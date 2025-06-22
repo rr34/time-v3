@@ -15,7 +15,8 @@ if (!process.env.CLIENT_ORIGIN1 || !process.env.CLIENT_ORIGIN2) {
 }
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const HOST = process.env.HOST || "127.0.0.1";
+const PORT = parseInt(process.env.PORT || "5000", 10);
 
 // Middleware to parse JSON bodies
 app.use(express.json());
@@ -75,6 +76,6 @@ app.post('/getimageslist/query', async (req, res) => {
 
 
 // Start server
-app.listen(PORT, "0.0.0.0", () => {
-  console.log(`🚀 Server is running on http://0.0.0.0:${PORT}`);
+app.listen(PORT, HOST, () => {
+  console.log(`🚀 Server is running on http://${HOST}:${PORT}`);
 });
