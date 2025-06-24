@@ -1,3 +1,20 @@
+import { useState, useEffect } from "react";
+
+export function useIntervalTimestamp(intervalMs: number) {
+  const [nowMs, setNowMs] = useState(Date.now());
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setNowMs(Date.now());
+    }, intervalMs);
+
+    return () => clearInterval(timer);
+  }, [intervalMs]);
+
+  return nowMs;
+}
+
+
 export function msToTime(timeperiod: number, include_seconds = true) {
     const isNegative = timeperiod < 0;
     const absTime = Math.abs(timeperiod);

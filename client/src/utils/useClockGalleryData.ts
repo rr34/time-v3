@@ -1,22 +1,23 @@
 import { useEffect, useState } from "react";
 import { BodiesDict, ImagesSet } from "../types/interfaces";
 
-export function useClockGalleryData (MomentsArray: string[], TagsInclude: string[], TagsExclude: string[] ) {
+export function useClockGalleryData (MomentsArray: string[], TagsInclude: string[], TagsExclude: string[], MagRankAll: number, LatDecFilter: boolean ) {
   const [imagesSet, setImagesSet] = useState<ImagesSet>({});
   const [basenamesList, setBasenamesList] = useState<string[]>([]);
   const [astroData, setAstroData] = useState<BodiesDict>({});
   const [bodiesInImages, setBodiesInImages] = useState<Record<string, BodiesDict>>({});
   const [loading, setLoading] = useState(true);
 
-const tagsIncludeKey = TagsInclude.join(',');
-const tagsExcludeKey = TagsExclude.join(',');
-const momentsArrayKey = MomentsArray.join(',');
+  const tagsIncludeKey = TagsInclude.join(',');
+  const tagsExcludeKey = TagsExclude.join(',');
+  const momentsArrayKey = MomentsArray.join(',');
 
   useEffect(() => {
     const fetchClockImageData = async () => {
       try {
         setLoading(true);
         // Step 1: Fetch matching images
+        console.log(import.meta.env.VITE_BACKEND_URL)
         const imagesRes = await fetch(`${import.meta.env.VITE_BACKEND_URL}/getimageslist/query`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -35,6 +36,8 @@ const momentsArrayKey = MomentsArray.join(',');
             awims_dict: imagesSetLocal, // use local variable, not state
             momentsarray: MomentsArray,
             requestlist: ["stars", "sun", "moon", "planets"],
+            MagRankAll: MagRankAll,
+            LatDecFilter: LatDecFilter,
           }),
         });
 

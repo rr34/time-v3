@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { msToTime, moonSVGPath } from "../utils/functions";
 import { BodiesDict, awimTag } from "../types/interfaces";
+import { useIntervalTimestamp } from "../utils/functions";
 
 function radiusFromMagnitude(mag: number): number {
   const minMag = -1.46; // This is the magnitude of Sirius, the brightest star.
@@ -28,17 +29,20 @@ function getSkyColorFromArtifae(angle: number): string {
 
 interface ClockScreenProps {
   MomentsArray: string[];
-  nowMinute: number;
-  nowFast: number;
   imageSrc: string; // can the whole image itself be passed in here, not just the src url?
   awimtag: awimTag;
   astroData: BodiesDict;
   bodiesInImage: BodiesDict;
+  MagRankAllMax: number;
   onAnimationComplete?: () => void;
+  RepeatLimit: number;
+  frameDuration: number;
 }
 
-function ClockScreen({ MomentsArray, nowMinute, nowFast, imageSrc, awimtag, astroData, bodiesInImage, onAnimationComplete }: ClockScreenProps) {
-  const frameDuration = 0.75;
+function ClockScreen({ MomentsArray, imageSrc, awimtag, astroData, bodiesInImage, MagRankAllMax, onAnimationComplete, RepeatLimit, frameDuration }: ClockScreenProps) {
+  const nowFast = useIntervalTimestamp(100); // update every tenth of second
+  const nowMinute = useIntervalTimestamp(60 * 1000); // update every minute
+
   const totalFrames = MomentsArray.length;
   const totalDuration = frameDuration * totalFrames;
 
@@ -52,14 +56,14 @@ function ClockScreen({ MomentsArray, nowMinute, nowFast, imageSrc, awimtag, astr
 
     const handleRepeat = () => {
       repeatCount.current += 1;
-      if (repeatCount.current === 2 && onAnimationComplete) {
+      if (repeatCount.current >= RepeatLimit && onAnimationComplete) {
         onAnimationComplete();
       }
     };
 
     anim.addEventListener("repeatEvent", handleRepeat);
     return () => anim.removeEventListener("repeatEvent", handleRepeat);
-  }, [onAnimationComplete]);
+  }, [onAnimationComplete, RepeatLimit]);
   
   const [frameIndex, setFrameIndex] = useState(0);
   
@@ -97,6 +101,7 @@ function ClockScreen({ MomentsArray, nowMinute, nowFast, imageSrc, awimtag, astr
             <animate ref={animateRef} attributeName="fill" values={skyColorValues} dur={`${totalDuration}s`} repeatCount="indefinite" calcMode="linear" begin="0s" />
           </rect>
           {Object.entries(bodiesInImage).map(([bodyName, bodyData], index) => {
+            console.log(bodyData)
             const xArr: number[] | undefined = bodyData['pixelpos x'];
             const yArr: number[] | undefined = bodyData['pixelpos y'];
             if (!xArr || !yArr || xArr.length !== yArr.length) return null;
@@ -105,12 +110,20 @@ function ClockScreen({ MomentsArray, nowMinute, nowFast, imageSrc, awimtag, astr
             const baseStyle = bodyStyleMap[nameKey] || bodyStyleMap[type] || { fill: "white", radius: 3 };
 
             let radius = baseStyle.radius;
+            let effectiveFill = baseStyle.fill;
             if (type === "star") {
               const visualMag = bodyData['VisualMagnitude'] !== undefined ? bodyData['VisualMagnitude'] : 6;
               radius = radiusFromMagnitude(visualMag);
-            }
 
-            const fill = baseStyle.fill;
+              const rank = Number(bodyData['MagRankAll'])
+              if (!Number.isFinite(rank)) {
+                effectiveFill = "gray";
+              } else if (rank > MagRankAllMax) {
+                effectiveFill = "lightblue";
+              }
+            }
+            
+            const fill = effectiveFill;
             const stroke = baseStyle.stroke || "none";
             const visibleArr = xArr.map((x, i) => {
               const y = yArr[i];
@@ -151,8 +164,7 @@ function ClockScreen({ MomentsArray, nowMinute, nowFast, imageSrc, awimtag, astr
                       {bodyData['ReadableName'] && (
                         <text fill="white" fontSize="30" textAnchor="middle" dominantBaseline="middle">
                           {bodyData['ReadableName']?.trim()}
-                        </text>
-                      )}
+                        </text>                      )}
                       {bodyData['MagRankConstellation'] === 1 && bodyData['ConstellationFullName'] && (
                         <text fill="lightblue" fontSize="30" textAnchor="middle" dominantBaseline="middle" transform="translate(0, 60)">
                           α {bodyData['ConstellationFullName']}
@@ -170,7 +182,7 @@ function ClockScreen({ MomentsArray, nowMinute, nowFast, imageSrc, awimtag, astr
             return (
               <g key={bodyName}>
                 <path id={pathId} d={pathD} fill="none" stroke="none" />
-                <circle r={radius} fill={fill} stroke={stroke} // chatgpt: if moon, instead of a circle, this should be the moonSVG rotated by negative brightSideDirectionSingle with the moon color from bodyStyleMap
+                <circle r={radius} fill={fill} stroke={stroke}
                 >
                   <animateMotion dur={`${totalDuration}s`} repeatCount="indefinite">
                     <mpath href={`#${pathId}`} />
@@ -180,9 +192,11 @@ function ClockScreen({ MomentsArray, nowMinute, nowFast, imageSrc, awimtag, astr
                 <g>
                   <g transform="translate(0, -30)">
                     {bodyData['ReadableName'] && (
-                      <text fill="white" fontSize="30" textAnchor="middle" dominantBaseline="middle">
-                        {bodyData['ReadableName']?.trim()}
-                      </text>
+                    <text fill="white" fontSize="30" textAnchor="middle" dominantBaseline="middle">
+                      {(bodyData['MagRankAll'] !== undefined && Number(bodyData['MagRankAll']) <= 20)
+                        ? `${bodyData['MagRankAll']}. ${bodyData['ReadableName']?.trim()}`
+                        : bodyData['ReadableName']?.trim()}
+                    </text>
                     )}
                     {bodyData['MagRankConstellation'] === 1 && bodyData['ConstellationFullName'] && (
                       <text fill="lightblue" fontSize="30" textAnchor="middle" dominantBaseline="middle" transform="translate(0, 60)">
@@ -208,7 +222,7 @@ function ClockScreen({ MomentsArray, nowMinute, nowFast, imageSrc, awimtag, astr
         {(() => {
           const beginning_relative = Date.parse(MomentsArray[0]) - nowMinute;
           const end_relative = Date.parse(MomentsArray[MomentsArray.length - 1]) - nowMinute;
-          return 'Showing time period ' + msToTime(beginning_relative, false) + ' to ' + msToTime(end_relative, false);
+          return 'Showing time period ' + msToTime(beginning_relative, false) + ' to +' + msToTime(end_relative, false);
           })()}
       </div>
       <div>

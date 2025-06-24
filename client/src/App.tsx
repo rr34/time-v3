@@ -1,58 +1,48 @@
 import { useMemo, useState } from "react";
 import { useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import './App.css';
 import ClockStrings from "./components/ClockStrings";
 import ClockGallery from './components/ClockGallery';
-import { useSearchParams } from "react-router-dom";
 import { useClockGalleryData } from "./utils/useClockGalleryData";
 import { DailyEventsObj } from "./types/interfaces";
-
-
-function useIntervalTimestamp(intervalMs: number) {
-  const [nowMs, setNowMs] = useState(Date.now());
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setNowMs(Date.now());
-    }, intervalMs);
-
-    return () => clearInterval(timer);
-  }, [intervalMs]);
-
-  return nowMs;
-}
+import { useIntervalTimestamp } from "./utils/functions";
 
 
 function App() {
-  
-  const nowFast = useIntervalTimestamp(100); // update every second
-  const nowSecond = useIntervalTimestamp(1000); // update every second
-  const nowMinute = useIntervalTimestamp(60 * 1000); // update every minute
   const now15Min = useIntervalTimestamp(15 * 60 * 1000); // update every 15 minutes
   const nowDaily = useIntervalTimestamp(24 * 60 * 60 * 1000); // update just daily
-  
-  const [sunIndex, setSunIndex] = useState(0);
   
   const [selectedScreen, setSelectedScreen] = useState<'screen' | 'strings'>('strings');
   
   const [searchParams] = useSearchParams();
   const tagsIncludeParam = searchParams.get("tagsinclude");  // comma-separated
   const tagsExcludeParam = searchParams.get("tagsexclude");
-
+  const MagRankAllMaxParam = searchParams.get("magrankallmax");
+  const RepeatLimitParam = searchParams.get("frameduration");
+  const frameDurationParam = searchParams.get("frameduration");
+  
   const TagsInclude = useMemo(() => (
-    tagsIncludeParam ? tagsIncludeParam.split(",") : []),
+    tagsIncludeParam ? tagsIncludeParam.split(",") : ['ourhouse','best']),
     [tagsIncludeParam]);
   const TagsExclude = useMemo(() => (
     tagsExcludeParam ? tagsExcludeParam.split(",") : []),
     [tagsExcludeParam]);
+  const MagRankAllMax = useMemo(() => (
+    MagRankAllMaxParam ? Number(MagRankAllMaxParam) : 350), // 350 includes 12 from Orion and 7 from Cassiopeia.
+    [MagRankAllMaxParam]);
+  const RepeatLimit = useMemo(() => (
+    RepeatLimitParam ? Number(RepeatLimitParam) : 1),
+    [RepeatLimitParam]);
+  const frameDuration = useMemo(() => (
+    frameDurationParam ? Number(frameDurationParam) : 1.0),
+    [frameDurationParam]);
+  const LatDecFilter = true; // Filter example: with top 350 stars, for latitude of 40, declination > -50 filters out 58 stars leaving 292 possibly visible above horizon.
 
-    // initialize daily events object
-    const [DailyEventsObj, setDailyEventsObj] = useState<DailyEventsObj>({ sundaily: [0], moondaily: [0], nearestnew: 0, nearestnewangle: 0, nearestfull: 0, nearestfullangle: 0 });
-
-    const momentsarray = useMemo(() => {
-    const momentscount: number = 40 + 1; // plus one makes the duration from the beginning to end match stepminutes times the first number.
-    const stepminutes: number = 6; // 6 minutes is ten steps per hour, which makes a good animation up to ~12 hours.
+  const momentsarray = useMemo(() => {
+    const momentscount: number = 20 + 1; // plus one makes the duration from the beginning to end match stepminutes times the first number.
     const stepsbefore: number = 10;
+    const stepminutes: number = 3; // 3 minutes is twenty steps per hour.
     const arr: string[] = [];
     for (let i = -stepsbefore; i < momentscount - stepsbefore; i++) {
       const idate = new Date(now15Min + i * stepminutes * 1000 * 60);
@@ -60,19 +50,23 @@ function App() {
     }
     return arr;
   }, [now15Min])
+ 
+    // initialize daily events object
+    const [DailyEventsObj, setDailyEventsObj] = useState<DailyEventsObj>({ sundaily: [0], moondaily: [0], nearestnew: 0, nearestnewangle: 0, nearestfull: 0, nearestfullangle: 0 });
   
-  useEffect(() => {
-    const clockLatLong: number[] = [40.229,-83.2092];
-    const clockMSL: number = 280;
-    const fetchDailyEvents = async () => {
+    useEffect(() => {
       // initialize location variables. todo get the location(s) and MSL from the photo tags
-      try {
-        const requestOptions = {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ location: clockLatLong, elevation: clockMSL, currenttime: new Date(nowDaily) }),
-        };
-
+      const clockLatLong: number[] = [40.229,-83.2092];
+      const clockMSL: number = 280;
+      
+      const fetchDailyEvents = async () => {
+        try {
+          const requestOptions = {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ location: clockLatLong, elevation: clockMSL, currenttime: new Date(nowDaily) }),
+          };
+          
         const response = await fetch(`${import.meta.env.VITE_AWIM_URL}/getevents`, requestOptions);
         const data = await response.json();
         
@@ -104,13 +98,7 @@ function App() {
     fetchDailyEvents();
   }, [nowDaily]);
 
-useEffect(() => {
-  if (DailyEventsObj.sundaily.length > 0 && DailyEventsObj.sundaily[0] !== 0) {
-    setSunIndex(DailyEventsObj.sundaily.findIndex((date) => nowSecond < date));
-  }
-}, [nowSecond, DailyEventsObj.sundaily]);
-
-    const { loading, basenamesList, imagesSet, astroData, bodiesInImages } = useClockGalleryData(momentsarray, TagsInclude, TagsExclude);
+    const { loading, basenamesList, imagesSet, astroData, bodiesInImages } = useClockGalleryData(momentsarray, TagsInclude, TagsExclude, MagRankAllMax, LatDecFilter);
 
   return (
     <>
@@ -141,8 +129,17 @@ useEffect(() => {
         <div style={{ width: '100%', height: '100%', pointerEvents: 'none' }}>
           {
             selectedScreen === 'strings'
-              ? <ClockStrings nowSecond={nowSecond} sunIndex={sunIndex} deo={DailyEventsObj} />
-              : <ClockGallery loading={loading} MomentsArray={momentsarray} nowMinute={nowMinute} nowFast={nowFast} basenamesList={basenamesList} imagesSet={imagesSet} astroData={astroData} bodiesInImages={bodiesInImages} />
+              ? <ClockStrings deo={DailyEventsObj} />
+              : <ClockGallery
+                  loading={loading}
+                  MomentsArray={momentsarray}
+                  basenamesList={basenamesList}
+                  imagesSet={imagesSet}
+                  astroData={astroData}
+                  bodiesInImages={bodiesInImages}
+                  MagRankAllMax={MagRankAllMax}
+                  RepeatLimit={RepeatLimit}
+                  frameDuration={frameDuration}/>
           }
           {/* {
             selectedScreen === 'strings_remove_this'

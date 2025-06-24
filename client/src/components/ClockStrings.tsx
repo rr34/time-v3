@@ -1,13 +1,22 @@
+import { useEffect, useState } from "react";
 import { msToTime } from "../utils/functions";
 import { DailyEventsObj } from "../types/interfaces";
+import { useIntervalTimestamp } from "../utils/functions";
 
 interface ClockStringsProps {
-  nowSecond: number;
-  sunIndex: number;
   deo: DailyEventsObj;
 }
 
-const ClockStrings = ({ nowSecond, sunIndex, deo }: ClockStringsProps) => {
+const ClockStrings = ({ deo }: ClockStringsProps) => {
+  const nowSecond = useIntervalTimestamp(1000); // update every second
+  const [sunIndex, setSunIndex] = useState(0);
+  useEffect(() => {
+    if (deo.sundaily.length > 0 && deo.sundaily[0] !== 0) {
+      setSunIndex(deo.sundaily.findIndex((date) => nowSecond < date));
+    }
+  }, [nowSecond, deo.sundaily]);
+
+
   const timeStyle: React.CSSProperties = {
     fontFamily: "'Courier New', monospace, 'Orbitron'",
     fontSize: '1.8rem',

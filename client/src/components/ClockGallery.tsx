@@ -5,14 +5,15 @@ import { BodiesDict, ImagesSet } from "../types/interfaces";
 interface ClockGalleryProps {
   loading: boolean;
   MomentsArray: string[];
-  nowMinute: number;
-  nowFast: number;
   basenamesList: string[];
   imagesSet: ImagesSet;
   astroData: BodiesDict;
   bodiesInImages: Record<string, BodiesDict>;
+  MagRankAllMax: number;
+  RepeatLimit: number;
+  frameDuration: number;
 }
-function ClockGallery({ loading, MomentsArray, nowMinute, nowFast, basenamesList, imagesSet, astroData, bodiesInImages }: ClockGalleryProps) {
+function ClockGallery({ loading, MomentsArray, basenamesList, imagesSet, astroData, bodiesInImages, MagRankAllMax, RepeatLimit, frameDuration }: ClockGalleryProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
 
   if (loading) return <p>Loading image, awimtag, astroData, bodiesInImageData. This can take some minutes.</p>;
@@ -21,13 +22,14 @@ function ClockGallery({ loading, MomentsArray, nowMinute, nowFast, basenamesList
     <div>
       <ClockScreen
         MomentsArray={MomentsArray}
-        nowMinute={nowMinute}
-        nowFast={nowFast}
         imageSrc={`${import.meta.env.VITE_BACKEND_URL}/clockimages/${basenamesList[currentIndex]}.png`}
         awimtag={imagesSet[basenamesList[currentIndex]]['awimTag']} // JSON.parse not necessary here because the Express backend parses the json string it receives from the DB
         astroData={astroData}
         bodiesInImage={bodiesInImages?.[basenamesList[currentIndex]]}
+        MagRankAllMax={MagRankAllMax}
         onAnimationComplete={() => {setCurrentIndex((i) => (i + 1) % basenamesList.length);}}
+        RepeatLimit={RepeatLimit}
+        frameDuration={frameDuration}
       />
       <button onClick={() => setCurrentIndex((i) => (i - 1 + basenamesList.length) % basenamesList.length)}>
         Previous

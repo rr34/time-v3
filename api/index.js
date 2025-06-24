@@ -23,6 +23,7 @@ app.use(express.json());
 
 // Enable CORS for frontend origin
 const allowedOrigins = [process.env.CLIENT_ORIGIN1, process.env.CLIENT_ORIGIN2];
+console.log('Allowed origins: ', allowedOrigins)
 app.use(
   cors({
     origin: (origin, callback) => {
