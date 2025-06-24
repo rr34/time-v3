@@ -101,7 +101,6 @@ function ClockScreen({ MomentsArray, imageSrc, awimtag, astroData, bodiesInImage
             <animate ref={animateRef} attributeName="fill" values={skyColorValues} dur={`${totalDuration}s`} repeatCount="indefinite" calcMode="linear" begin="0s" />
           </rect>
           {Object.entries(bodiesInImage).map(([bodyName, bodyData], index) => {
-            console.log(bodyData)
             const xArr: number[] | undefined = bodyData['pixelpos x'];
             const yArr: number[] | undefined = bodyData['pixelpos y'];
             if (!xArr || !yArr || xArr.length !== yArr.length) return null;

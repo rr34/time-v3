@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { BodiesDict, ImagesSet } from "../types/interfaces";
 
-export function useClockGalleryData (MomentsArray: string[], TagsInclude: string[], TagsExclude: string[], MagRankAll: number, LatDecFilter: boolean ) {
+export function useClockGalleryData (MomentsArray: string[], TagsInclude: string[], TagsExclude: string[], MagRankAllMax: number, LatDecFilter: boolean ) {
   const [imagesSet, setImagesSet] = useState<ImagesSet>({});
   const [basenamesList, setBasenamesList] = useState<string[]>([]);
   const [astroData, setAstroData] = useState<BodiesDict>({});
@@ -17,7 +17,6 @@ export function useClockGalleryData (MomentsArray: string[], TagsInclude: string
       try {
         setLoading(true);
         // Step 1: Fetch matching images
-        console.log(import.meta.env.VITE_BACKEND_URL)
         const imagesRes = await fetch(`${import.meta.env.VITE_BACKEND_URL}/getimageslist/query`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -36,7 +35,7 @@ export function useClockGalleryData (MomentsArray: string[], TagsInclude: string
             awims_dict: imagesSetLocal, // use local variable, not state
             momentsarray: MomentsArray,
             requestlist: ["stars", "sun", "moon", "planets"],
-            MagRankAll: MagRankAll,
+            MagRankAllMax: MagRankAllMax,
             LatDecFilter: LatDecFilter,
           }),
         });
