@@ -63,15 +63,25 @@ WHERE id = ? ;
     return results
 
 
-def get_stars(MagRankAll):
+def get_stars(MagRankAll, LatDec_filter=False):
+    LatDec_clause = ""
+    if isinstance(LatDec_filter, (int, float)) and LatDec_filter != 0:
+        if LatDec_filter > 0:
+            DecLimit = LatDec_filter - 91
+            LatDec_clause = f" AND Declination > {DecLimit} "
+        else:
+            DecLimit = LatDec_filter + 91
+            LatDec_clause = f" AND Declination < {DecLimit} "
+
     qms_tuple = (MagRankAll,)
-    results = DBfunctions.sql_execute("""
+    results = DBfunctions.sql_execute(
+"""
 SELECT bsc.HarvardRevised , bsc.ReadableName , bsc.RA*15 , bsc.Declination , bsc.Distance , bsc.VisualMagnitude , bsc.MagRankAll , bsc.ConstellationFullName , bsc.MagRankConstellation , bsc.GreekLetter
 FROM bright_star_catalogue bsc
-WHERE bsc.MagRankAll < ?
-OR bsc.MagRankConstellation = 1
+WHERE (bsc.MagRankAll <= ? OR bsc.MagRankConstellation = 1)
 AND RA IS NOT NULL
 AND Declination IS NOT NULL
+""" + LatDec_clause + """
 order by bsc.VisualMagnitude ;
 """, qms_tuple, result_type='listtuples')
 

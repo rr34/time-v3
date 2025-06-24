@@ -40,7 +40,17 @@ async def celestialinphoto(request: Request):
     awims_dict = request_dict['awims_dict'] # keys are basenames
     first_key = next(iter(awims_dict)) # first basename
     any_awim = awims_dict[first_key]['awimTag']
-    astro_dict, astro_dict_list_type = clockactions.get_astrodata(any_awim, request_dict['momentsarray'], request_dict['requestlist'])
+    location = any_awim['awim Location Coordinates']
+    if not any_awim['awim Location MSL']:
+        if any_awim['awim Location Terrain Elevation'] and any_awim['awim Location AGL']:
+            elevation = any_awim['awim Location Terrain Elevation'] and any_awim['awim Location AGL'] # elevation is used for events because affects horizon
+
+    MagRankAllMax = request_dict['MagRankAllMax']
+    LatDec_filter = request_dict['LatDecFilter']
+    if LatDec_filter:
+        LatDec_filter = location[0] # equals the latitude, which limits the stars you can see.
+    
+    astro_dict, astro_dict_list_type = clockactions.get_astrodata(location, request_dict['momentsarray'], request_dict['requestlist'], MagRankAllMax, LatDec_filter)
     # (the lists version of the dictionary is just where the numpy arrays have been converted to standard python lists)
 
     bodies_inimage_dicts = {}
