@@ -43,7 +43,6 @@ export function useClockGalleryData (MomentsArray: string[], TagsInclude: string
         const awimAPI_response = await celestialRes.json();
         setAstroData(awimAPI_response["astro dict"]);
         setBodiesInImages(awimAPI_response["bodies in images dicts"]);
-        console.log(awimAPI_response["bodies in images dicts"])
 
         setLoading(false);
       } catch (err) {
