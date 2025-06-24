@@ -1,12 +1,14 @@
 import uvicorn
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from pathlib import Path
 from dotenv import load_dotenv
 import os
 import clockactions
 
 app = FastAPI()
-load_dotenv('.env')
+env_path = Path(__file__).parent/".env"
+load_dotenv(dotenv_path=env_path)
 
 origins = [os.getenv("CLIENT_ORIGIN1"), os.getenv("CLIENT_ORIGIN2")]
 print('Allowed origins: ', origins)
