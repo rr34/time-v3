@@ -1,16 +1,18 @@
 # TODOnext
+- de-res the photos down to HD instead of 4K (for now, auto-cache?)
 - the progress indicator is out of sync from the animation. Fix.
 - Show each animation once and cycle to the clock strings in between.
-- generate files from our house photoshoot.
-- generate files from Aaron photoshoot.
+- make a sequence feature in addition to the tags, probably integrated with the tags.
+- reduce the size of the strings / gallery toggle. Make toggle instead of selector.
+- make addhours a parameter, maybe a slider if there is an efficient way to do it.
 - move the next / previous image controls to the control panel thing (and restart the animation when change image?)
 - add moon phases to animation. Good shapes are here: D:\Documents NMR\02 Time v3 Clock Projects\astroclock\images
-  - I think the app can save multiple SVG animations, but can it save multiple images? 20 images? or get PNG files from backend each time displayed?
-  - awim API cache astrodata maybe? maybe save dev time?
-  - maybe add possibility of a background layer L2? L3 is the svg L4 is the foreground.
+- I think the app can save multiple SVG animations, but can it save multiple images? 20 images? or get PNG files from backend each time displayed?
+- awim API cache astrodata maybe? maybe save dev time?
+- maybe add possibility of a background layer L2? L3 is the svg L4 is the foreground.
 - TODO: since awim tags are official source of duplicate information, clock could be able to regenerate the whole relevant portion of the DB with the awim tags from its files (not important for a while)
 - parse bright star catalog (and send file to Aaron and Ahmed).
-- Standard glockenspiel animations.
+- Standard glockenspiel animations, could be 
 - frontend needs to be able to generate and work with transparency files to determine if objects are visible / above the horizon, etc. See awim_png_littleblur = awim_png.filter(filter=BoxBlur(pxs_per_minute*5)) and awim_png_bigblur = awim_png.filter(filter=BoxBlur(pxs_per_minute*17))
 # animation problems
 - limit the distance off screen the celestial bodies can go to improve animation. Ensure the animation runs only on screen then the bodies stay close off-screen but transparent until they appear again.
