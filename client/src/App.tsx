@@ -21,6 +21,7 @@ function App() {
   const MagRankAllMaxParam = searchParams.get("magrankallmax");
   const RepeatLimitParam = searchParams.get("frameduration");
   const frameDurationParam = searchParams.get("frameduration");
+  const addHoursParam = searchParams.get("addhours");
   
   const TagsInclude = useMemo(() => (
     tagsIncludeParam ? tagsIncludeParam.split(",") : ['ourhouse','best']),
@@ -37,6 +38,9 @@ function App() {
   const frameDuration = useMemo(() => (
     frameDurationParam ? Number(frameDurationParam) : 1.0),
     [frameDurationParam]);
+  const addHours = useMemo(() => (
+    addHoursParam ? Number(addHoursParam) : 0.0),
+    [addHoursParam]);
   const LatDecFilter = true; // Filter example: with top 350 stars, for latitude of 40, declination > -50 filters out 58 stars leaving 292 possibly visible above horizon.
 
   const momentsarray = useMemo(() => {
@@ -45,11 +49,11 @@ function App() {
     const stepminutes: number = 3; // 3 minutes is twenty steps per hour.
     const arr: string[] = [];
     for (let i = -stepsbefore; i < momentscount - stepsbefore; i++) {
-      const idate = new Date(now15Min + i * stepminutes * 1000 * 60);
+      const idate = new Date(now15Min + i * stepminutes*1000*60 + addHours*1000*60*60);
       arr.push(idate.toISOString());
     }
     return arr;
-  }, [now15Min])
+  }, [now15Min, addHours])
  
     // initialize daily events object
     const [DailyEventsObj, setDailyEventsObj] = useState<DailyEventsObj>({ sundaily: [0], moondaily: [0], nearestnew: 0, nearestnewangle: 0, nearestfull: 0, nearestfullangle: 0 });
