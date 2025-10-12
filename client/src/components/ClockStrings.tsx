@@ -11,12 +11,14 @@ const ClockStrings = ({ deo }: ClockStringsProps) => {
   const nowSecond = useIntervalTimestamp(1000); // update every second
   const [sunIndex, setSunIndex] = useState(0);
   const [moonIndex, setMoonIndex] = useState(0);
+  const [detailIndex, setDetailIndex] = useState(0);
   useEffect(() => {
     if (deo.sundaily.length > 0 && deo.sundaily[0] !== 0) {
       setSunIndex(deo.sundaily.findIndex((date) => nowSecond < date)); // sets sunIndex to the index of the next event to occur
       setMoonIndex(deo.moondaily.findIndex((date) => nowSecond < date)); // sets moonIndex to the index of the next event to occur
+      setDetailIndex(deo.momentsarrayDetails.findIndex((date) => nowSecond < date)); // sets detailIndex to the index of the next timestamp
     }
-  }, [nowSecond, deo.sundaily]);
+  }, [nowSecond, deo.sundaily, deo.moondaily]);
 
 
   const timeStyle: React.CSSProperties = {
@@ -27,58 +29,76 @@ const ClockStrings = ({ deo }: ClockStringsProps) => {
     fontWeight: 800,
   };
 
+    let sundetailsstring: React.ReactNode = "sun details string";
     let suneventsstring: React.ReactNode = "sun events string";
     let daynightlengthstring: React.ReactNode = "day and night lengths string";
+    let moondetailsstring: React.ReactNode = "moon details string";
+    let moonphaseanglestring: React.ReactNode = "moon phase angle string";
     let moonphasestring: React.ReactNode = "moon phase string";
     let mooneventstring: React.ReactNode = "moon events string";
     let industrialdtstring: React.ReactNode = "industrial datetime string";
     let comptime: React.ReactNode = "computer time";
 
-  // sun events string
+  // sun details string
+    sundetailsstring = <>
+      Sun azimuth, artifae: <span style={timeStyle}>{deo.sunmoonDetails?.sun.azimuths?.[detailIndex] ?? 'Loading...'}°, {deo.sunmoonDetails?.sun.artifaes?.[detailIndex] ?? 'Loading...'}°</span>
+    </>;
+
+// sun events string
   if (sunIndex === 4 || sunIndex === 8) {
     const since_ms = nowSecond - deo.sundaily[sunIndex - 1];
     const until_ms = deo.sundaily[sunIndex] - nowSecond;
     suneventsstring = <>
-      <span style={timeStyle}>{msToTime(since_ms)}</span> since midnight at artifae {deo.sundailydata['artifaes'][sunIndex-1]}°{" "}
-      <span style={timeStyle}>{msToTime(until_ms)}</span> until sunrise at azimuth {deo.sundailydata['azimuths'][sunIndex]}°.
+      <span style={timeStyle}>{msToTime(since_ms)}</span> since midnight at artifae {deo.sundailydata?.artifaes?.[sunIndex-1] ?? 'Loading...'}°.{" "}
+      <span style={timeStyle}>{msToTime(until_ms)}</span> until sunrise at azimuth {deo.sundailydata?.azimuths?.[sunIndex] ?? 'Loading...'}°.
     </>;
   } else if (sunIndex === 5 || sunIndex === 9) {
     const since_ms = nowSecond - deo.sundaily[sunIndex - 1];
     const until_ms = deo.sundaily[sunIndex] - nowSecond;
     suneventsstring = <>
-      <span style={timeStyle}>{msToTime(since_ms)}</span> since sunrise at azimuth {deo.sundailydata['azimuths'][sunIndex-1]}°.{" "}
-      <span style={timeStyle}>{msToTime(until_ms)}</span> until high noon at artifae {deo.sundailydata['artifaes'][sunIndex]}°.
+      <span style={timeStyle}>{msToTime(since_ms)}</span> since sunrise at azimuth {deo.sundailydata?.azimuths?.[sunIndex-1] ?? 'Loading...'}°.{" "}
+      <span style={timeStyle}>{msToTime(until_ms)}</span> until high noon at artifae {deo.sundailydata?.artifaes?.[sunIndex] ?? 'Loading...'}°.
     </>;
   } else if (sunIndex === 6) {
     const since_ms = nowSecond - deo.sundaily[sunIndex - 1];
     const until_ms = deo.sundaily[sunIndex] - nowSecond;
     suneventsstring = <>
-      <span style={timeStyle}>{msToTime(since_ms)}</span> since high noon at artifae {deo.sundailydata['artifaes'][sunIndex-1]}°.{" "}
-      <span style={timeStyle}>{msToTime(until_ms)}</span> until sunset at azimuth {deo.sundailydata['azimuths'][sunIndex]}°.
+      <span style={timeStyle}>{msToTime(since_ms)}</span> since high noon at artifae {deo.sundailydata?.artifaes?.[sunIndex-1] ?? 'Loading...'}°.{" "}
+      <span style={timeStyle}>{msToTime(until_ms)}</span> until sunset at azimuth {deo.sundailydata?.azimuths?.[sunIndex] ?? 'Loading...'}°.
     </>;
   } else if (sunIndex === 7) {
     const since_ms = nowSecond - deo.sundaily[sunIndex - 1];
     const until_ms = deo.sundaily[sunIndex] - nowSecond;
     suneventsstring = <>
-      <span style={timeStyle}>{msToTime(since_ms)}</span> since sunset at azimuth {deo.sundailydata['azimuths'][sunIndex-1]}°.{" "}
-      <span style={timeStyle}>{msToTime(until_ms)}</span> until midnight at artifae {deo.sundailydata['artifaes'][sunIndex]}°.
+      <span style={timeStyle}>{msToTime(since_ms)}</span> since sunset at azimuth {deo.sundailydata?.azimuths?.[sunIndex-1] ?? 'Loading...'}°.{" "}
+      <span style={timeStyle}>{msToTime(until_ms)}</span> until midnight at artifae {deo.sundailydata?.artifaes?.[sunIndex] ?? 'Loading...'}°.
     </>;
   }
 
+  // moon details string
+    moondetailsstring = <>
+      Moon azimuth, artifae: <span style={timeStyle}>{deo.sunmoonDetails?.moon.azimuths?.[detailIndex] ?? 'Loading...'}°, {deo.sunmoonDetails?.moon.artifaes?.[detailIndex] ?? 'Loading...'}°</span>
+    </>;
+  
+  // moon phase angle string
+    moonphaseanglestring = <>
+      Moon phase angle: <span style={timeStyle}>{deo.sunmoonDetails?.moon.moonphaseangles?.[detailIndex] ?? 'Loading...'}°</span>
+    </>;
+  
   // moon events string
   if (moonIndex === 2 || moonIndex === 4) {
     const since_ms = nowSecond - deo.moondaily[moonIndex - 1];
     const until_ms = deo.moondaily[moonIndex] - nowSecond;
     mooneventstring = <>
-      <span style={timeStyle}>{msToTime(since_ms)}</span> since moonset at azimuth {deo.moondailydata['azimuths'][moonIndex-1]}°.{" "}
-      <span style={timeStyle}>{msToTime(until_ms)}</span> until moonrise at azimuth {deo.moondailydata['azimuths'][moonIndex]}°.
+      <span style={timeStyle}>{msToTime(since_ms)}</span> since moonset at azimuth {deo.moondailydata?.azimuths?.[moonIndex-1] ?? 'Loading...'}°.{" "}
+      <span style={timeStyle}>{msToTime(until_ms)}</span> until moonrise at azimuth {deo.moondailydata?.azimuths?.[moonIndex] ?? 'Loading...'}°.
     </>;
   } else if (moonIndex === 3 || moonIndex === 5) {
     const since_ms = nowSecond - deo.moondaily[moonIndex - 1];
     const until_ms = deo.moondaily[moonIndex] - nowSecond;
     mooneventstring = <>
-      <span style={timeStyle}>{msToTime(since_ms)}</span> since moonrise at azimuth {deo.moondailydata['azimuths'][moonIndex-1]}°.{" "}
-      <span style={timeStyle}>{msToTime(until_ms)}</span> until moonset at azimuth {deo.moondailydata['azimuths'][moonIndex]}°.
+      <span style={timeStyle}>{msToTime(since_ms)}</span> since moonrise at azimuth {deo.moondailydata?.azimuths?.[moonIndex-1] ?? 'Loading...'}°.{" "}
+      <span style={timeStyle}>{msToTime(until_ms)}</span> until moonset at azimuth {deo.moondailydata?.azimuths?.[moonIndex] ?? 'Loading...'}°.
     </>;
   }
 
@@ -149,9 +169,9 @@ const ClockStrings = ({ deo }: ClockStringsProps) => {
     timeZoneName: 'shortOffset',
   };
   industrialdtstring = (
-    <><br/>Industrial Time: <span style={timeStyle}>{new Intl.DateTimeFormat("en-GB", options).format(nowSecond)}</span></>
+    <><br/>Industrial Time: {new Intl.DateTimeFormat("en-GB", options).format(nowSecond)}</>
   );
-  comptime = <>Computer Time: <span style={timeStyle}>{new Date(nowSecond).toISOString()}</span></>;
+  comptime = <>Computer Time: {new Date(nowSecond).toISOString()}</>;
 
   return (
     <div
@@ -171,12 +191,19 @@ const ClockStrings = ({ deo }: ClockStringsProps) => {
       }}
     >
       <p>
+        Sun<br />
+        {sundetailsstring}<br />
         {suneventsstring}<br />
-        {daynightlengthstring}<br />
-        {moonphasestring}<br />
+        {daynightlengthstring}<br /><br />
+        Moon<br />
+        {moondetailsstring}<br />
         {mooneventstring}<br />
+        {moonphaseanglestring}<br />
+        {moonphasestring}<br />
+        <span style={{ fontSize: '0.8rem' }}>
         {industrialdtstring}<br />
         {comptime}
+        </span>
       </p>
     </div>
   );

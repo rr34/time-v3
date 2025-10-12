@@ -5,7 +5,7 @@ import './App.css';
 import ClockStrings from "./components/ClockStrings";
 import ClockGallery from './components/ClockGallery';
 import { useClockGalleryData } from "./utils/useClockGalleryData";
-import { BodyData, emptyBodyData, DailyEventsObj } from "./types/interfaces";
+import { BodyData, emptyBodyData, DailyEventsObj, emptyBodiesDict, BodiesDict } from "./types/interfaces";
 import { useIntervalTimestamp } from "./utils/functions";
 
 
@@ -43,7 +43,7 @@ function App() {
     [addHoursParam]);
   const LatDecFilter = true; // Filter example: with top 350 stars, for latitude of 40, declination > -50 filters out 58 stars leaving 292 possibly visible above horizon.
 
-  const momentsarray = useMemo(() => {
+  const momentsarray_animation = useMemo(() => {
     const momentscount: number = 20 + 1; // plus one makes the duration from the beginning to end match stepminutes times the first number.
     const stepsbefore: number = 10;
     const stepminutes: number = 3; // 3 minutes is twenty steps per hour.
@@ -55,8 +55,20 @@ function App() {
     return arr;
   }, [now15Min, addHours])
  
+  const momentsarray_details = useMemo(() => {
+    const momentscount: number = 15*60 + 1; // plus one makes the duration from the beginning to end match stepseconds times the first number.
+    const stepsbefore: number = 0;
+    const stepseconds: number = 1;
+    const arr: string[] = [];
+    for (let i = -stepsbefore; i < momentscount - stepsbefore; i++) {
+      const idate = new Date(now15Min + i * stepseconds*1000 + addHours*1000*60*60);
+      arr.push(idate.toISOString());
+    }
+    return arr;
+  }, [now15Min, addHours])
+ 
     // initialize daily events object
-    const [DailyEventsObj, setDailyEventsObj] = useState<DailyEventsObj>({ sundaily: [0], sundailydata: emptyBodyData, moondaily: [0], moondailydata: emptyBodyData, nearestnew: 0, nearestnewangle: 0, nearestfull: 0, nearestfullangle: 0 });
+    const [DailyEventsObj, setDailyEventsObj] = useState<DailyEventsObj>({ sundaily: [0], sundailydata: emptyBodyData, moondaily: [0], moondailydata: emptyBodyData, nearestnew: 0, nearestnewangle: 0, nearestfull: 0, nearestfullangle: 0, momentsarrayDetails: [0], sunmoonDetails: emptyBodiesDict });
   
     useEffect(() => {
       // initialize location variables. todo get the location(s) and MSL from the photo tags
@@ -68,7 +80,7 @@ function App() {
           const requestOptions = {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ location: clockLatLong, elevation: clockMSL, currenttime: new Date(nowDaily) }),
+            body: JSON.stringify({ location: clockLatLong, elevation: clockMSL, currenttime: new Date(nowDaily), nowmoments_clockstrings: momentsarray_details }),
           };
           
         const response = await fetch(`${import.meta.env.VITE_AWIM_URL}/getevents`, requestOptions);
@@ -88,6 +100,8 @@ function App() {
         const fullmoon_time: string = data['fullmoon time'];
         const fullmoon_angle: number = Math.round(data['fullmoon angle'] * 100) / 100;
 
+        const sunmoonDetails: BodiesDict = data['sunmoon_details']
+
         setDailyEventsObj({
           sundaily: sundaily_ms,
           sundailydata: sundailydata,
@@ -97,6 +111,8 @@ function App() {
           nearestnewangle: newmoon_angle,
           nearestfull: new Date(fullmoon_time).getTime(),
           nearestfullangle: fullmoon_angle,
+          momentsarrayDetails: momentsarray_details.map(d => Date.parse(d)),
+          sunmoonDetails: sunmoonDetails,
         });
       } catch (error) {
         console.error("Error fetching daily events:", error);
@@ -106,7 +122,7 @@ function App() {
     fetchDailyEvents();
   }, [nowDaily]);
 
-    const { loading, basenamesList, imagesSet, astroData, bodiesInImages } = useClockGalleryData(momentsarray, TagsInclude, TagsExclude, MagRankAllMax, LatDecFilter);
+    const { loading, basenamesList, imagesSet, astroData, bodiesInImages } = useClockGalleryData(momentsarray_animation, TagsInclude, TagsExclude, MagRankAllMax, LatDecFilter);
 
   return (
     <>
@@ -140,7 +156,7 @@ function App() {
               ? <ClockStrings deo={DailyEventsObj} />
               : <ClockGallery
                   loading={loading}
-                  MomentsArray={momentsarray}
+                  MomentsArray={momentsarray_animation}
                   basenamesList={basenamesList}
                   imagesSet={imagesSet}
                   astroData={astroData}

@@ -22,6 +22,7 @@ export interface BodyData {
   'arcs'?: number[];
   'pixelpos x'?: number[];
   'pixelpos y'?: number[];
+  'moonphaseangles'?: number[];
 
   // Moon-specific optional fields
   'phaseangles'?: number[];
@@ -37,6 +38,12 @@ export const emptyBodyData: BodyData = {
 export type BodiesDict = Record<string, BodyData>;
 
 
+export const emptyBodiesDict: BodiesDict = {
+  sun: {type: 'sun'},
+  moon: {type: 'moon'}
+}
+
+
 export interface DailyEventsObj {
   sundaily: number[]; // list of numbers representing ms timestamp of sunrise [0, 4, 8, 12], noon [1, 5, 9, 13], sunset [2, 6, 10, 14], midnight [3, 7, 11, 15]
   sundailydata: BodyData; // sun data for the sun events times
@@ -46,6 +53,8 @@ export interface DailyEventsObj {
   nearestnewangle: number; // phase angle associated with the nearest new moon
   nearestfull: number; // ms timestamp of nearest full moon
   nearestfullangle: number; // phase angle associated with the nearest full moon
+  momentsarrayDetails: number[];
+  sunmoonDetails: BodiesDict;
 }
 
 
