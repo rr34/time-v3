@@ -5,10 +5,11 @@ import { useIntervalTimestamp } from "../utils/functions";
 
 interface ClockStringsProps {
   deo: DailyEventsObj;
+  addHours: number;
 }
 
-const ClockStrings = ({ deo }: ClockStringsProps) => {
-  const nowSecond = useIntervalTimestamp(1000); // update every second
+const ClockStrings = ({ deo, addHours }: ClockStringsProps) => {
+  const nowSecond = useIntervalTimestamp(1000) + addHours*1000*60*60; // update every second and allow for addHours parameter
   const [sunIndex, setSunIndex] = useState(0);
   const [moonIndex, setMoonIndex] = useState(0);
   const [detailIndex, setDetailIndex] = useState(0);

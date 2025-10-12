@@ -10,8 +10,6 @@ import { useIntervalTimestamp } from "./utils/functions";
 
 
 function App() {
-  const now15Min = useIntervalTimestamp(15 * 60 * 1000); // update every 15 minutes
-  const nowDaily = useIntervalTimestamp(24 * 60 * 60 * 1000); // update just daily
   
   const [selectedScreen, setSelectedScreen] = useState<'screen' | 'strings'>('strings');
   
@@ -43,17 +41,20 @@ function App() {
     [addHoursParam]);
   const LatDecFilter = true; // Filter example: with top 350 stars, for latitude of 40, declination > -50 filters out 58 stars leaving 292 possibly visible above horizon.
 
+  const now15Min = useIntervalTimestamp(15 * 60 * 1000) + addHours*1000*60*60; // update every 15 minutes
+  const nowDaily = useIntervalTimestamp(24 * 60 * 60 * 1000) + addHours*1000*60*60; // update just daily
+
   const momentsarray_animation = useMemo(() => {
     const momentscount: number = 20 + 1; // plus one makes the duration from the beginning to end match stepminutes times the first number.
     const stepsbefore: number = 10;
     const stepminutes: number = 3; // 3 minutes is twenty steps per hour.
     const arr: string[] = [];
     for (let i = -stepsbefore; i < momentscount - stepsbefore; i++) {
-      const idate = new Date(now15Min + i * stepminutes*1000*60 + addHours*1000*60*60);
+      const idate = new Date(now15Min + i * stepminutes*1000*60);
       arr.push(idate.toISOString());
     }
     return arr;
-  }, [now15Min, addHours])
+  }, [now15Min])
  
   const momentsarray_details = useMemo(() => {
     const momentscount: number = 15*60 + 1; // plus one makes the duration from the beginning to end match stepseconds times the first number.
@@ -61,11 +62,11 @@ function App() {
     const stepseconds: number = 1;
     const arr: string[] = [];
     for (let i = -stepsbefore; i < momentscount - stepsbefore; i++) {
-      const idate = new Date(now15Min + i * stepseconds*1000 + addHours*1000*60*60);
+      const idate = new Date(now15Min + i * stepseconds*1000);
       arr.push(idate.toISOString());
     }
     return arr;
-  }, [now15Min, addHours])
+  }, [now15Min])
  
     // initialize daily events object
     const [DailyEventsObj, setDailyEventsObj] = useState<DailyEventsObj>({ sundaily: [0], sundailydata: emptyBodyData, moondaily: [0], moondailydata: emptyBodyData, nearestnew: 0, nearestnewangle: 0, nearestfull: 0, nearestfullangle: 0, momentsarrayDetails: [0], sunmoonDetails: emptyBodiesDict });
@@ -120,7 +121,7 @@ function App() {
     };
 
     fetchDailyEvents();
-  }, [nowDaily]);
+  }, [nowDaily, momentsarray_details]);
 
     const { loading, basenamesList, imagesSet, astroData, bodiesInImages } = useClockGalleryData(momentsarray_animation, TagsInclude, TagsExclude, MagRankAllMax, LatDecFilter);
 
@@ -153,7 +154,7 @@ function App() {
         <div style={{ width: '100%', height: '100%', pointerEvents: 'none' }}>
           {
             selectedScreen === 'strings'
-              ? <ClockStrings deo={DailyEventsObj} />
+              ? <ClockStrings deo={DailyEventsObj} addHours={addHours} />
               : <ClockGallery
                   loading={loading}
                   MomentsArray={momentsarray_animation}
