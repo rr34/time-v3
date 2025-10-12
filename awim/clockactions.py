@@ -6,10 +6,24 @@ def get_events(location, elevation_msl, currenttime):
     # nowmoments = formatters.format_datetime(nowmoments, direction='from list of ISO 8601 strings')
     # nowmoments = np.array(nowmoments).astype('datetime64[ns]')
     sundaily, moondaily = astromath.calculate_astro_risesandsets(location, currenttime, elevation_msl) # todo: cache these results because they take time to calculate.
+    justsundict = {'sun': {'type': 'sun', 'ReadableName': 'Sun'}}
+    sundata = astromath.calculate_astro_data(sundaily, location, justsundict)['sun']
+    sundata['azimuths'] = formatters.round_numbers(sundata['azimuths'], 'azimuths')
+    sundata['artifaes'] = formatters.round_numbers(sundata['artifaes'], 'artifaes')
+    sundata = formatters.dict_arrays_tolists(sundata)
+
+    justmoondict = {'moon': {'type': 'moon', 'ReadableName': 'Moon'}}
+    moondata = astromath.calculate_astro_data(moondaily, location, justmoondict)['moon']
+    moondata['azimuths'] = formatters.round_numbers(moondata['azimuths'], 'azimuths')
+    moondata['artifaes'] = formatters.round_numbers(moondata['artifaes'], 'artifaes')
+    moondata = formatters.dict_arrays_tolists(moondata)
+
     newmoon_time, newmoon_angle, fullmoon_time, fullmoon_angle = astromath.calculate_astro_newfullmoon(currenttime)
     response_dict = {}
     response_dict['sundaily'] = formatters.format_datetime(sundaily, 'to string for AWIMtag')
+    response_dict['sundailydata'] = sundata
     response_dict['moondaily'] = formatters.format_datetime(moondaily, 'to string for AWIMtag')
+    response_dict['moondailydata'] = moondata
     response_dict['newmoon time'] = formatters.format_datetime(newmoon_time, 'to string for AWIMtag')
     response_dict['newmoon angle'] = str(newmoon_angle)
     response_dict['fullmoon time'] = formatters.format_datetime(fullmoon_time, 'to string for AWIMtag')

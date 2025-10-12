@@ -307,6 +307,12 @@ Together, azimuth and artifae are AzArt. Astropy and most astronomers use the te
 - I: text of exif readable plus AWIMtag in UserComment with new lines, same name and directory as image to be tagged.
 
 ## TODO
+- Sun noon peak artifae
+- Sun rise set azimuth 
+- Sun azart ticking
+- Rising, peaking, setting objects
+- moon azart ticking
+- Moon phase angle ticking
 
 - **Batch generate AWIM-tagged images:** I have been using the software and recording required information to determine Az,Art in a spreadsheet then manually transferring the spreadsheet data image-by-image using the GUI. The menu item "Batch generate AWIM files" would be the primary option I would use and does not require a GUI at all. "Batch generate AWIM files" would work best by requiring the user to collect the following files in a single directory:
 	1. Spreadsheet of standard data recorded during a photoshoot. See example in test files. Spreadsheet includes a unique identifier for each photo to be processed (modern cameras already name their files sequentially therefore with a convenient unique ID). This standardized spreadsheet would effectively replace the GUI.

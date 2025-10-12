@@ -13,7 +13,7 @@ load_dotenv('.env')
 
 # awimactions.add_camfilenames_todb()
 
-awimactions.generate_image_tags('ourhouse20250601')
+awimactions.generate_image_tags('mdhouse20250629')
 
 # awimactions.parse_brightstar_text()
 

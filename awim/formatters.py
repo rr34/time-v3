@@ -17,6 +17,8 @@ def AWIMtag_rounding_digits():
     rounding_digits_dict['degrees'] = 2
     rounding_digits_dict['hourangle'] = 3
     rounding_digits_dict['fractiondenominator'] = 2
+    rounding_digits_dict['azimuths'] = 2
+    rounding_digits_dict['artifaes'] = 1
 
     return rounding_digits_dict
 
@@ -139,31 +141,16 @@ def adjust_datetime_byseconds(datetime_str, adjustment):
     return result_str
 
 
+def round_numbers(numbers, type):
+    rounding_digits_dict = AWIMtag_rounding_digits()
+    digits = rounding_digits_dict.get(type, 0)
+    return [round(num, digits) for num in numbers]
+
+def numbers_to_strings(numbers, type):
+    return [str(num) for num in numbers]
+
 def round_to_string(numbers, type):
-    rounding_digits_dict = {}
-    rounding_digits_dict['lat long'] = 6
-    rounding_digits_dict['azimuth'] = 2
-    rounding_digits_dict['artifae'] = 1
-    rounding_digits_dict['AGL'] = 2
-    rounding_digits_dict['pixels'] = 1
-    rounding_digits_dict['degrees'] = 2
-    rounding_digits_dict['hourangle'] = 3
-
-    round_digits = rounding_digits_dict[type]
-
-    if type == 'azimuth':
-        # output = [f'{int(azimuth):03d}' + f'{round(azimuth%1, 1)}'[1:] for azimuth in numbers]
-        output = [f'{azimuth:6.2f}'.replace(' ', '0') for azimuth in numbers]
-    elif round_digits == 1:
-        output = [f'{number:.1f}' for number in numbers]
-    elif round_digits == 2:
-        output = [f'{number:.2f}' for number in numbers]
-    elif round_digits == 3:
-        output = [f'{number:.3f}' for number in numbers]
-    elif round_digits == 6:
-        output = [f'{number:.6f}' for number in numbers]
-
-    return output
+    return numbers_to_strings(round_numbers(numbers, type), type)
 
 
 def flatten_dict(dictionary, parent_key='', separator='_'):
@@ -316,7 +303,7 @@ def format_GPS_latlng(exif_dict):
     return GPS_latlng, GPS_alt
 
 
-def dict_arrays_tolists(obj):
+def dict_arrays_tolists(obj, round=False):
     if isinstance(obj, dict):
         return {k: dict_arrays_tolists(v) for k, v in obj.items()}
     elif isinstance(obj, list):
