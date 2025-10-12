@@ -205,6 +205,8 @@ def calculate_astro_data(moments, earth_latlng, celestial_objects_dict):
             response_dict[key]['ras'] = object_SkyCoords.ra.degree
             response_dict[key]['decs'] = object_SkyCoords.dec.degree
             response_dict[key]['distances'] = object_SkyCoords.distance.au
+        if value['type'] == 'moon':
+            response_dict[key]['moonphaseangles'] = calculate_astro_moonphaseangle(moments)
 
     return response_dict
 

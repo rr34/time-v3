@@ -30,6 +30,9 @@ async def getevents(request: Request):
 
     response_dict = clockactions.get_events(request_dict['location'], request_dict['elevation'], request_dict['currenttime'])
 
+    sunmoon_details = clockactions.get_sunmoon_details(request_dict['location'], request_dict['elevation'], request_dict['nowmoments_clockstrings'])
+    response_dict['sunmoon_details'] = sunmoon_details
+
     return response_dict
 
 @app.post('/celestialinphotos')

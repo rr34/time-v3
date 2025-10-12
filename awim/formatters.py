@@ -17,7 +17,7 @@ def AWIMtag_rounding_digits():
     rounding_digits_dict['degrees'] = 2
     rounding_digits_dict['hourangle'] = 3
     rounding_digits_dict['fractiondenominator'] = 2
-    rounding_digits_dict['azimuths'] = 2
+    rounding_digits_dict['azimuths'] = 1
     rounding_digits_dict['artifaes'] = 1
 
     return rounding_digits_dict

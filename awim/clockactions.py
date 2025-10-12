@@ -3,9 +3,8 @@ import astromath, awimlib, formatters, DBsqlstatements
 
 def get_events(location, elevation_msl, currenttime):
     currenttime = np.datetime64(currenttime)
-    # nowmoments = formatters.format_datetime(nowmoments, direction='from list of ISO 8601 strings')
-    # nowmoments = np.array(nowmoments).astype('datetime64[ns]')
     sundaily, moondaily = astromath.calculate_astro_risesandsets(location, currenttime, elevation_msl) # todo: cache these results because they take time to calculate.
+
     justsundict = {'sun': {'type': 'sun', 'ReadableName': 'Sun'}}
     sundata = astromath.calculate_astro_data(sundaily, location, justsundict)['sun']
     sundata['azimuths'] = formatters.round_numbers(sundata['azimuths'], 'azimuths')
@@ -106,3 +105,18 @@ def get_celestialinphoto(awim_dict, momentsarray, bodies_astro_dict, inimage_thr
     bodies_image_dict_lists = formatters.dict_arrays_tolists(bodies_image_dict)
 
     return bodies_image_dict_lists
+
+
+def get_sunmoon_details(location, elevation_msl, nowmoments_clockstrings):
+    momentsarray = np.array([np.datetime64(moment) for moment in nowmoments_clockstrings])
+    sunmoondict = {'sun': {'type': 'sun', 'ReadableName': 'Sun'}, 'moon': {'type': 'moon', 'ReadableName': 'Moon'}}
+
+    sunmoon_details = astromath.calculate_astro_data(momentsarray, location, sunmoondict)
+    sunmoon_details['sun']['azimuths'] = formatters.round_numbers(sunmoon_details['sun']['azimuths'], 'degrees')
+    sunmoon_details['sun']['artifaes'] = formatters.round_numbers(sunmoon_details['sun']['artifaes'], 'degrees')
+    sunmoon_details['moon']['azimuths'] = formatters.round_numbers(sunmoon_details['moon']['azimuths'], 'degrees')
+    sunmoon_details['moon']['artifaes'] = formatters.round_numbers(sunmoon_details['moon']['artifaes'], 'degrees')
+    sunmoon_details['moon']['moonphaseangles'] = formatters.round_numbers(sunmoon_details['moon']['moonphaseangles'], 'degrees')
+    sunmoon_details = formatters.dict_arrays_tolists(sunmoon_details)
+
+    return sunmoon_details
