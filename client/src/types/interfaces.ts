@@ -1,16 +1,6 @@
-export interface DailyEventsObj {
-  sundaily: number[];
-  moondaily: number[];
-  nearestnew: number;
-  nearestnewangle: number; // this is the phase angle associated with the nearest new moon
-  nearestfull: number;
-  nearestfullangle: number; // this is the phase angle associated with the nearest full moon
-}
-
-
 export interface BodyData {
   // Required
-  'type': 'sun' | 'moon' | 'planet' | 'star';
+  'type': 'sun' | 'moon' | 'planet' | 'star' | 'empty initial';
 
   // Optional astro metadata (mostly stars)
   'ReadableName'?: string;
@@ -39,7 +29,24 @@ export interface BodyData {
 }
 
 
+export const emptyBodyData: BodyData = {
+  type: 'empty initial',
+};
+
+
 export type BodiesDict = Record<string, BodyData>;
+
+
+export interface DailyEventsObj {
+  sundaily: number[]; // list of numbers representing ms timestamp of sunrise [0, 4, 8, 12], noon [1, 5, 9, 13], sunset [2, 6, 10, 14], midnight [3, 7, 11, 15]
+  sundailydata: BodyData; // sun data for the sun events times
+  moondaily: number[]; // list of numbers representing ms timestamp of moonrise [0, 2, 4], moonset [1, 3, 5]
+  moondailydata: BodyData; // moon data for the moon events times
+  nearestnew: number; // ms timestamp of nearest new moon
+  nearestnewangle: number; // phase angle associated with the nearest new moon
+  nearestfull: number; // ms timestamp of nearest full moon
+  nearestfullangle: number; // phase angle associated with the nearest full moon
+}
 
 
 export interface awimTag {

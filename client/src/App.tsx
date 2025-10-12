@@ -5,7 +5,7 @@ import './App.css';
 import ClockStrings from "./components/ClockStrings";
 import ClockGallery from './components/ClockGallery';
 import { useClockGalleryData } from "./utils/useClockGalleryData";
-import { DailyEventsObj } from "./types/interfaces";
+import { BodyData, emptyBodyData, DailyEventsObj } from "./types/interfaces";
 import { useIntervalTimestamp } from "./utils/functions";
 
 
@@ -56,7 +56,7 @@ function App() {
   }, [now15Min, addHours])
  
     // initialize daily events object
-    const [DailyEventsObj, setDailyEventsObj] = useState<DailyEventsObj>({ sundaily: [0], moondaily: [0], nearestnew: 0, nearestnewangle: 0, nearestfull: 0, nearestfullangle: 0 });
+    const [DailyEventsObj, setDailyEventsObj] = useState<DailyEventsObj>({ sundaily: [0], sundailydata: emptyBodyData, moondaily: [0], moondailydata: emptyBodyData, nearestnew: 0, nearestnewangle: 0, nearestfull: 0, nearestfullangle: 0 });
   
     useEffect(() => {
       // initialize location variables. todo get the location(s) and MSL from the photo tags
@@ -76,9 +76,11 @@ function App() {
         
         const sundaily_strings: string[] = data['sundaily'];
         const sundaily_ms: number[] = sundaily_strings.map(str => new Date(str).getTime());
-
+        const sundailydata: BodyData = data['sundailydata']
+        
         const moondaily_strings: string[] = data['moondaily'];
         const moondaily_ms: number[] = moondaily_strings.map(str => new Date(str).getTime());
+        const moondailydata: BodyData = data['moondailydata']
 
         const newmoon_time: string = data['newmoon time'];
         const newmoon_angle: number = Math.round(data['newmoon angle'] * 100) / 100;
@@ -88,7 +90,9 @@ function App() {
 
         setDailyEventsObj({
           sundaily: sundaily_ms,
+          sundailydata: sundailydata,
           moondaily: moondaily_ms,
+          moondailydata: moondailydata,
           nearestnew: new Date(newmoon_time).getTime(),
           nearestnewangle: newmoon_angle,
           nearestfull: new Date(fullmoon_time).getTime(),
