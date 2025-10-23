@@ -22,7 +22,7 @@ const PORT = parseInt(process.env.PORT || "5000", 10);
 app.use(express.json());
 
 // Enable CORS for frontend origin
-const allowedOrigins = [process.env.CLIENT_ORIGIN1, process.env.CLIENT_ORIGIN2];
+const allowedOrigins = [process.env.CLIENT_ORIGIN1, process.env.CLIENT_ORIGIN2, 'http://timev3.com', 'http://www.timev3.com'];
 console.log('Allowed origins: ', allowedOrigins)
 app.use(
   cors({
