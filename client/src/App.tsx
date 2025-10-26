@@ -11,6 +11,7 @@ import { useIntervalTimestamp } from "./utils/functions";
 
 function App() {
   
+  const [showPanel, setShowPanel] = useState(true);
   const [selectedScreen, setSelectedScreen] = useState<'screen' | 'strings'>('strings');
   const [currentIndex, setCurrentIndex] = useState(0);
 
@@ -129,40 +130,54 @@ function App() {
 
   return (
     <>
-      <div style={{ position: 'relative', width: '100vw', height: '100vh' }}>
-        {/* Floating Control Panel */}
-        <div className="control-panel">
-          <label>
-            <input
-              type="radio"
-              value="strings"
-              checked={selectedScreen === 'strings'}
-              onChange={() => setSelectedScreen('strings')}
-            />
-            Clock Strings
-          </label>
-          <label>
-            <input
-              type="radio"
-              value="screen"
-              checked={selectedScreen === 'screen'}
-              onChange={() => setSelectedScreen('screen')}
-            />
-            Clock Gallery
-          </label>
-  <button
-    onClick={() =>
-      setCurrentIndex((i) => (i - 1 + basenamesList.length) % basenamesList.length)
-    }
-  >
-    Previous
-  </button>
-  <button
-    onClick={() => setCurrentIndex((i) => (i + 1) % basenamesList.length)}
-  >
-    Next
-  </button>
-        </div>
+    <div style={{ position: 'relative', width: '100vw', height: '100vh' }}>
+    <button
+      style={{
+        position: 'absolute',
+        top: 10,
+        left: 10,
+        zIndex: 101,
+        padding: '4px 8px',
+      }}
+      onClick={() => setShowPanel(!showPanel)}
+    >
+      {showPanel ? "Hide Controls" : "Show Controls"}
+    </button>
+      {/* Floating Control Panel */}
+      {showPanel && (
+      <div className="control-panel">
+        <label>
+          <input
+            type="radio"
+            value="strings"
+            checked={selectedScreen === 'strings'}
+            onChange={() => setSelectedScreen('strings')}
+          />
+          Clock Strings
+        </label>
+        <label>
+          <input
+            type="radio"
+            value="screen"
+            checked={selectedScreen === 'screen'}
+            onChange={() => setSelectedScreen('screen')}
+          />
+          Clock Gallery
+        </label>
+        <button
+          onClick={() =>
+            setCurrentIndex((i) => (i - 1 + basenamesList.length) % basenamesList.length)
+          }
+        >
+          Previous
+        </button>
+        <button
+          onClick={() => setCurrentIndex((i) => (i + 1) % basenamesList.length)}
+        >
+          Next
+        </button>
+      </div>
+        )}
 
         {/* Clock display area */}
         <div style={{ width: '100%', height: '100%', pointerEvents: 'none' }}>
