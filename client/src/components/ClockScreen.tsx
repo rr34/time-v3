@@ -217,7 +217,7 @@ function ClockScreen({ MomentsArray, imageSrc, awimtag, astroData, bodiesInImage
       {imageSrc && (
         <img src={imageSrc} className="clock-image" alt="Clock" />
       )}
-      <div style={{ position: "absolute", bottom: 10, left: 10, color: "white", fontSize: "20px", backgroundColor: "rgba(0, 0, 0, 0.4)", padding: "4px 8px", borderRadius: "6px",}}>
+      <div style={{ position: "absolute", bottom: 10, left: 10, color: "white", fontSize: "5px", backgroundColor: "rgba(0, 0, 0, 0.4)", padding: "4px 8px", borderRadius: "6px",}}>
       <div>
         {(() => {
           const beginning_relative = Date.parse(MomentsArray[0]) - nowMinute;
