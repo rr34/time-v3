@@ -10,7 +10,7 @@ app = FastAPI()
 env_path = Path(__file__).parent/".env"
 load_dotenv(dotenv_path=env_path)
 
-origins = [os.getenv("CLIENT_ORIGIN1"), os.getenv("CLIENT_ORIGIN2")]
+origins = [os.getenv("CLIENT_ORIGIN1"), os.getenv("CLIENT_ORIGIN2"), 'http://timev3.com', 'http://www.timev3.com']
 print('Allowed origins: ', origins)
 app.add_middleware(
     CORSMiddleware,
