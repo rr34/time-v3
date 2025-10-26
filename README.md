@@ -2,7 +2,7 @@
 - Rising, peaking, setting objects like a current events for the user.
 - Above the the horizon after sunset / following the sun after sunset report.
 
-- animation time period needs to have +/- symbol added by the function, not + hard-coded because of addhours param now
+- animation time period needs to have +/- symbol added by the function, not + hard-coded because of addhours param now 
 - de-res the photos down to HD instead of 4K (for now, auto-cache?)
 - optimize for phones
 - the progress indicator is out of sync from the animation. Fix.

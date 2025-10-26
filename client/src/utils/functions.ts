@@ -15,7 +15,7 @@ export function useIntervalTimestamp(intervalMs: number) {
 }
 
 
-export function msToTime(timeperiod: number, include_seconds = true) {
+export function msToTime(timeperiod: number, include_seconds = true, include_plussign = false) {
     const isNegative = timeperiod < 0;
     const absTime = Math.abs(timeperiod);
 
@@ -40,7 +40,7 @@ export function msToTime(timeperiod: number, include_seconds = true) {
     }
 
     const result = days_str + hours_str + minutes_str + seconds_str;
-    return isNegative ? "-" + result : result;
+    return isNegative ? "-" + result : include_plussign ? "+" + result : result;
 }
 
 
@@ -56,3 +56,5 @@ export function moonSVGPath(phaseAngle: number, moonRadius: number) {
 
     return svgPath;
 }
+
+

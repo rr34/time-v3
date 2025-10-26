@@ -3,6 +3,31 @@ import { msToTime } from "../utils/functions";
 import { DailyEventsObj } from "../types/interfaces";
 import { useIntervalTimestamp } from "../utils/functions";
 
+
+function getSunTwilightString(artifaes: number[], currentIndex: number, windowSize: number = 50): string {
+  const totalFrames = artifaes.length;
+  const currentArt = artifaes[currentIndex];
+
+  // Determine direction (rising or setting) using a small window
+  const start = Math.max(0, currentIndex - windowSize);
+  const end = Math.min(totalFrames - 1, currentIndex + windowSize);
+  const windowArtifaes = artifaes.slice(start, end + 1);
+
+  const first = windowArtifaes[0];
+  const last = windowArtifaes[windowArtifaes.length - 1];
+
+  if (currentArt < -18) return "Night";
+  if (currentArt < -12) return "Astronomical Twilight";
+  if (currentArt < -6)  return "Nautical Twilight";
+  if (currentArt < -0.833)   return "Civil Twilight";
+  // 0.5332 is the diameter of the sun, so half of it should be when the sun breaks the horizon ignoring atmospheric light bending effect
+  if (currentArt < 0.5332/2) {
+    return last > first ? "Sunrise" : "Sunset";
+}
+  return "Day";
+}
+
+
 interface ClockStringsProps {
   deo: DailyEventsObj;
   addHours: number;
@@ -30,6 +55,7 @@ const ClockStrings = ({ deo, addHours }: ClockStringsProps) => {
     fontWeight: 800,
   };
 
+    let suntwilightsstring: React.ReactNode = "twilights string";
     let sundetailsstring: React.ReactNode = "sun details string";
     let suneventsstring: React.ReactNode = "sun events string";
     let daynightlengthstring: React.ReactNode = "day and night lengths string";
@@ -40,10 +66,17 @@ const ClockStrings = ({ deo, addHours }: ClockStringsProps) => {
     let industrialdtstring: React.ReactNode = "industrial datetime string";
     let comptime: React.ReactNode = "computer time";
 
-  // sun details string
-    sundetailsstring = <>
-      Sun azimuth, artifae: <span style={timeStyle}>{deo.sunmoonDetails?.sun.azimuths?.[detailIndex] ?? 'Loading...'}°, {deo.sunmoonDetails?.sun.artifaes?.[detailIndex] ?? 'Loading...'}°</span>
-    </>;
+// sun twilights string
+suntwilightsstring = <>
+  {typeof deo.sunmoonDetails?.sun.artifaes?.[detailIndex] === "number"
+    ? getSunTwilightString(deo.sunmoonDetails.sun.artifaes, detailIndex)
+    : "Loading..."}
+</>;
+
+// sun details string
+  sundetailsstring = <>
+    Sun azimuth, artifae: <span style={timeStyle}>{deo.sunmoonDetails?.sun.azimuths?.[detailIndex] ?? 'Loading...'}°, {deo.sunmoonDetails?.sun.artifaes?.[detailIndex] ?? 'Loading...'}°</span>
+  </>;
 
 // sun events string
   if (sunIndex === 4 || sunIndex === 8) {
@@ -138,21 +171,21 @@ const ClockStrings = ({ deo, addHours }: ClockStringsProps) => {
     const night_ms = deo.sundaily[4] - deo.sundaily[2];
     const daylengthchange_ms = day_ms - (deo.sundaily[2] - deo.sundaily[0]);
     daynightlengthstring = <>
-      <span style={timeStyle}>{msToTime(day_ms, false)}</span> day length / <span style={timeStyle}>{msToTime(night_ms, false)}</span> night length. Change: <span style={timeStyle}>{msToTime(daylengthchange_ms, true)}</span>
+      <span style={timeStyle}>{msToTime(day_ms, false)}</span> day length / <span style={timeStyle}>{msToTime(night_ms, false)}</span> night length. Change: <span style={timeStyle}>{msToTime(daylengthchange_ms, true, true)}</span>
     </>;
   } else if (sunIndex === 6 || sunIndex === 7) {
       const day_ms = deo.sundaily[6] - deo.sundaily[4];
       const night_ms = deo.sundaily[8] - deo.sundaily[6];
       const daylengthchange_ms = day_ms - (deo.sundaily[2] - deo.sundaily[0]);
       daynightlengthstring = <>
-      <span style={timeStyle}>{msToTime(day_ms, false)}</span> day length / <span style={timeStyle}>{msToTime(night_ms, false)}</span> night length. Change: <span style={timeStyle}>{msToTime(daylengthchange_ms, true)}</span>
+      <span style={timeStyle}>{msToTime(day_ms, false)}</span> day length / <span style={timeStyle}>{msToTime(night_ms, false)}</span> night length. Change: <span style={timeStyle}>{msToTime(daylengthchange_ms, true, true)}</span>
     </>;
   } else if (sunIndex === 8 || sunIndex === 9) {
       const day_ms = deo.sundaily[10] - deo.sundaily[8];
       const night_ms = deo.sundaily[8] - deo.sundaily[6];
       const daylengthchange_ms = day_ms - (deo.sundaily[6] - deo.sundaily[4]);
     daynightlengthstring = <>
-      <span style={timeStyle}>{msToTime(day_ms, false)}</span> day length / <span style={timeStyle}>{msToTime(night_ms, false)}</span> night length. Change: <span style={timeStyle}>{msToTime(daylengthchange_ms, true)}</span>
+      <span style={timeStyle}>{msToTime(day_ms, false)}</span> day length / <span style={timeStyle}>{msToTime(night_ms, false)}</span> night length. Change: <span style={timeStyle}>{msToTime(daylengthchange_ms, true, true)}</span>
     </>;
   }
 
@@ -192,7 +225,7 @@ const ClockStrings = ({ deo, addHours }: ClockStringsProps) => {
       }}
     >
       <p>
-        Sun<br />
+        {suntwilightsstring}<br />
         {sundetailsstring}<br />
         {suneventsstring}<br />
         {daynightlengthstring}<br /><br />

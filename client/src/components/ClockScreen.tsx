@@ -27,6 +27,7 @@ function getSkyColorFromArtifae(angle: number): string {
 }
 
 
+
 interface ClockScreenProps {
   MomentsArray: string[];
   imageSrc: string; // can the whole image itself be passed in here, not just the src url?
@@ -189,16 +190,16 @@ function ClockScreen({ MomentsArray, imageSrc, awimtag, astroData, bodiesInImage
                   <animate attributeName="opacity" values={visibleArr.join(";")} dur={`${totalDuration}s`} repeatCount="indefinite" calcMode="discrete"/>
                 </circle>
                 <g>
-                  <g transform="translate(0, -30)">
+                  <g transform="translate(0, -90)">
                     {bodyData['ReadableName'] && (
-                    <text fill="white" fontSize="30" textAnchor="middle" dominantBaseline="middle">
+                    <text fill="rgba(255, 255, 255, 0.2)" fontSize="140" textAnchor="middle" dominantBaseline="middle">
                       {(bodyData['MagRankAll'] !== undefined && Number(bodyData['MagRankAll']) <= 20)
                         ? `${bodyData['MagRankAll']}. ${bodyData['ReadableName']?.trim()}`
                         : bodyData['ReadableName']?.trim()}
                     </text>
                     )}
                     {bodyData['MagRankConstellation'] === 1 && bodyData['ConstellationFullName'] && (
-                      <text fill="lightblue" fontSize="30" textAnchor="middle" dominantBaseline="middle" transform="translate(0, 60)">
+                      <text fill="rgba(173, 216, 230, 0.2)" fontSize="140" textAnchor="middle" dominantBaseline="middle" transform="translate(0, 180)">
                         α {bodyData['ConstellationFullName']}
                       </text>
                     )}
