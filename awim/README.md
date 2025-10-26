@@ -1,3 +1,24 @@
+# 27 January 2025 Resurrecting the Project with Many Updates
+## Notes
+- Going to standardize on dictionary representation of data, jsonified.
+- Going to operate as an API rather than as a GUI.
+
+## Workflow to generate clock photoshoot images with awim data in database
+- Take photos in RAW format.
+- During photoshoot, record required information to tag the photos:
+	- Azimuth references.
+	- Artifae.
+	- Camera clock offset.
+- Process photos in Lightroom or Photoshop and **export to PNG**. The PNG files have metadata embedded as XML.
+- Place the PNG files in the working folder along with `output_cal Sony a7 iii Sony 20mm cam_awim.json`
+- Run awimactions.generate_image_tags('BatchID'). See examples of BatchID field in the database BatchID field.
+- If the database information is complete, should be able to auto-generate the awim tag json files, which include the original photo metadata. Should get a message saying the photo files and the shoot entries match perfectly.
+- Use the processed PNG files from the working folder with new name and process the PNG files in Photoshop to make the sky transparent.
+- Once the database is updated, upload the processed PNG files to the server (FileZilla usually) and the photos will be available right away with their tags.
+
+- There is so much to do to go from recording the direction of a RAW image on paper to animating the movement of Earth using the data. What is first?
+
+
 # Instructions
 This code is intended to never have a built-in GUI. I made a GUI for it in the past, but that was a mistake because the overall goal of this project is to read from and generate files. Therefore, it works with files directly that are put into a specific hard-coded location for the code to work on. That said, I do want this code to support GUIs of all kinds as an API, and the first such "GUI" I want to support is an astronomical clock.
 ## To Process a Lightroom Time-Lapse Sequence
@@ -15,7 +36,7 @@ This code is intended to never have a built-in GUI. I made a GUI for it in the p
 - Once you have tagged the keyframe photos and edited their settings as you wish in Lightroom, repeat saving metadata to XMP, processing the XMP files with `awimactions.lightroom_timelapse_XMP_process()`, and reading metadata from XMP files. The settings you applied to the keyframe photos will be interpolated (simple linear) and applied to the photos between the keyframe photos for a smooth transition.
 
 ## To Generate Metadata Text / JSON Files for Images
-This function is not really necessary, but useful to visualize the metadata of a group of files without needing to use exiv2 or some other tool.
+This function is useful to visualize the metadata of a group of files without needing to use exiv2 or some other tool.
 - Copy a group of image files to the directory `working/`, and simply run the function `awimactions.generate_metatext_files()`.
 - Text files with the metadata will be generated and saved in `working/` along with the image files.
 - For PNG, flattened the XML and simplified the keys.
@@ -27,26 +48,11 @@ This function is not really necessary, but useful to visualize the metadata of a
 - The output files all start with the word 'output'.
 - The main output file is the `cam_awim.json` file.
 
-## Generate awim Tags for a Photoshoot
+## Generate awim Tags from a Photoshoot
 - Put the `cam_awim.json` file in the `working/` folder.
 - Put all the PNG files in the `working/` folder. PNG files should exactly match the list in the database, but if there are missing files, no problem really since it iterates over the files when making the tags.
 - awim tag json files include any original metadata on the photo as well.
 
-# 27 January 2025 Resurrecting the Project with Many Updates
-## Notes
-- Going to standardize on dictionary representation of data, jsonified.
-- Going to operate as an API rather than as a GUI.
-
-## Workflow
-- Take photos in RAW format.
-- During photoshoot, record required information to tag the photos:
-	- Azimuth references.
-	- Artifae.
-	- Camera clock offset.
-- Process photos in Lightroom or Photoshop and export to PNG. The PNG files have metadata embedded as XML.
-- If the database information is complete, should be able to auto-generate the awim tag json files, which include the original photo metadata.
-
-- There is so much to do to go from recording the direction of a RAW image on paper to animating the movement of Earth using the data. What is first?
 
 # Functions Map by Entry Points
 ## @app.post('/getevents')
@@ -307,12 +313,6 @@ Together, azimuth and artifae are AzArt. Astropy and most astronomers use the te
 - I: text of exif readable plus AWIMtag in UserComment with new lines, same name and directory as image to be tagged.
 
 ## TODO
-- Sun noon peak artifae
-- Sun rise set azimuth 
-- Sun azart ticking
-- Rising, peaking, setting objects
-- moon azart ticking
-- Moon phase angle ticking
 
 - **Batch generate AWIM-tagged images:** I have been using the software and recording required information to determine Az,Art in a spreadsheet then manually transferring the spreadsheet data image-by-image using the GUI. The menu item "Batch generate AWIM files" would be the primary option I would use and does not require a GUI at all. "Batch generate AWIM files" would work best by requiring the user to collect the following files in a single directory:
 	1. Spreadsheet of standard data recorded during a photoshoot. See example in test files. Spreadsheet includes a unique identifier for each photo to be processed (modern cameras already name their files sequentially therefore with a convenient unique ID). This standardized spreadsheet would effectively replace the GUI.

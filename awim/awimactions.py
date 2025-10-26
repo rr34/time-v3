@@ -51,7 +51,7 @@ def add_camfilenames_todb() -> None:
 
 
 def generate_image_tags(batchID: AnyStr) -> None:
-    # 1. Get lists of photo files and entries in the database.
+    # 1. Get lists of photo files and list of entries in the database.
     photoshoot_basenames = DBsqlstatements.get_basenames(batchID)
     workingpath = os.path.join(os.getcwd(), 'working')
     imagebases_list = []
