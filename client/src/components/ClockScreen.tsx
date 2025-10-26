@@ -83,8 +83,8 @@ function ClockScreen({ MomentsArray, imageSrc, awimtag, astroData, bodiesInImage
   const brightSideDirectionsArr: number[] = bodiesInImage?.moon?.brightsidedirections || [];
 
   const bodyStyleMap: { [key: string]: { fill: string; radius: number; stroke?: string } } = {
-    sun: { fill: "yellow", radius: 50 },
-    moon: { fill: "#e8e8e8", radius: 50 },
+    sun: { fill: "yellow", radius: 75 },
+    moon: { fill: "#e8e8e8", radius: 75 },
     mercury: { fill: "#b0b0b0", radius: 20 },
     venus: { fill: "#e6c07b", radius: 20 },
     mars: { fill: "#d95f02", radius: 20 },

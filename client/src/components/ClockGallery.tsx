@@ -12,9 +12,10 @@ interface ClockGalleryProps {
   MagRankAllMax: number;
   RepeatLimit: number;
   frameDuration: number;
+  currentIndex: number;
+  setCurrentIndex: (i: number) => void;
 }
-function ClockGallery({ loading, MomentsArray, basenamesList, imagesSet, astroData, bodiesInImages, MagRankAllMax, RepeatLimit, frameDuration }: ClockGalleryProps) {
-  const [currentIndex, setCurrentIndex] = useState(0);
+function ClockGallery({ loading, MomentsArray, basenamesList, imagesSet, astroData, bodiesInImages, MagRankAllMax, RepeatLimit, frameDuration, currentIndex, setCurrentIndex }: ClockGalleryProps) {
 
   if (loading) return <p>Loading image, awimtag, astroData, bodiesInImageData. This can take some minutes.</p>;
 
@@ -27,16 +28,10 @@ function ClockGallery({ loading, MomentsArray, basenamesList, imagesSet, astroDa
         astroData={astroData}
         bodiesInImage={bodiesInImages?.[basenamesList[currentIndex]]}
         MagRankAllMax={MagRankAllMax}
-        onAnimationComplete={() => {setCurrentIndex((i) => (i + 1) % basenamesList.length);}}
+        onAnimationComplete={() => setCurrentIndex((currentIndex + 1) % basenamesList.length)}
         RepeatLimit={RepeatLimit}
         frameDuration={frameDuration}
       />
-      <button onClick={() => setCurrentIndex((i) => (i - 1 + basenamesList.length) % basenamesList.length)}>
-        Previous
-      </button>
-      <button onClick={() => setCurrentIndex((i) => (i + 1) % basenamesList.length)}>
-        Next
-      </button>
     </div>
   );
 }

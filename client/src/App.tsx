@@ -12,6 +12,8 @@ import { useIntervalTimestamp } from "./utils/functions";
 function App() {
   
   const [selectedScreen, setSelectedScreen] = useState<'screen' | 'strings'>('strings');
+  const [currentIndex, setCurrentIndex] = useState(0);
+
   
   const [searchParams] = useSearchParams();
   const tagsIncludeParam = searchParams.get("tagsinclude");  // comma-separated
@@ -148,6 +150,18 @@ function App() {
             />
             Clock Gallery
           </label>
+  <button
+    onClick={() =>
+      setCurrentIndex((i) => (i - 1 + basenamesList.length) % basenamesList.length)
+    }
+  >
+    Previous
+  </button>
+  <button
+    onClick={() => setCurrentIndex((i) => (i + 1) % basenamesList.length)}
+  >
+    Next
+  </button>
         </div>
 
         {/* Clock display area */}
@@ -164,7 +178,10 @@ function App() {
                   bodiesInImages={bodiesInImages}
                   MagRankAllMax={MagRankAllMax}
                   RepeatLimit={RepeatLimit}
-                  frameDuration={frameDuration}/>
+                  frameDuration={frameDuration}
+                  currentIndex={currentIndex}
+                  setCurrentIndex={setCurrentIndex}
+                  />
           }
           {/* {
             selectedScreen === 'strings_remove_this'
