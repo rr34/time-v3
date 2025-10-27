@@ -85,13 +85,13 @@ function ClockScreen({ MomentsArray, imageSrc, awimtag, astroData, bodiesInImage
   const bodyStyleMap: { [key: string]: { fill: string; radius: number; stroke?: string } } = {
     sun: { fill: "yellow", radius: 75 },
     moon: { fill: "#e8e8e8", radius: 75 },
-    mercury: { fill: "#b0b0b0", radius: 20 },
-    venus: { fill: "#e6c07b", radius: 20 },
-    mars: { fill: "#d95f02", radius: 20 },
-    jupiter: { fill: "#c49c94", radius: 20 },
-    saturn: { fill: "#deb887", radius: 20 },
-    uranus: { fill: "#76d7ea", radius: 20 },
-    neptune: { fill: "#4169e1", radius: 20 },
+    mercury: { fill: "#b0b0b0", radius: 25 },
+    venus: { fill: "#e6c07b", radius: 25 },
+    mars: { fill: "#d95f02", radius: 25 },
+    jupiter: { fill: "#c49c94", radius: 25 },
+    saturn: { fill: "#deb887", radius: 25 },
+    uranus: { fill: "#76d7ea", radius: 25 },
+    neptune: { fill: "#4169e1", radius: 25 },
   };
 
   return (
@@ -192,14 +192,14 @@ function ClockScreen({ MomentsArray, imageSrc, awimtag, astroData, bodiesInImage
                 <g>
                   <g transform="translate(0, -90)">
                     {bodyData['ReadableName'] && (
-                    <text fill="rgba(255, 255, 255, 0.2)" fontSize="140" textAnchor="middle" dominantBaseline="middle">
+                    <text fill="rgba(255, 255, 255, 0.3)" fontSize="140" textAnchor="middle" dominantBaseline="middle">
                       {(bodyData['MagRankAll'] !== undefined && Number(bodyData['MagRankAll']) <= 20)
                         ? `${bodyData['MagRankAll']}. ${bodyData['ReadableName']?.trim()}`
                         : bodyData['ReadableName']?.trim()}
                     </text>
                     )}
                     {bodyData['MagRankConstellation'] === 1 && bodyData['ConstellationFullName'] && (
-                      <text fill="rgba(173, 216, 230, 0.2)" fontSize="140" textAnchor="middle" dominantBaseline="middle" transform="translate(0, 180)">
+                      <text fill="rgba(173, 216, 230, 0.3)" fontSize="140" textAnchor="middle" dominantBaseline="middle" transform="translate(0, 180)">
                         α {bodyData['ConstellationFullName']}
                       </text>
                     )}
