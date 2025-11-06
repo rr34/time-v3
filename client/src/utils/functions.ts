@@ -44,15 +44,15 @@ export function msToTime(timeperiod: number, include_seconds = true, include_plu
 }
 
 
-export function moonSVGPath(phaseAngle: number, moonRadius: number) {
+export function moonSVGPath(phaseAngle: number, rm: number) {
     // Radius of ellipse drawn for day/night demarcation line. Zero at 90° because when the radius is zero it's a line.
-    const ry = moonRadius * Math.cos(phaseAngle * Math.PI/ 180);
+    const ry = rm * Math.cos(phaseAngle * Math.PI/ 180);
 
     // Sweep flag for second arc. Negative ry values in the SVG would work, but unfortunately are treated same as positive, so this flag needs to change.
     // Greater than zero when phase angle less than 90°, means gibbous. Less than zero when phase angle greater than 90°, means crescent.
     const sweepDirection = ry > 0 ? 1 : 0;
 
-    const svgPath: string = `M 50 0 A 50 50 0 0 1 -50 0 A 50 ${ry} 0 0 ${sweepDirection} 50 0`;
+    const svgPath: string = `M ${rm} 0 A ${rm} ${rm} 0 0 1 -${rm} 0 A ${rm} ${ry} 0 0 ${sweepDirection} ${rm} 0`;
 
     return svgPath;
 }

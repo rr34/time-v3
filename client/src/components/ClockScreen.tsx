@@ -83,8 +83,8 @@ function ClockScreen({ MomentsArray, imageSrc, awimtag, astroData, bodiesInImage
   const brightSideDirectionsArr: number[] = bodiesInImage?.moon?.brightsidedirections || [];
 
   const bodyStyleMap: { [key: string]: { fill: string; radius: number; stroke?: string } } = {
-    sun: { fill: "yellow", radius: 75 },
-    moon: { fill: "#e8e8e8", radius: 75 },
+    sun: { fill: "yellow", radius: 80 },
+    moon: { fill: "#e8e8e8", radius: 80 },
     mercury: { fill: "#b0b0b0", radius: 25 },
     venus: { fill: "#e6c07b", radius: 25 },
     mars: { fill: "#d95f02", radius: 25 },
@@ -160,15 +160,11 @@ function ClockScreen({ MomentsArray, imageSrc, awimtag, astroData, bodiesInImage
 
                   {/* Labels and text */}
                   <g>
-                    <g transform="translate(0, -30)">
+                    <g transform="translate(0, -120)">
                       {bodyData['ReadableName'] && (
-                        <text fill="white" fontSize="30" textAnchor="middle" dominantBaseline="middle">
+                        <text fill="rgba(255, 255, 255, 0.3)" fontSize="140" textAnchor="middle" dominantBaseline="middle">
                           {bodyData['ReadableName']?.trim()}
-                        </text>                      )}
-                      {bodyData['MagRankConstellation'] === 1 && bodyData['ConstellationFullName'] && (
-                        <text fill="lightblue" fontSize="30" textAnchor="middle" dominantBaseline="middle" transform="translate(0, 60)">
-                          α {bodyData['ConstellationFullName']}
-                        </text>
+                        </text>                      
                       )}
                     </g>
                     <animateMotion dur={`${totalDuration}s`} repeatCount="indefinite" rotate="auto">

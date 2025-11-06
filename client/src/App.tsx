@@ -25,7 +25,7 @@ function App() {
   const addHoursParam = searchParams.get("addhours");
   
   const TagsInclude = useMemo(() => (
-    tagsIncludeParam ? tagsIncludeParam.split(",") : ['ourhouse','best']),
+    tagsIncludeParam ? tagsIncludeParam.split(",") : ['delawareohio']),
     [tagsIncludeParam]);
   const TagsExclude = useMemo(() => (
     tagsExcludeParam ? tagsExcludeParam.split(",") : []),
