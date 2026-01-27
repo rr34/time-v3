@@ -1,3 +1,8 @@
+## todonext, 27 January 2026: a year after the previous note! Oh how the time flies.
+- many changes are driven by the clock.
+- merge runstuff.py into some better way of doing that.
+- awim API cache astrodata for performance improvement. Do this before upgrading server so you can see improvement / determine if upgrade necessary.
+
 # 27 January 2025 Resurrecting the Project with Many Updates
 ## Notes
 - Going to standardize on dictionary representation of data, jsonified.
