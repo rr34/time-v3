@@ -1,12 +1,14 @@
 # TODOnext
+- enable dummy locations in DB for clock strings only around the world - today!
+- Label views with E, W, S, N and center azimuth / artifae.
 - use the photo location for the clock location
 - Text Clock and Images Clock, start with images clock instead of text. May delay some seconds, not minutes.
 - permalink to all the clocks that have been made https://nathanruffing.com/timev3/
 - Use the photo name from field in the DB.
-- Label with E, W, S, N.
 - Cycle through with the labels.
 - Cycle through in a standard order.
 - Show the development text only in a devmode setting.
+- Distances of solar system objects.
 - Rising, peaking, setting objects like a current events for the user.
 - Above the the horizon after sunset / following the sun after sunset report.
 
