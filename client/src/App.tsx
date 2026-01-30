@@ -87,7 +87,11 @@ function App() {
             body: JSON.stringify({ location: clockLatLong, elevation: clockMSL, currenttime: new Date(nowDaily), nowmoments_clockstrings: momentsarray_details }),
           };
           
-        const response = await fetch(`${import.meta.env.VITE_AWIM_URL}/getevents`, requestOptions);
+        const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/awim/getevents`, requestOptions);
+        if (!response.ok) {
+          const errText = await response.text();
+          throw new Error(`getevents failed (${response.status}): ${errText}`);
+        }
         const data = await response.json();
         
         const sundaily_strings: string[] = data['sundaily'];

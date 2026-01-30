@@ -23,12 +23,17 @@ export function useClockGalleryData (MomentsArray: string[], TagsInclude: string
           body: JSON.stringify({ TagsInclude, TagsExclude }),
         });
 
+        if (!imagesRes.ok) {
+          const errText = await imagesRes.text();
+          throw new Error(`getimageslist/query failed (${imagesRes.status}): ${errText}`);
+        }
+
         const imagesSetLocal = await imagesRes.json(); // local variable
         setImagesSet(imagesSetLocal); // also store in state for rendering
         setBasenamesList(Object.keys(imagesSetLocal))
 
         // Step 2: Fetch celestial data using the same images list
-        const celestialRes = await fetch(`${import.meta.env.VITE_AWIM_URL}/celestialinphotos`, {
+        const celestialRes = await fetch(`${import.meta.env.VITE_BACKEND_URL}/awim/celestialinphotos`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -39,6 +44,11 @@ export function useClockGalleryData (MomentsArray: string[], TagsInclude: string
             LatDecFilter: LatDecFilter,
           }),
         });
+
+        if (!celestialRes.ok) {
+          const errText = await celestialRes.text();
+          throw new Error(`celestialinphotos failed (${celestialRes.status}): ${errText}`);
+        }
 
         const awimAPI_response = await celestialRes.json();
         setAstroData(awimAPI_response["astro dict"]);

@@ -1,35 +1,36 @@
-# TODOnext
+# TODOnext, to deploy to a raspberry pi in Razor's Edge
 - enable dummy locations in DB for clock strings only around the world - today!
-- use the photo location for the clock location?
+- use the photo location for the clock location? done already?
 - Label views with E, W, S, N and center azimuth / artifae.
 - Text Clock and Images Clock, start with images clock instead of text. May delay some seconds, not minutes.
+- make sure site reloads sufficiently to stay open indefinitely.
 - permalink to all the clocks that have been made https://nathanruffing.com/timev3/
 - Use the photo name from field in the DB.
 - Cycle through quickly with the labels.
 - Cycle through in a standard order.
 - Show the development text only in a devmode setting.
 - Distances of solar system objects.
-- Rising, peaking, setting objects like a current events for the user in clock strings.
 - Above the the horizon after sunset / following the sun after sunset report.
+- would be pretty easy to make a png overlay
+- Standard glockenspiel animations by generating custom moment_arrays, possibly / probably one image at a time instead of animated, especially for the moon. ... Actually, maybe animated is possible by improving how the moon phase is shown with ChatGPT in VS Code now. See if it can figure it out.
+- Glockenspiel: moon rising / setting each day for a moon cycle.
 
+## todo eventually
+- generate high-res PNG overlays of photos for a single moment in time for nice astrophotography posters or for a sequence of photos for time lapse videos.
+- Rising, peaking, setting objects like a current events for the user in clock strings.
 - optimize for phones
 - the progress indicator is out of sync from the animation. Fix.
-- Show each animation once and cycle to the clock strings in between?
 - make a sequence feature in addition to the tags, probably integrated with the tags?
 - reduce the size of the strings / gallery toggle. Make toggle instead of selector.
 - make addhours a slider if there is an efficient way to do it?
 - I think the app can save multiple SVG animations, but can it save multiple images? 20 images? or get PNG files from backend each time displayed?
-- awim API cache astrodata for performance improvement. Do this before upgrading server so you can see improvement / determine if upgrade necessary.
 - add equinoxes and solstices to clock strings.
 - add distances to the display.
 - maybe add possibility of a background layer L2? L3 is the svg L4 is the foreground. No, probably unnecessary complication.
 - TODO: since awim tags are official source of duplicate information, clock could be able to regenerate the whole relevant portion of the DB with the awim tags from its files (not important for a while)
 - parse bright star catalog (and send file to Aaron and Ahmed).
-- Standard glockenspiel animations by generating custom moment_arrays, could be 
-  - possibly / probably one image at a time instead of animated, especially for the moon. ... Actually, maybe animated is possible by improving how the moon phase is shown with ChatGPT in VS Code now. See if it can figure it out.
-  - moon rising / setting each day for a moon cycle.
-  - follow a constellation?
-  - sunrise / sunset every day or week for a year?
+- Glockenspiel: follow a constellation?
+- Glockenspiel: sunrise / sunset every day or week for a year?
 - frontend needs to be able to generate and work with transparency files to determine if objects are visible / above the horizon, etc. See awim_png_littleblur = awim_png.filter(filter=BoxBlur(pxs_per_minute*5)) and awim_png_bigblur = awim_png.filter(filter=BoxBlur(pxs_per_minute*17))
 # animation problems
 - limit the distance off screen the celestial bodies can go to improve animation. Ensure the animation runs only on screen then the bodies stay close off-screen but transparent until they appear again.
