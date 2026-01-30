@@ -25,7 +25,7 @@ const PORT = parseInt(process.env.PORT || "5000", 10);
 const AWIM_BASE_URL = process.env.AWIM_BASE_URL || "https://awim.timev3tech.com";
 
 // Middleware to parse JSON bodies
-app.use(express.json());
+app.use(express.json({ limit: "20mb" }));
 
 // Enable CORS for frontend origin
 console.log('Allowed origins: ', allowedOrigins)
