@@ -28,15 +28,28 @@ const AWIM_BASE_URL = process.env.AWIM_BASE_URL || "https://awim.timev3tech.com"
 app.use(express.json({ limit: "20mb" }));
 
 // Enable CORS for frontend origin
-console.log('Allowed origins: ', allowedOrigins)
+console.log("Allowed origins: ", allowedOrigins);
+const allowedOriginSet = new Set(allowedOrigins);
+
+const isAllowedOrigin = (origin) => {
+  // Allow requests with no origin (like mobile apps or curl requests)
+  if (!origin) return true;
+  if (allowedOriginSet.has(origin)) return true;
+  try {
+    const { hostname } = new URL(origin);
+    if (hostname === "timev3.com" || hostname === "www.timev3.com") return true;
+  } catch {
+    // If origin is malformed, fall through to deny
+  }
+  return false;
+};
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Allow requests with no origin (like mobile apps or curl requests)
-      if (!origin) return callback(null, true);
-      if (allowedOrigins.includes(origin)) {
+      if (isAllowedOrigin(origin)) {
         return callback(null, true);
       }
+      console.warn("CORS blocked origin:", origin);
       return callback(new Error("Not allowed by CORS"));
     },
     methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
