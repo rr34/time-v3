@@ -25,7 +25,7 @@ const PORT = parseInt(process.env.PORT || "5000", 10);
 const AWIM_BASE_URL = process.env.AWIM_BASE_URL || "https://awim.timev3tech.com";
 
 // Middleware to parse JSON bodies
-app.use(express.json({ limit: "20mb" }));
+app.use(express.json({ limit: "100mb" }));
 
 // Enable CORS for frontend origin
 console.log("Allowed origins: ", allowedOrigins);
@@ -43,20 +43,42 @@ const isAllowedOrigin = (origin) => {
   }
   return false;
 };
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      if (isAllowedOrigin(origin)) {
-        return callback(null, true);
-      }
-      console.warn("CORS blocked origin:", origin);
-      return callback(new Error("Not allowed by CORS"));
-    },
-    methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
-    allowedHeaders: ["Content-Type", "Authorization"],
-    credentials: true,
-  })
-);
+
+const corsOptions = {
+  origin: (origin, callback) => {
+    if (isAllowedOrigin(origin)) {
+      return callback(null, true);
+    }
+    return callback(new Error("Not allowed by CORS"));
+  },
+  methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: true,
+};
+
+// Wrap CORS so blocked origins return a visible 403 with details
+app.use((req, res, next) => {
+  cors(corsOptions)(req, res, (err) => {
+    if (!err) return next();
+    const origin = req.headers.origin || "-";
+    console.error("[cors]", err.message, "origin=", origin, "path=", req.originalUrl);
+    res.status(403).json({ error: "CORS blocked", origin, path: req.originalUrl });
+  });
+});
+
+// Loud logging for /awim traffic
+app.use((req, res, next) => {
+  if (req.path.startsWith("/awim/")) {
+    const origin = req.headers.origin || "-";
+    const len = req.headers["content-length"] || "-";
+    const ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress || "-";
+    console.error(`[awim] req ${req.method} ${req.originalUrl} origin=${origin} len=${len} ip=${ip}`);
+    res.on("finish", () => {
+      console.error(`[awim] res ${req.method} ${req.originalUrl} status=${res.statusCode}`);
+    });
+  }
+  next();
+});
 
 
 // Serve static images with CORS headers
@@ -127,11 +149,25 @@ app.post("/awim/:endpoint", async (req, res) => {
     res.setHeader("Content-Type", contentType);
 
     const bodyText = await upstreamRes.text();
+    console.error(
+      `[awim] upstream ${endpoint} status=${upstreamRes.status} ct=${contentType} len=${bodyText.length}`
+    );
     res.send(bodyText);
   } catch (err) {
     console.error(`AWIM proxy error for ${endpoint}:`, err);
     res.status(502).json({ error: "AWIM proxy failed" });
   }
+});
+
+// Make payload errors visible instead of generic 502s
+app.use((err, req, res, next) => {
+  if (!err) return next();
+  const origin = req.headers.origin || "-";
+  console.error("[error]", err.name, err.message, "origin=", origin, "path=", req.originalUrl);
+  if (err.type === "entity.too.large" || err.name === "PayloadTooLargeError") {
+    return res.status(413).json({ error: "Payload too large", origin, path: req.originalUrl });
+  }
+  res.status(500).json({ error: "Server error", origin, path: req.originalUrl });
 });
 
 
