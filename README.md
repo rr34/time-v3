@@ -16,6 +16,7 @@
 - Glockenspiel: moon rising / setting each day for a moon cycle.
 
 ## todo eventually
+- TODO: review data transfer size between awim / api / client (compression, paging, or streaming).
 - generate high-res PNG overlays of photos for a single moment in time for nice astrophotography posters or for a sequence of photos for time lapse videos.
 - Rising, peaking, setting objects like a current events for the user in clock strings.
 - optimize for phones

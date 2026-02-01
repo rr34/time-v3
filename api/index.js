@@ -56,30 +56,7 @@ const corsOptions = {
   credentials: true,
 };
 
-// Wrap CORS so blocked origins return a visible 403 with details
-app.use((req, res, next) => {
-  cors(corsOptions)(req, res, (err) => {
-    if (!err) return next();
-    const origin = req.headers.origin || "-";
-    console.error("[cors]", err.message, "origin=", origin, "path=", req.originalUrl);
-    res.status(403).json({ error: "CORS blocked", origin, path: req.originalUrl });
-  });
-});
-
-// Loud logging for /awim traffic
-app.use((req, res, next) => {
-  if (req.path.startsWith("/awim/")) {
-    const origin = req.headers.origin || "-";
-    const len = req.headers["content-length"] || "-";
-    const ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress || "-";
-    console.error(`[awim] req ${req.method} ${req.originalUrl} origin=${origin} len=${len} ip=${ip}`);
-    res.on("finish", () => {
-      console.error(`[awim] res ${req.method} ${req.originalUrl} status=${res.statusCode}`);
-    });
-  }
-  next();
-});
-
+app.use(cors(corsOptions));
 
 // Serve static images with CORS headers
 app.use("/clockimages", (req, res, next) => {
@@ -145,13 +122,21 @@ app.post("/awim/:endpoint", async (req, res) => {
     });
 
     const contentType = upstreamRes.headers.get("content-type") || "application/json";
+    const bodyText = await upstreamRes.text();
+
+    if (!upstreamRes.ok) {
+      const maxLen = 4000;
+      const upstreamBody =
+        bodyText.length > maxLen ? `${bodyText.slice(0, maxLen)}…[truncated]` : bodyText;
+      return res.status(upstreamRes.status).json({
+        error: "AWIM upstream error",
+        upstreamStatus: upstreamRes.status,
+        upstreamBody,
+      });
+    }
+
     res.status(upstreamRes.status);
     res.setHeader("Content-Type", contentType);
-
-    const bodyText = await upstreamRes.text();
-    console.error(
-      `[awim] upstream ${endpoint} status=${upstreamRes.status} ct=${contentType} len=${bodyText.length}`
-    );
     res.send(bodyText);
   } catch (err) {
     console.error(`AWIM proxy error for ${endpoint}:`, err);
