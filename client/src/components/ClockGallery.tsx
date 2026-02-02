@@ -1,5 +1,5 @@
 import { useState } from "react";
-import ClockScreen from "./ClockScreen";
+import ClockScreen, { ClockScreenMode } from "./ClockScreen";
 import { BodiesDict, ImagesSet } from "../types/interfaces";
 
 interface ClockGalleryProps {
@@ -14,8 +14,9 @@ interface ClockGalleryProps {
   frameDuration: number;
   currentIndex: number;
   setCurrentIndex: (i: number) => void;
+  mode?: ClockScreenMode;
 }
-function ClockGallery({ loading, MomentsArray, basenamesList, imagesSet, astroData, bodiesInImages, MagRankAllMax, RepeatLimit, frameDuration, currentIndex, setCurrentIndex }: ClockGalleryProps) {
+function ClockGallery({ loading, MomentsArray, basenamesList, imagesSet, astroData, bodiesInImages, MagRankAllMax, RepeatLimit, frameDuration, currentIndex, setCurrentIndex, mode }: ClockGalleryProps) {
 
   if (loading) return <p>Loading image, awimtag, astroData, bodiesInImageData. This can take some minutes.</p>;
 
@@ -31,6 +32,7 @@ function ClockGallery({ loading, MomentsArray, basenamesList, imagesSet, astroDa
         onAnimationComplete={() => setCurrentIndex((currentIndex + 1) % basenamesList.length)}
         RepeatLimit={RepeatLimit}
         frameDuration={frameDuration}
+        mode={mode}
       />
     </div>
   );
