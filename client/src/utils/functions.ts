@@ -57,4 +57,23 @@ export function moonSVGPath(phaseAngle: number, rm: number) {
     return svgPath;
 }
 
+export function formatIndustrialDate(timestampMs: number, showTime = true) {
+    const options: Intl.DateTimeFormatOptions = {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+        timeZone: 'US/Eastern',
+    };
+
+    if (showTime) {
+        options.hour12 = false;
+        options.hour = '2-digit';
+        options.minute = '2-digit';
+        options.second = '2-digit';
+        options.timeZoneName = 'shortOffset';
+    }
+
+    return new Intl.DateTimeFormat('en-GB', options).format(timestampMs);
+}
 

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { msToTime } from "../utils/functions";
+import { formatIndustrialDate, msToTime } from "../utils/functions";
 import { DailyEventsObj } from "../types/interfaces";
 import { useIntervalTimestamp } from "../utils/functions";
 
@@ -190,20 +190,8 @@ suntwilightsstring = <>
   }
 
   // industrial time string
-  const options: Intl.DateTimeFormatOptions = {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-    hour12: false,
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-    timeZone: 'US/Eastern',
-    timeZoneName: 'shortOffset',
-  };
   industrialdtstring = (
-    <><br/>Industrial Time: {new Intl.DateTimeFormat("en-GB", options).format(nowSecond)}</>
+    <><br/>Industrial Time: {formatIndustrialDate(nowSecond, true)}</>
   );
   comptime = <>Computer Time: {new Date(nowSecond).toISOString()}</>;
 
