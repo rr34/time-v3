@@ -4,6 +4,8 @@ from PIL.ImageFilter import BoxBlur
 import numpy as np
 import pandas as pd
 
+# these functions were used in the original clock made entirely in Python with a python GUI
+
 # output dictionary of available images
 # each image with a dictionary of celestial objects
 # each object with a numpy array of placement data by moment# for a single location, list of moments, images, celestial objects

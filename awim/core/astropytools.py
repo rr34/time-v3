@@ -2,7 +2,7 @@ import numpy as np
 import astropy.units as u
 from astropy.time import Time
 from astropy.coordinates import SkyCoord, EarthLocation, AltAz, get_sun, get_moon, get_body, solar_system_ephemeris, ICRS
-import formatters
+from core import formatters
 
 
 def get_AzArt(AWIMtag_dictionary, celestial_object):

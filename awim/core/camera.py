@@ -5,7 +5,10 @@ import os
 import PIL
 from sklearn.preprocessing import PolynomialFeatures
 from sklearn.linear_model import LinearRegression
-import awimlib, metadata_tools, formatters, astropytools
+from core import awimlib
+from core import metadata_tools
+from core import formatters
+from core import astropytools
 
 
 # theta is CCW from the positive x axis. r is cm from center

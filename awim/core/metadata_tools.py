@@ -3,7 +3,7 @@ import re
 import datetime, pytz
 import pyexiv2
 import PIL
-import formatters
+from core import formatters
 
 
 def get_metadata(image_file_path):

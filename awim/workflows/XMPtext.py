@@ -2,7 +2,7 @@ import os, shutil, string
 import re
 import numpy as np
 import pandas as pd
-import formatters
+from core import formatters
 
 
 def readXMPfiles(XMPdirectory, columns_to_interpolate):

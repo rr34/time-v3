@@ -2,8 +2,9 @@ import math
 import numpy as np
 import PIL
 import pandas as pd
-import astropytools
-import metadata_tools, formatters
+from core import astropytools
+from core import metadata_tools
+from core import formatters
 
 
 def generate_empty_AWIMtag_dictionary(default_units=True):

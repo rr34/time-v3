@@ -1,6 +1,6 @@
 from typing import List, Any
-import DBfunctions
-import formatters
+from db import DBfunctions
+from core import formatters
 
 def insert_camfilenames(camfilenames: List[str]) -> None:
     qms_tuple = [(camfilename,) for camfilename in camfilenames]

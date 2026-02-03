@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pathlib import Path
 from dotenv import load_dotenv
 import os
-import clockactions
+from tv3clock import clockactions
 
 app = FastAPI()
 env_path = Path(__file__).parent/".env"

@@ -7,7 +7,12 @@ from mpl_toolkits.mplot3d import Axes3D
 import datetime
 import astropy.units as u
 from astropy.time import Time
-import camera, awimlib, astropytools, XMPtext, formatters, metadata_tools, DBsqlstatements
+from core import camera
+from workflows import XMPtext
+from core import metadata_tools
+from db import DBsqlstatements
+from core import formatters
+from core import astropytools
 
 
 def cam_calibration():

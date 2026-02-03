@@ -1,5 +1,8 @@
 import numpy as np
-import astromath, awimlib, formatters, DBsqlstatements
+from db import DBsqlstatements
+from core import formatters
+from core import astromath
+from core import awimlib
 
 def get_events(location, elevation_msl, currenttime):
     currenttime = np.datetime64(currenttime)

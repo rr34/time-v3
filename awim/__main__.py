@@ -14,7 +14,7 @@ AWIM_ROOT = Path(__file__).resolve().parent
 if str(AWIM_ROOT) not in sys.path:
     sys.path.insert(0, str(AWIM_ROOT))
 
-import awimactions  # noqa: E402
+from workflows import awimactions  # noqa: E402
 
 
 def _normalize_task(task: str) -> str:
