@@ -125,12 +125,30 @@ def get_sunmoon_details(location, elevation_msl, nowmoments_clockstrings):
 
     return sunmoon_details
 
-# glockenspiel: moonrise + 1 hour for each day in a 30-day window starting tomorrow
-def get_glockenspiel_moonrise_month(location, elevation_msl, currenttime, days=30, gridpts=50):
+# glockenspiel: next 30 moonrises (event-based), starting now; offset +2 hours
+def get_glockenspiel_moonrise_month(location, elevation_msl, currenttime, count=30, gridpts=50):
     currenttime = np.datetime64(currenttime)
-    start_day = currenttime.astype('datetime64[D]') + np.timedelta64(1, 'D')
+    start_time = currenttime
 
     moonrises = astromath.calculate_astro_moonrise_times(
+        location,
+        start_time,
+        count=count,
+        elevation=elevation_msl,
+        gridpts=gridpts,
+    )
+
+    momentsarray = moonrises + np.timedelta64(120, 'm')
+    momentsarray = formatters.format_datetime(momentsarray, 'to string for AWIMtag')
+
+    return momentsarray
+
+# glockenspiel: sunset - 30 minutes every day for a year (366 frames), starting today
+def get_glockenspiel_sunset_year(location, elevation_msl, currenttime, days=366, gridpts=80):
+    currenttime = np.datetime64(currenttime)
+    start_day = currenttime.astype('datetime64[D]')
+
+    sunsets = astromath.calculate_astro_sunset_times(
         location,
         start_day,
         days=days,
@@ -138,8 +156,9 @@ def get_glockenspiel_moonrise_month(location, elevation_msl, currenttime, days=3
         gridpts=gridpts,
     )
 
-    momentsarray = moonrises + np.timedelta64(2, 'h')
-    momentsarray = formatters.format_datetime(momentsarray, 'to string for AWIMtag')
+    sunsets = sunsets - np.timedelta64(30, 'm')
+
+    momentsarray = formatters.format_datetime(sunsets, 'to string for AWIMtag')
 
     return momentsarray
 

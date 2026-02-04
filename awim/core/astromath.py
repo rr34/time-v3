@@ -61,8 +61,60 @@ def calculate_astro_risesandsets(earth_latlng, moment_now, elevation=0):
     return sun_daily, moon_daily
 
 
-def calculate_astro_moonrise_times(earth_latlng, start_day, days=30, elevation=0, gridpts=50):
-    """Calculate one moonrise per day starting at start_day (UTC midnight)."""
+def calculate_astro_moonrise_times(earth_latlng, start_time, count=30, elevation=0, gridpts=50):
+    """Calculate next N moonrises starting at start_time."""
+    clock_astroplan_observer = astroplan.Observer(
+        longitude=earth_latlng[1]*u.deg,
+        latitude=earth_latlng[0]*u.deg,
+        elevation=elevation*u.m,
+        name='Time v3 Clock',
+        timezone=timezone.utc,
+    )
+    start_time = np.datetime64(start_time)
+    moonrises = []
+
+    seed = start_time
+    attempts = 0
+    max_attempts = max(count * 5, 1)
+
+    while len(moonrises) < count and attempts < max_attempts:
+        attempts += 1
+        try:
+            moonrise = clock_astroplan_observer.moon_rise_time(
+                time=Time(seed),
+                which='next',
+                horizon=0*u.deg,
+                n_grid_points=gridpts,
+            )
+        except Exception as exc:
+            print(f'Error calculating moonrise for {seed}: {exc}')
+            seed = seed + np.timedelta64(6, 'h')
+            continue
+
+        if moonrise is None:
+            seed = seed + np.timedelta64(6, 'h')
+            continue
+
+        try:
+            if not np.all(np.isfinite(moonrise.jd)):
+                seed = seed + np.timedelta64(6, 'h')
+                continue
+        except Exception:
+            pass
+
+        moonrise_dt = moonrise.datetime64
+        if moonrises and moonrise_dt <= moonrises[-1]:
+            seed = moonrises[-1] + np.timedelta64(1, 'h')
+            continue
+
+        moonrises.append(moonrise_dt)
+        seed = moonrise_dt + np.timedelta64(1, 'h')
+
+    return np.array(moonrises, dtype=np.dtype('datetime64[ns]'))
+
+
+def calculate_astro_sunset_times(earth_latlng, start_day, days=366, elevation=0, gridpts=80):
+    """Calculate one sunset per week starting at start_day (UTC midnight)."""
     clock_astroplan_observer = astroplan.Observer(
         longitude=earth_latlng[1]*u.deg,
         latitude=earth_latlng[0]*u.deg,
@@ -71,40 +123,40 @@ def calculate_astro_moonrise_times(earth_latlng, start_day, days=30, elevation=0
         timezone=timezone.utc,
     )
     start_day = np.datetime64(start_day, 'D')
-    moonrises = []
+    sunsets = []
 
     for day_index in range(days):
         day = start_day + np.timedelta64(day_index, 'D')
         try:
-            moonrise = clock_astroplan_observer.moon_rise_time(
+            sunset = clock_astroplan_observer.sun_set_time(
                 time=Time(day),
                 which='next',
-                horizon=0*u.deg,
+                horizon=-0.833*u.deg,
                 n_grid_points=gridpts,
             )
         except Exception as exc:
-            print(f'Error calculating moonrise for {day}: {exc}')
+            print(f'Error calculating sunset for {day}: {exc}')
             continue
 
-        if moonrise is None:
+        if sunset is None:
             continue
 
         try:
-            if not np.all(np.isfinite(moonrise.jd)):
+            if not np.all(np.isfinite(sunset.jd)):
                 continue
         except Exception:
             pass
 
-        moonrise_dt = moonrise.datetime64
-        if moonrise_dt < day:
+        sunset_dt = sunset.datetime64
+        if sunset_dt < day:
             continue
-        if moonrise_dt - day > np.timedelta64(1, 'D'):
-            # No moonrise within this day.
+        if sunset_dt - day > np.timedelta64(1, 'D'):
+            # No sunset within this day.
             continue
 
-        moonrises.append(moonrise_dt)
+        sunsets.append(sunset_dt)
 
-    return np.array(moonrises, dtype=np.dtype('datetime64[ns]'))
+    return np.array(sunsets, dtype=np.dtype('datetime64[ns]'))
 
 
 # I don't know why this doesn't return exactly a full/new moon matching online sources - differs by up to ~30 minutes? Why? phase is different from "ecliptic longitude different by 180°?" - but since I did it here it is...

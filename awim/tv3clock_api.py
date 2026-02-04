@@ -57,7 +57,7 @@ async def glockenspiel(request: Request):
         return {"error": "Invalid JSON"}
 
     gs_type = request_dict.get('type')
-    if gs_type != 'moonrise_month':
+    if gs_type not in ['moonrise_month', 'sunset_year']:
         return {"error": f"Unknown glockenspiel type: {gs_type}"}
 
     awim_tag = request_dict.get('awimTag')
@@ -77,16 +77,28 @@ async def glockenspiel(request: Request):
     if not currenttime:
         return {"error": "currenttime required"}
 
-    days = int(request_dict.get('days', 30))
-    gridpts = int(request_dict.get('gridpts', 50))
+    if gs_type == 'moonrise_month':
+        count = 30
+        gridpts = 50
 
-    momentsarray = clockactions.get_glockenspiel_moonrise_month(
-        location,
-        elevation,
-        currenttime,
-        days=days,
-        gridpts=gridpts,
-    )
+        momentsarray = clockactions.get_glockenspiel_moonrise_month(
+            location,
+            elevation,
+            currenttime,
+            count=count,
+            gridpts=gridpts,
+        )
+    else:
+        days = 366
+        gridpts = 50
+
+        momentsarray = clockactions.get_glockenspiel_sunset_year(
+            location,
+            elevation,
+            currenttime,
+            days=days,
+            gridpts=gridpts,
+        )
 
     return {"momentsarray": momentsarray, "count": len(momentsarray)}
 
