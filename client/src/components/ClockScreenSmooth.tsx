@@ -14,9 +14,10 @@ interface ClockScreenSmoothProps {
   onAnimationComplete?: () => void;
   RepeatLimit: number;
   frameDuration: number;
+  GSTitle?: string;
 }
 
-function ClockScreenSmooth({ MomentsArray, imageSrc, awimtag, astroData, bodiesInImage, MagRankAllMax, onAnimationComplete, RepeatLimit, frameDuration }: ClockScreenSmoothProps) {
+function ClockScreenSmooth({ MomentsArray, imageSrc, awimtag, astroData, bodiesInImage, MagRankAllMax, onAnimationComplete, RepeatLimit, frameDuration, GSTitle }: ClockScreenSmoothProps) {
   const totalFrames = MomentsArray.length;
   const totalDuration = frameDuration * totalFrames;
 
@@ -55,7 +56,7 @@ function ClockScreenSmooth({ MomentsArray, imageSrc, awimtag, astroData, bodiesI
   const brightSideDirectionsArr: number[] = bodiesInImage?.moon?.brightsidedirections || [];
 
   return (
-    <ClockScreenFrame refWidth={refWidth} refHeight={refHeight} imageSrc={imageSrc} MomentsArray={MomentsArray} frameIndex={frameIndex}>
+    <ClockScreenFrame refWidth={refWidth} refHeight={refHeight} imageSrc={imageSrc} MomentsArray={MomentsArray} frameIndex={frameIndex} GSTitle={GSTitle}>
       {astroData && bodiesInImage && (
         <svg key={imageSrc} className="celestial-overlay" viewBox={`0 0 ${refWidth} ${refHeight}`} preserveAspectRatio="xMidYMid meet">
           <rect x="0" y="0" width={refWidth} height={refHeight} fill={sunArtifaesArr.length ? getSkyColorFromArtifae(sunArtifaesArr[0]) : "black"}>

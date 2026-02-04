@@ -7,14 +7,16 @@ interface ClockScreenFrameProps {
   imageSrc: string;
   MomentsArray: string[];
   frameIndex: number;
+  GSTitle?: string;
   children?: ReactNode;
 }
 
-function ClockScreenFrame({ refWidth, refHeight, imageSrc, MomentsArray, frameIndex, children }: ClockScreenFrameProps) {
+function ClockScreenFrame({ refWidth, refHeight, imageSrc, MomentsArray, frameIndex, GSTitle, children }: ClockScreenFrameProps) {
   const nowFast = useIntervalTimestamp(100); // update every tenth of second
   const nowMinute = useIntervalTimestamp(60 * 1000); // update every minute
   const frameTimestampMs = MomentsArray[frameIndex] ? Date.parse(MomentsArray[frameIndex]) : Number.NaN;
   const frameDateLabel = Number.isFinite(frameTimestampMs) ? formatIndustrialDate(frameTimestampMs, false) : "Unknown date";
+  const gsTitleText = GSTitle?.trim();
 
   return (
     <div className="aspect-container" style={{ aspectRatio: `${refWidth} / ${refHeight}` }}>
@@ -38,8 +40,9 @@ function ClockScreenFrame({ refWidth, refHeight, imageSrc, MomentsArray, frameIn
           {imageSrc}
         </div>
       </div>
-      <div style={{ position: "absolute", bottom: 12, left: "50%", transform: "translateX(-50%)", color: "white", fontSize: "30px", backgroundColor: "rgba(0, 0, 0, 0.5)", padding: "6px 14px", borderRadius: "8px", letterSpacing: "0.02em" }}>
-        {frameDateLabel}
+      <div style={{ position: "absolute", bottom: 12, left: "50%", transform: "translateX(-50%)", color: "white", fontSize: "30px", backgroundColor: "rgba(0, 0, 0, 0.5)", padding: "6px 14px", borderRadius: "8px", letterSpacing: "0.02em", textAlign: "center" }}>
+        {gsTitleText && <div>{gsTitleText}</div>}
+        <div>{frameDateLabel}</div>
       </div>
     </div>
   );

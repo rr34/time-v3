@@ -16,7 +16,7 @@ function App() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [gsCurrentIndex, setGsCurrentIndex] = useState(0);
 
-  type GlockenspielType = 'moonrise_month';
+  type GlockenspielType = 'moonrise_month' | 'sunset_year';
   const [glockenspielType, setGlockenspielType] = useState<GlockenspielType>('moonrise_month');
   const [glockenspielMoments, setGlockenspielMoments] = useState<string[]>([]);
   const [glockenspielLoading, setGlockenspielLoading] = useState(false);
@@ -38,9 +38,12 @@ function App() {
   const TagsExclude = useMemo(() => (
     tagsExcludeParam ? tagsExcludeParam.split(",") : []),
     [tagsExcludeParam]);
+  const glockenspielTag = useMemo(() => (
+    glockenspielType === 'sunset_year' ? 'gs_sunsetyear' : 'gs_moonrisemonth'
+  ), [glockenspielType]);
   const TagsIncludeGlockenspiel = useMemo(() => (
-    Array.from(new Set([...TagsInclude, 'gs_moonrisemonth']))),
-    [TagsInclude]);
+    Array.from(new Set([...TagsInclude, glockenspielTag]))),
+    [TagsInclude, glockenspielTag]);
   const MagRankAllMax = useMemo(() => (
     MagRankAllMaxParam ? Number(MagRankAllMaxParam) : 350), // 350 includes 12 from Orion and 7 from Cassiopeia.
     [MagRankAllMaxParam]);
@@ -50,6 +53,12 @@ function App() {
   const frameDuration = useMemo(() => (
     frameDurationParam ? Number(frameDurationParam) : 1.0),
     [frameDurationParam]);
+  // Glockenspiel display parameters (hard-coded). Adjust here.
+  const glockenspielParams = {
+    moonrise_month: { frameDuration: 2.0, GSTitle: "Next 30 Moonrises" },
+    sunset_year: { frameDuration: 0.7, GSTitle: "Sunset Each Day for a Year" },
+  } as const;
+  const gsFrameDuration = glockenspielParams[glockenspielType].frameDuration;
   const addHours = useMemo(() => (
     addHoursParam ? Number(addHoursParam) : 0.0),
     [addHoursParam]);
@@ -176,16 +185,16 @@ function App() {
           throw new Error("Selected glockenspiel photo is missing awimTag.");
         }
 
+        const gsBody: Record<string, unknown> = {
+          type: glockenspielType,
+          awimTag,
+          currenttime: new Date(nowDaily).toISOString(),
+        };
+
         const gsRes = await fetch(`${import.meta.env.VITE_BACKEND_URL}/awim/glockenspiel`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            type: glockenspielType,
-            awimTag,
-            currenttime: new Date(nowDaily).toISOString(),
-            days: 30,
-            gridpts: 50,
-          }),
+          body: JSON.stringify(gsBody),
         });
 
         if (!gsRes.ok) {
@@ -285,15 +294,18 @@ function App() {
           Glockenspiel
         </label>
         {selectedScreen === 'glockenspiel' && (
-          <label>
-            Glockenspiel:
-            <select
-              value={glockenspielType}
-              onChange={(e) => setGlockenspielType(e.target.value as GlockenspielType)}
-            >
-              <option value="moonrise_month">Moonrise Month (rise + 1h)</option>
-            </select>
-          </label>
+          <>
+            <label>
+              Glockenspiel:
+              <select
+                value={glockenspielType}
+                onChange={(e) => setGlockenspielType(e.target.value as GlockenspielType)}
+              >
+                <option value="moonrise_month">Moonrise Month (rise + 2h)</option>
+                <option value="sunset_year">Sunset Year (daily, 366 frames, sunset - 30m)</option>
+              </select>
+            </label>
+          </>
         )}
         <button
           onClick={() => {
@@ -336,10 +348,11 @@ function App() {
                               bodiesInImages={gsBodiesInImages}
                               MagRankAllMax={MagRankAllMax}
                               RepeatLimit={RepeatLimit}
-                              frameDuration={frameDuration}
+                              frameDuration={gsFrameDuration}
                               currentIndex={gsCurrentIndex}
                               setCurrentIndex={setGsCurrentIndex}
                               mode="step"
+                              GSTitle={glockenspielParams[glockenspielType].GSTitle}
                             />
                   )
                 : <ClockGallery

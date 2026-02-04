@@ -15,8 +15,9 @@ interface ClockGalleryProps {
   currentIndex: number;
   setCurrentIndex: (i: number) => void;
   mode?: ClockScreenMode;
+  GSTitle?: string;
 }
-function ClockGallery({ loading, MomentsArray, basenamesList, imagesSet, astroData, bodiesInImages, MagRankAllMax, RepeatLimit, frameDuration, currentIndex, setCurrentIndex, mode }: ClockGalleryProps) {
+function ClockGallery({ loading, MomentsArray, basenamesList, imagesSet, astroData, bodiesInImages, MagRankAllMax, RepeatLimit, frameDuration, currentIndex, setCurrentIndex, mode, GSTitle }: ClockGalleryProps) {
 
   if (loading) return <p>Loading image, awimtag, astroData, bodiesInImageData. This can take some minutes.</p>;
 
@@ -33,6 +34,7 @@ function ClockGallery({ loading, MomentsArray, basenamesList, imagesSet, astroDa
         RepeatLimit={RepeatLimit}
         frameDuration={frameDuration}
         mode={mode}
+        GSTitle={GSTitle}
       />
     </div>
   );
