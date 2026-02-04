@@ -152,8 +152,8 @@ README:
  
 AWIM:
 - eliminate saving metadata to RAW file requirement because it doesn't make sense.
-- Camera AWIM tag should be JSON of dictionary. No pickle at all.
 - generate_camera_AWIM_from_calibration should generate a JSON text file, not an image. The JSON tag should be the same for the calibration image as it is for any AWIM tagged image.
+- What is the source of truth for the format / template of awim tags? I think it should be here in awim but there is another version in the clock.
 - All interface with Astropy should be with dataframes of requests, not individual requests - I think.
 - Convert entirely to pyexiv2 - I think - to preserve resolution of imgages.
 

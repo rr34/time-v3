@@ -19,4 +19,12 @@ Clock-specific request/response flow maps for the tv3 clock integration.
 6. Response JSON includes `"astro dict"` (time-based celestial data) and `"bodies in images dicts"` (per-image placements).
 
 
+
+## /glockenspiel End-to-End Flow (Frontend → Express → AWIM)
+1. Frontend posts `/awim/glockenspiel` with `type`, `awimTag`, `currenttime`, `days`, and `gridpts`.
+2. Express `api/index.js` allowlists `glockenspiel` and proxies to `AWIM_BASE_URL/glockenspiel`.
+3. AWIM `tv3clock_api.py` routes to `tv3clock.clockactions.get_glockenspiel_moonrise_month` for `moonrise_month`.
+4. `tv3clock.clockactions.get_glockenspiel_moonrise_month` computes moonrise times starting tomorrow and returns `moonrise + 1 hour` as the moments array.
+5. Response JSON includes `momentsarray` and `count`.
+
 # Metadata Lists

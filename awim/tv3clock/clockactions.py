@@ -4,6 +4,7 @@ from core import formatters
 from core import astromath
 from core import awimlib
 
+
 def get_events(location, elevation_msl, currenttime):
     currenttime = np.datetime64(currenttime)
     sundaily, moondaily = astromath.calculate_astro_risesandsets(location, currenttime, elevation_msl) # todo: cache these results because they take time to calculate.
@@ -123,3 +124,22 @@ def get_sunmoon_details(location, elevation_msl, nowmoments_clockstrings):
     sunmoon_details = formatters.dict_arrays_tolists(sunmoon_details)
 
     return sunmoon_details
+
+# glockenspiel: moonrise + 1 hour for each day in a 30-day window starting tomorrow
+def get_glockenspiel_moonrise_month(location, elevation_msl, currenttime, days=30, gridpts=50):
+    currenttime = np.datetime64(currenttime)
+    start_day = currenttime.astype('datetime64[D]') + np.timedelta64(1, 'D')
+
+    moonrises = astromath.calculate_astro_moonrise_times(
+        location,
+        start_day,
+        days=days,
+        elevation=elevation_msl,
+        gridpts=gridpts,
+    )
+
+    momentsarray = moonrises + np.timedelta64(2, 'h')
+    momentsarray = formatters.format_datetime(momentsarray, 'to string for AWIMtag')
+
+    return momentsarray
+

@@ -20,6 +20,19 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+def _get_location_and_elevation_from_awim(awim_tag):
+    if not isinstance(awim_tag, dict):
+        return None, None
+    location = awim_tag.get('awim Location Coordinates')
+    elevation = awim_tag.get('awim Location MSL')
+    if elevation is None:
+        terrain = awim_tag.get('awim Location Terrain Elevation')
+        agl = awim_tag.get('awim Location AGL')
+        if terrain is not None and agl is not None:
+            elevation = terrain + agl
+    return location, elevation
+
 @app.post('/getevents')
 async def getevents(request: Request):
     print('got here')
@@ -35,6 +48,48 @@ async def getevents(request: Request):
 
     return response_dict
 
+
+@app.post('/glockenspiel')
+async def glockenspiel(request: Request):
+    try:
+        request_dict = await request.json()
+    except Exception:
+        return {"error": "Invalid JSON"}
+
+    gs_type = request_dict.get('type')
+    if gs_type != 'moonrise_month':
+        return {"error": f"Unknown glockenspiel type: {gs_type}"}
+
+    awim_tag = request_dict.get('awimTag')
+    if awim_tag:
+        location, elevation = _get_location_and_elevation_from_awim(awim_tag)
+    else:
+        location = request_dict.get('location')
+        elevation = request_dict.get('elevation')
+
+    if location is None:
+        return {"error": "location required"}
+
+    if elevation is None:
+        elevation = 0
+
+    currenttime = request_dict.get('currenttime')
+    if not currenttime:
+        return {"error": "currenttime required"}
+
+    days = int(request_dict.get('days', 30))
+    gridpts = int(request_dict.get('gridpts', 50))
+
+    momentsarray = clockactions.get_glockenspiel_moonrise_month(
+        location,
+        elevation,
+        currenttime,
+        days=days,
+        gridpts=gridpts,
+    )
+
+    return {"momentsarray": momentsarray, "count": len(momentsarray)}
+
 @app.post('/celestialinphotos')
 async def celestialinphoto(request: Request):
     try:
@@ -42,10 +97,9 @@ async def celestialinphoto(request: Request):
         awims_dict = request_dict['awims_dict'] # keys are basenames
         first_key = next(iter(awims_dict)) # first basename
         any_awim = awims_dict[first_key]['awimTag']
-        location = any_awim['awim Location Coordinates']
-        if not any_awim['awim Location MSL']:
-            if any_awim['awim Location Terrain Elevation'] and any_awim['awim Location AGL']:
-                elevation = any_awim['awim Location Terrain Elevation'] and any_awim['awim Location AGL'] # elevation is used for events because affects horizon
+        location, elevation = _get_location_and_elevation_from_awim(any_awim)
+        if elevation is None:
+            elevation = 0
 
         MagRankAllMax = request_dict['MagRankAllMax']
         LatDec_filter = request_dict['LatDecFilter']

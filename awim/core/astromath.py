@@ -61,6 +61,52 @@ def calculate_astro_risesandsets(earth_latlng, moment_now, elevation=0):
     return sun_daily, moon_daily
 
 
+def calculate_astro_moonrise_times(earth_latlng, start_day, days=30, elevation=0, gridpts=50):
+    """Calculate one moonrise per day starting at start_day (UTC midnight)."""
+    clock_astroplan_observer = astroplan.Observer(
+        longitude=earth_latlng[1]*u.deg,
+        latitude=earth_latlng[0]*u.deg,
+        elevation=elevation*u.m,
+        name='Time v3 Clock',
+        timezone=timezone.utc,
+    )
+    start_day = np.datetime64(start_day, 'D')
+    moonrises = []
+
+    for day_index in range(days):
+        day = start_day + np.timedelta64(day_index, 'D')
+        try:
+            moonrise = clock_astroplan_observer.moon_rise_time(
+                time=Time(day),
+                which='next',
+                horizon=0*u.deg,
+                n_grid_points=gridpts,
+            )
+        except Exception as exc:
+            print(f'Error calculating moonrise for {day}: {exc}')
+            continue
+
+        if moonrise is None:
+            continue
+
+        try:
+            if not np.all(np.isfinite(moonrise.jd)):
+                continue
+        except Exception:
+            pass
+
+        moonrise_dt = moonrise.datetime64
+        if moonrise_dt < day:
+            continue
+        if moonrise_dt - day > np.timedelta64(1, 'D'):
+            # No moonrise within this day.
+            continue
+
+        moonrises.append(moonrise_dt)
+
+    return np.array(moonrises, dtype=np.dtype('datetime64[ns]'))
+
+
 # I don't know why this doesn't return exactly a full/new moon matching online sources - differs by up to ~30 minutes? Why? phase is different from "ecliptic longitude different by 180°?" - but since I did it here it is...
 # This function is good enough for now because I only really care about the single new or full moon that is the closest. I don't ever care about a full moon 14 days past or future because the new moon would be within a day so obviously closer.
 # TODO calculate the 180deg ecliptic longitude difference full moon and see if different
