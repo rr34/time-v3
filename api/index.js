@@ -107,7 +107,7 @@ app.post('/getimageslist/query', async (req, res) => {
   }
 });
 
-const allowedAwimEndpoints = new Set(["getevents", "celestialinphotos"]);
+const allowedAwimEndpoints = new Set(["getevents", "celestialinphotos", "glockenspiel"]);
 app.post("/awim/:endpoint", async (req, res) => {
   const { endpoint } = req.params;
   if (!allowedAwimEndpoints.has(endpoint)) {

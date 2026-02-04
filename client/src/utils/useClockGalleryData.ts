@@ -1,7 +1,19 @@
 import { useEffect, useState } from "react";
 import { BodiesDict, ImagesSet } from "../types/interfaces";
 
-export function useClockGalleryData (MomentsArray: string[], TagsInclude: string[], TagsExclude: string[], MagRankAllMax: number, LatDecFilter: boolean ) {
+interface UseClockGalleryOptions {
+  enabled?: boolean;
+  imagesSetOverride?: ImagesSet;
+}
+
+export function useClockGalleryData (
+  MomentsArray: string[],
+  TagsInclude: string[],
+  TagsExclude: string[],
+  MagRankAllMax: number,
+  LatDecFilter: boolean,
+  options: UseClockGalleryOptions = {}
+) {
   const [imagesSet, setImagesSet] = useState<ImagesSet>({});
   const [basenamesList, setBasenamesList] = useState<string[]>([]);
   const [astroData, setAstroData] = useState<BodiesDict>({});
@@ -11,26 +23,44 @@ export function useClockGalleryData (MomentsArray: string[], TagsInclude: string
   const tagsIncludeKey = TagsInclude.join(',');
   const tagsExcludeKey = TagsExclude.join(',');
   const momentsArrayKey = MomentsArray.join(',');
+  const { enabled = true, imagesSetOverride } = options;
+  const imagesSetOverrideKey = imagesSetOverride ? Object.keys(imagesSetOverride).join(',') : '';
 
   useEffect(() => {
     const fetchClockImageData = async () => {
       try {
+        if (!enabled) return;
+        if (!MomentsArray.length) {
+          setLoading(false);
+          return;
+        }
         setLoading(true);
-        // Step 1: Fetch matching images
-        const imagesRes = await fetch(`${import.meta.env.VITE_BACKEND_URL}/getimageslist/query`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ TagsInclude, TagsExclude }),
-        });
+        let imagesSetLocal: ImagesSet | undefined = imagesSetOverride;
+        if (!imagesSetLocal || Object.keys(imagesSetLocal).length === 0) {
+          // Step 1: Fetch matching images
+          const imagesRes = await fetch(`${import.meta.env.VITE_BACKEND_URL}/getimageslist/query`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ TagsInclude, TagsExclude }),
+          });
 
-        if (!imagesRes.ok) {
-          const errText = await imagesRes.text();
-          throw new Error(`getimageslist/query failed (${imagesRes.status}): ${errText}`);
+          if (!imagesRes.ok) {
+            const errText = await imagesRes.text();
+            throw new Error(`getimageslist/query failed (${imagesRes.status}): ${errText}`);
+          }
+
+          imagesSetLocal = await imagesRes.json(); // local variable
         }
 
-        const imagesSetLocal = await imagesRes.json(); // local variable
-        setImagesSet(imagesSetLocal); // also store in state for rendering
-        setBasenamesList(Object.keys(imagesSetLocal))
+        setImagesSet(imagesSetLocal);
+        setBasenamesList(Object.keys(imagesSetLocal));
+
+        if (Object.keys(imagesSetLocal).length === 0) {
+          setAstroData({});
+          setBodiesInImages({});
+          setLoading(false);
+          return;
+        }
 
         // Step 2: Fetch celestial data using the same images list
         const celestialRes = await fetch(`${import.meta.env.VITE_BACKEND_URL}/awim/celestialinphotos`, {
@@ -62,7 +92,7 @@ export function useClockGalleryData (MomentsArray: string[], TagsInclude: string
     };
 
     fetchClockImageData();
-  }, [tagsIncludeKey, tagsExcludeKey, momentsArrayKey]);
+  }, [tagsIncludeKey, tagsExcludeKey, momentsArrayKey, enabled, imagesSetOverrideKey]);
 
   return { loading, basenamesList, imagesSet, astroData, bodiesInImages};
 }

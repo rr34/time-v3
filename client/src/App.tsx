@@ -5,15 +5,23 @@ import './App.css';
 import ClockStrings from "./components/ClockStrings";
 import ClockGallery from './components/ClockGallery';
 import { useClockGalleryData } from "./utils/useClockGalleryData";
-import { BodyData, emptyBodyData, DailyEventsObj, emptyBodiesDict, BodiesDict } from "./types/interfaces";
+import { BodyData, emptyBodyData, DailyEventsObj, emptyBodiesDict, BodiesDict, ImagesSet } from "./types/interfaces";
 import { useIntervalTimestamp } from "./utils/functions";
 
 
 function App() {
   
   const [showPanel, setShowPanel] = useState(true);
-  const [selectedScreen, setSelectedScreen] = useState<'screen' | 'strings'>('strings');
+  const [selectedScreen, setSelectedScreen] = useState<'screen' | 'strings' | 'glockenspiel'>('strings');
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [gsCurrentIndex, setGsCurrentIndex] = useState(0);
+
+  type GlockenspielType = 'moonrise_month';
+  const [glockenspielType, setGlockenspielType] = useState<GlockenspielType>('moonrise_month');
+  const [glockenspielMoments, setGlockenspielMoments] = useState<string[]>([]);
+  const [glockenspielLoading, setGlockenspielLoading] = useState(false);
+  const [glockenspielError, setGlockenspielError] = useState<string | null>(null);
+  const [gsImagesSet, setGsImagesSet] = useState<ImagesSet>({});
 
   
   const [searchParams] = useSearchParams();
@@ -30,6 +38,9 @@ function App() {
   const TagsExclude = useMemo(() => (
     tagsExcludeParam ? tagsExcludeParam.split(",") : []),
     [tagsExcludeParam]);
+  const TagsIncludeGlockenspiel = useMemo(() => (
+    Array.from(new Set([...TagsInclude, 'gs_moonrisemonth']))),
+    [TagsInclude]);
   const MagRankAllMax = useMemo(() => (
     MagRankAllMaxParam ? Number(MagRankAllMaxParam) : 350), // 350 includes 12 from Orion and 7 from Cassiopeia.
     [MagRankAllMaxParam]);
@@ -130,7 +141,103 @@ function App() {
     fetchDailyEvents();
   }, [nowDaily, momentsarray_details]);
 
-    const { loading, basenamesList, imagesSet, astroData, bodiesInImages } = useClockGalleryData(momentsarray_animation, TagsInclude, TagsExclude, MagRankAllMax, LatDecFilter);
+  useEffect(() => {
+    if (selectedScreen !== 'glockenspiel') return;
+    let cancelled = false;
+
+    const fetchGlockenspiel = async () => {
+      try {
+        setGlockenspielLoading(true);
+        setGlockenspielError(null);
+
+        const imagesRes = await fetch(`${import.meta.env.VITE_BACKEND_URL}/getimageslist/query`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ TagsInclude: TagsIncludeGlockenspiel, TagsExclude }),
+        });
+
+        if (!imagesRes.ok) {
+          const errText = await imagesRes.text();
+          throw new Error(`getimageslist/query failed (${imagesRes.status}): ${errText}`);
+        }
+
+        const imagesSetLocal: ImagesSet = await imagesRes.json();
+        const basenames = Object.keys(imagesSetLocal);
+        if (basenames.length === 0) {
+          throw new Error("No photos matched glockenspiel tags.");
+        }
+
+        if (cancelled) return;
+        setGsImagesSet(imagesSetLocal);
+        setGsCurrentIndex(0);
+
+        const awimTag = imagesSetLocal[basenames[0]]?.awimTag;
+        if (!awimTag) {
+          throw new Error("Selected glockenspiel photo is missing awimTag.");
+        }
+
+        const gsRes = await fetch(`${import.meta.env.VITE_BACKEND_URL}/awim/glockenspiel`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            type: glockenspielType,
+            awimTag,
+            currenttime: new Date(nowDaily).toISOString(),
+            days: 30,
+            gridpts: 50,
+          }),
+        });
+
+        if (!gsRes.ok) {
+          const errText = await gsRes.text();
+          throw new Error(`glockenspiel failed (${gsRes.status}): ${errText}`);
+        }
+
+        const gsData = await gsRes.json();
+        if (cancelled) return;
+        setGlockenspielMoments(gsData.momentsarray ?? []);
+      } catch (error) {
+        if (cancelled) return;
+        const msg = error instanceof Error ? error.message : String(error);
+        setGlockenspielError(msg);
+        setGlockenspielMoments([]);
+        setGsImagesSet({});
+      } finally {
+        if (!cancelled) setGlockenspielLoading(false);
+      }
+    };
+
+    fetchGlockenspiel();
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedScreen, TagsIncludeGlockenspiel, TagsExclude, glockenspielType, nowDaily]);
+
+  const { loading, basenamesList, imagesSet, astroData, bodiesInImages } = useClockGalleryData(
+    momentsarray_animation,
+    TagsInclude,
+    TagsExclude,
+    MagRankAllMax,
+    LatDecFilter
+  );
+
+  const gsBasenamesList = useMemo(() => Object.keys(gsImagesSet), [gsImagesSet]);
+  const gsEnabled = selectedScreen === 'glockenspiel' && glockenspielMoments.length > 0;
+  const {
+    loading: gsLoading,
+    astroData: gsAstroData,
+    bodiesInImages: gsBodiesInImages,
+  } = useClockGalleryData(
+    glockenspielMoments,
+    TagsIncludeGlockenspiel,
+    TagsExclude,
+    MagRankAllMax,
+    LatDecFilter,
+    { enabled: gsEnabled, imagesSetOverride: gsImagesSet }
+  );
+
+  const activeBasenamesList = selectedScreen === 'glockenspiel' ? gsBasenamesList : basenamesList;
+  const setActiveIndex = selectedScreen === 'glockenspiel' ? setGsCurrentIndex : setCurrentIndex;
 
   return (
     <>
@@ -168,15 +275,39 @@ function App() {
           />
           Clock Gallery
         </label>
+        <label>
+          <input
+            type="radio"
+            value="glockenspiel"
+            checked={selectedScreen === 'glockenspiel'}
+            onChange={() => setSelectedScreen('glockenspiel')}
+          />
+          Glockenspiel
+        </label>
+        {selectedScreen === 'glockenspiel' && (
+          <label>
+            Glockenspiel:
+            <select
+              value={glockenspielType}
+              onChange={(e) => setGlockenspielType(e.target.value as GlockenspielType)}
+            >
+              <option value="moonrise_month">Moonrise Month (rise + 1h)</option>
+            </select>
+          </label>
+        )}
         <button
-          onClick={() =>
-            setCurrentIndex((i) => (i - 1 + basenamesList.length) % basenamesList.length)
-          }
+          onClick={() => {
+            if (!activeBasenamesList.length) return;
+            setActiveIndex((i) => (i - 1 + activeBasenamesList.length) % activeBasenamesList.length);
+          }}
         >
           Previous
         </button>
         <button
-          onClick={() => setCurrentIndex((i) => (i + 1) % basenamesList.length)}
+          onClick={() => {
+            if (!activeBasenamesList.length) return;
+            setActiveIndex((i) => (i + 1) % activeBasenamesList.length);
+          }}
         >
           Next
         </button>
@@ -188,18 +319,41 @@ function App() {
           {
             selectedScreen === 'strings'
               ? <ClockStrings deo={DailyEventsObj} addHours={addHours} />
-              : <ClockGallery
-                  loading={loading}
-                  MomentsArray={momentsarray_animation}
-                  basenamesList={basenamesList}
-                  imagesSet={imagesSet}
-                  astroData={astroData}
-                  bodiesInImages={bodiesInImages}
-                  MagRankAllMax={MagRankAllMax}
-                  RepeatLimit={RepeatLimit}
-                  frameDuration={frameDuration}
-                  currentIndex={currentIndex}
-                  setCurrentIndex={setCurrentIndex}
+              : selectedScreen === 'glockenspiel'
+                ? (
+                    glockenspielLoading
+                      ? <p>Loading glockenspiel config...</p>
+                      : glockenspielError
+                        ? <p>Glockenspiel error: {glockenspielError}</p>
+                        : (!glockenspielMoments.length || !gsBasenamesList.length)
+                          ? <p>No glockenspiel data yet.</p>
+                          : <ClockGallery
+                              loading={gsLoading}
+                              MomentsArray={glockenspielMoments}
+                              basenamesList={gsBasenamesList}
+                              imagesSet={gsImagesSet}
+                              astroData={gsAstroData}
+                              bodiesInImages={gsBodiesInImages}
+                              MagRankAllMax={MagRankAllMax}
+                              RepeatLimit={RepeatLimit}
+                              frameDuration={frameDuration}
+                              currentIndex={gsCurrentIndex}
+                              setCurrentIndex={setGsCurrentIndex}
+                              mode="step"
+                            />
+                  )
+                : <ClockGallery
+                    loading={loading}
+                    MomentsArray={momentsarray_animation}
+                    basenamesList={basenamesList}
+                    imagesSet={imagesSet}
+                    astroData={astroData}
+                    bodiesInImages={bodiesInImages}
+                    MagRankAllMax={MagRankAllMax}
+                    RepeatLimit={RepeatLimit}
+                    frameDuration={frameDuration}
+                    currentIndex={currentIndex}
+                    setCurrentIndex={setCurrentIndex}
                   />
           }
           {/* {

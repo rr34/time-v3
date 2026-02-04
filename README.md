@@ -14,6 +14,10 @@
 - would be pretty easy to make a png overlay
 - Standard glockenspiel animations by generating custom moment_arrays, possibly / probably one image at a time instead of animated, especially for the moon. ... Actually, maybe animated is possible by improving how the moon phase is shown with ChatGPT in VS Code now. See if it can figure it out.
 - Glockenspiel: moon rising / setting each day for a moon cycle.
+- Glockenspiel: follow a constellation?
+- Glockenspiel: sunrise / sunset every week for a year?
+- Glcokenspiel: sun at high noon every week for a year.
+
 
 ## todo eventually
 - TODO: review data transfer size between awim / api / client (compression, paging, or streaming).
@@ -30,8 +34,6 @@
 - maybe add possibility of a background layer L2? L3 is the svg L4 is the foreground. No, probably unnecessary complication.
 - TODO: since awim tags are official source of duplicate information, clock could be able to regenerate the whole relevant portion of the DB with the awim tags from its files (not important for a while)
 - parse bright star catalog (and send file to Aaron and Ahmed).
-- Glockenspiel: follow a constellation?
-- Glockenspiel: sunrise / sunset every day or week for a year?
 - frontend needs to be able to generate and work with transparency files to determine if objects are visible / above the horizon, etc. See awim_png_littleblur = awim_png.filter(filter=BoxBlur(pxs_per_minute*5)) and awim_png_bigblur = awim_png.filter(filter=BoxBlur(pxs_per_minute*17))
 # animation problems
 - limit the distance off screen the celestial bodies can go to improve animation. Ensure the animation runs only on screen then the bodies stay close off-screen but transparent until they appear again.
