@@ -13,24 +13,30 @@ VALUES (%s) ;
     return results
 
 
-def get_photo(batchID, basename):
-    qms_tuple = (batchID, basename)
+def get_photo(group_id, basename):
+    qms_tuple = (group_id, basename)
     results = DBfunctions.sql_execute("""
-SELECT *
-FROM photos_awim
-WHERE BatchID = ?
-AND CamFilename = ?;
+SELECT p.*
+FROM photos_awim p
+JOIN photo_grouping pg ON pg.PhotoID = p.photo_id
+JOIN groups g ON g.group_id = pg.GroupID
+WHERE g.GroupType = 'batch'
+AND g.group_id = ?
+AND p.CamFilename = ?;
 """, qms_tuple, result_type='listdictionaries')
 
     return results
 
 
-def get_basenames(batchID):
-    qms_tuple = (batchID,)
+def get_basenames(group_id):
+    qms_tuple = (group_id,)
     results = DBfunctions.sql_execute("""
-SELECT CamFilename
-FROM photos_awim
-WHERE BatchID = ? ;
+SELECT p.CamFilename
+FROM photos_awim p
+JOIN photo_grouping pg ON pg.PhotoID = p.photo_id
+JOIN groups g ON g.group_id = pg.GroupID
+WHERE g.GroupType = 'batch'
+AND g.group_id = ? ;
 """, qms_tuple, result_type='listsinglefield')
 
     return results

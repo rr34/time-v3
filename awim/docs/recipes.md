@@ -3,7 +3,7 @@
 This file is the canonical list of CLI tasks for AWIM. Each task operates on files under `working/` by default.
 
 Command pattern:
-`python -m awim <task> [--root PATH] [--batch-id ID]`
+`python -m awim <task> [--root PATH] [--group-id ID]`
 
 Note:
 - The simplest way to run these is from the AWIM directory itself (so the package is on the Python path).
@@ -18,7 +18,7 @@ Tasks:
 - `generate-metatext-files` — Generate JSON metadata files for every file in `working/`.
 - `cam-calibration` — Generate `cam_awim.json` from `working/calimage.jpg` and `working/calspreadsheet.xlsx`.
 - `add-camfilenames-todb` — Insert camera file basenames from `working/` into the database.
-- `generate-image-tags` — Build AWIM tag JSONs and copy images for a DB batch. Requires `--batch-id`.
+- `generate-image-tags` — Build AWIM tag JSONs and copy images for a batch group ID. Requires `--group-id`.
 - `parse-brightstar-text` — Parse `working/V_50.txt` into CSV outputs.
 - `db-update` — Run database constellation name updates.
 

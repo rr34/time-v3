@@ -1,7 +1,7 @@
 """AWIM CLI entrypoint.
 
 Usage:
-    python -m awim <task> [--root PATH] [--batch-id ID]
+    python -m awim <task> [--root PATH] [--group-id ID]
 """
 import argparse
 import os
@@ -52,9 +52,9 @@ def _task_add_camfilenames_todb(_args: argparse.Namespace) -> None:
 
 
 def _task_generate_image_tags(args: argparse.Namespace) -> None:
-    if not args.batch_id:
-        raise ValueError('generate-image-tags requires --batch-id')
-    awimactions.generate_image_tags(args.batch_id)
+    if args.group_id is None:
+        raise ValueError('generate-image-tags requires --group-id')
+    awimactions.generate_image_tags(args.group_id)
 
 
 def _task_parse_brightstar_text(_args: argparse.Namespace) -> None:
@@ -84,7 +84,7 @@ TASKS: dict[str, tuple[callable, str]] = {
     ),
     'generate-image-tags': (
         _task_generate_image_tags,
-        'Create AWIM tags and image copies for a DB batch ID.',
+        'Create AWIM tags and image copies for a batch group ID.',
     ),
     'parse-brightstar-text': (
         _task_parse_brightstar_text,
@@ -118,8 +118,9 @@ def _build_parser() -> argparse.ArgumentParser:
         help='Root path for file-based tasks (default: AWIM repo directory).',
     )
     parser.add_argument(
-        '--batch-id',
-        help='Batch ID for generate-image-tags.',
+        '--group-id',
+        type=int,
+        help='Batch group ID for generate-image-tags.',
     )
     return parser
 
@@ -148,8 +149,8 @@ def main(argv: list[str] | None = None) -> int:
         parser.error(f'Unknown task: {args.task}')
         return 2
 
-    if task == 'generate-image-tags' and not args.batch_id:
-        parser.error('--batch-id is required for generate-image-tags')
+    if task == 'generate-image-tags' and args.group_id is None:
+        parser.error('--group-id is required for generate-image-tags')
         return 2
 
     handler = TASKS[task][0]

@@ -54,9 +54,9 @@ def add_camfilenames_todb() -> None:
     DBsqlstatements.insert_camfilenames(camfilenames_list)
 
 
-def generate_image_tags(batchID: AnyStr) -> None:
+def generate_image_tags(group_id: AnyStr) -> None:
     # 1. Get lists of photo files and list of entries in the database.
-    photoshoot_basenames = DBsqlstatements.get_basenames(batchID)
+    photoshoot_basenames = DBsqlstatements.get_basenames(group_id)
     workingpath = os.path.join(os.getcwd(), 'working')
     imagebases_list = []
     images_list_iterable = []
@@ -91,7 +91,7 @@ def generate_image_tags(batchID: AnyStr) -> None:
     for image in images_list_iterable:
         image_path = image[0]
         camimage_basename = image[1]
-        photoshoot_dictionary = DBsqlstatements.get_photo(batchID, camimage_basename)
+        photoshoot_dictionary = DBsqlstatements.get_photo(group_id, camimage_basename)
         if len(photoshoot_dictionary) == 1:
             photoshoot_dictionary = photoshoot_dictionary[0]
         elif len(photoshoot_dictionary) > 1:

@@ -1,6 +1,9 @@
-## todonext, 27 January 2026: a year after the previous note! Oh how the time flies.
-- many changes are driven by the clock.
-- merge runstuff.py into some better way of doing that.
+## todonext
+- update the UI to divide between interaction and clock mode.
+- More glockenspiels
+- cache
+
+## 27 January 2026: a year after the previous note! Oh how the time flies.
 - awim API cache astrodata for performance improvement. Do this before upgrading server so you can see improvement / determine if upgrade necessary.
 
 # 27 January 2025 Resurrecting the Project with Many Updates
@@ -16,7 +19,7 @@
 	- Camera clock offset.
 - Process photos in Lightroom or Photoshop and **export to PNG**. The PNG files have metadata embedded as XML.
 - Place the PNG files in the working folder along with `output_cal Sony a7 iii Sony 20mm cam_awim.json`
-- Run awimactions.generate_image_tags('BatchID'). See examples of BatchID field in the database BatchID field.
+- Run awimactions.generate_image_tags(<group_id>) using the batch group ID from the `groups` table.
 - If the database information is complete, should be able to auto-generate the awim tag json files, which include the original photo metadata. Should get a message saying the photo files and the shoot entries match perfectly.
 - Use the processed PNG files from the working folder with new name and process the PNG files in Photoshop to make the sky transparent.
 - Once the database is updated, upload the processed PNG files to the server (FileZilla usually) and the photos will be available right away with their tags.
