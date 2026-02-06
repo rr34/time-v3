@@ -25,25 +25,27 @@ function App() {
 
   
   const [searchParams] = useSearchParams();
-  const tagsIncludeParam = searchParams.get("tagsinclude");  // comma-separated
-  const tagsExcludeParam = searchParams.get("tagsexclude");
+  const groupIdParam = searchParams.get("group_id");
+  const groupSlugParam = searchParams.get("clock") ?? searchParams.get("group_slug");
   const MagRankAllMaxParam = searchParams.get("magrankallmax");
   const RepeatLimitParam = searchParams.get("frameduration");
   const frameDurationParam = searchParams.get("frameduration");
   const addHoursParam = searchParams.get("addhours");
   
-  const TagsInclude = useMemo(() => (
-    tagsIncludeParam ? tagsIncludeParam.split(",") : ['delawareohio']),
-    [tagsIncludeParam]);
-  const TagsExclude = useMemo(() => (
-    tagsExcludeParam ? tagsExcludeParam.split(",") : []),
-    [tagsExcludeParam]);
-  const glockenspielTag = useMemo(() => (
-    glockenspielType === 'sunset_year' ? 'gs_sunsetyear' : 'gs_moonrisemonth'
-  ), [glockenspielType]);
-  const TagsIncludeGlockenspiel = useMemo(() => (
-    Array.from(new Set([...TagsInclude, glockenspielTag]))),
-    [TagsInclude, glockenspielTag]);
+  const groupSlug = useMemo(() => {
+    const trimmed = groupSlugParam?.trim();
+    return trimmed ? trimmed : null;
+  }, [groupSlugParam]);
+
+  const groupId = useMemo(() => {
+    const parsed = Number(groupIdParam);
+    if (Number.isFinite(parsed) && parsed > 0) return parsed;
+    return 1;
+  }, [groupIdParam]);
+  const groupQuery = useMemo(() => ({
+    groupSlug,
+    groupId,
+  }), [groupSlug, groupId]);
   const MagRankAllMax = useMemo(() => (
     MagRankAllMaxParam ? Number(MagRankAllMaxParam) : 350), // 350 includes 12 from Orion and 7 from Cassiopeia.
     [MagRankAllMaxParam]);
@@ -95,7 +97,7 @@ function App() {
     const [DailyEventsObj, setDailyEventsObj] = useState<DailyEventsObj>({ sundaily: [0], sundailydata: emptyBodyData, moondaily: [0], moondailydata: emptyBodyData, nearestnew: 0, nearestnewangle: 0, nearestfull: 0, nearestfullangle: 0, momentsarrayDetails: [0], sunmoonDetails: emptyBodiesDict });
   
     useEffect(() => {
-      // initialize location variables. todo get the location(s) and MSL from the photo tags
+      // initialize location variables. todo get the location(s) and MSL from the photo metadata
       const clockLatLong: number[] = [40.229,-83.2092];
       const clockMSL: number = 280;
       
@@ -159,10 +161,11 @@ function App() {
         setGlockenspielLoading(true);
         setGlockenspielError(null);
 
+        const body = groupSlug ? { group_slug: groupSlug } : { group_id: groupId };
         const imagesRes = await fetch(`${import.meta.env.VITE_BACKEND_URL}/getimageslist/query`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ TagsInclude: TagsIncludeGlockenspiel, TagsExclude }),
+          body: JSON.stringify(body),
         });
 
         if (!imagesRes.ok) {
@@ -173,7 +176,7 @@ function App() {
         const imagesSetLocal: ImagesSet = await imagesRes.json();
         const basenames = Object.keys(imagesSetLocal);
         if (basenames.length === 0) {
-          throw new Error("No photos matched glockenspiel tags.");
+          throw new Error("No photos matched this group.");
         }
 
         if (cancelled) return;
@@ -220,12 +223,11 @@ function App() {
     return () => {
       cancelled = true;
     };
-  }, [selectedScreen, TagsIncludeGlockenspiel, TagsExclude, glockenspielType, nowDaily]);
+  }, [selectedScreen, groupId, groupSlug, glockenspielType, nowDaily]);
 
   const { loading, basenamesList, imagesSet, astroData, bodiesInImages } = useClockGalleryData(
     momentsarray_animation,
-    TagsInclude,
-    TagsExclude,
+    groupQuery,
     MagRankAllMax,
     LatDecFilter
   );
@@ -238,8 +240,7 @@ function App() {
     bodiesInImages: gsBodiesInImages,
   } = useClockGalleryData(
     glockenspielMoments,
-    TagsIncludeGlockenspiel,
-    TagsExclude,
+    groupQuery,
     MagRankAllMax,
     LatDecFilter,
     { enabled: gsEnabled, imagesSetOverride: gsImagesSet }

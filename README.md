@@ -25,7 +25,7 @@
 - Rising, peaking, setting objects like a current events for the user in clock strings.
 - optimize for phones
 - the progress indicator is out of sync from the animation. Fix.
-- make a sequence feature in addition to the tags, probably integrated with the tags?
+- make a sequence feature in addition to groups, probably integrated with groups?
 - reduce the size of the strings / gallery toggle. Make toggle instead of selector.
 - make addhours a slider if there is an efficient way to do it?
 - I think the app can save multiple SVG animations, but can it save multiple images? 20 images? or get PNG files from backend each time displayed?

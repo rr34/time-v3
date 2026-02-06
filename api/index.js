@@ -3,7 +3,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
-import { getPhotosByTags } from "./database.js";
+import { getPhotosByGroup } from "./database.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -71,12 +71,21 @@ app.use("/clockimages", (req, res, next) => {
 );
 
 
-// POST route to query photos by tags
+// POST route to query photos by group_slug or group_id
 app.post('/getimageslist/query', async (req, res) => {
-  const { TagsInclude = [], TagsExclude = [] } = req.body;
+  const { group_id: groupIdRaw, group_slug: groupSlugRaw } = req.body ?? {};
+  const groupId = Number(groupIdRaw);
+  const groupSlug = typeof groupSlugRaw === "string" ? groupSlugRaw.trim() : "";
+
+  if (!groupSlug && !Number.isFinite(groupId)) {
+    return res.status(400).json({ error: "group_slug or group_id is required" });
+  }
 
   try {
-    const photos = await getPhotosByTags({ TagsInclude, TagsExclude });
+    const photos = await getPhotosByGroup({
+      groupId: Number.isFinite(groupId) ? groupId : null,
+      groupSlug: groupSlug || null,
+    });
 
     // Transform array into object keyed by Basename
     const formatted = {};

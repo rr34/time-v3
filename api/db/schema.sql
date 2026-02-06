@@ -17,25 +17,6 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
--- Table structure for table `DELETE_shoot_site_azrefs`
---
-
-DROP TABLE IF EXISTS `DELETE_shoot_site_azrefs`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8mb4 */;
-CREATE TABLE `DELETE_shoot_site_azrefs` (
-  `SiteName` varchar(100) DEFAULT NULL,
-  `ObjName` varchar(100) DEFAULT NULL,
-  `ObjAzType` varchar(100) DEFAULT NULL,
-  `LatLongPt1` varchar(100) DEFAULT NULL,
-  `LatLongPt2` varchar(100) DEFAULT NULL,
-  `ObjAz` int(11) DEFAULT NULL,
-  `ssaid` int(11) NOT NULL AUTO_INCREMENT,
-  PRIMARY KEY (`ssaid`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
 -- Table structure for table `bright_star_catalogue`
 --
 
@@ -77,6 +58,38 @@ CREATE TABLE `bsc_remarks` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Table structure for table `groups`
+--
+
+DROP TABLE IF EXISTS `groups`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `groups` (
+  `GroupName` varchar(256) DEFAULT NULL,
+  `GroupSlug` varchar(100) DEFAULT NULL,
+  `GroupType` enum('clock','batch') DEFAULT NULL,
+  `group_id` int(11) NOT NULL AUTO_INCREMENT,
+  PRIMARY KEY (`group_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `photo_grouping`
+--
+
+DROP TABLE IF EXISTS `photo_grouping`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `photo_grouping` (
+  `GroupID` int(11) NOT NULL,
+  `PhotoID` int(11) NOT NULL,
+  `cpr_id` int(11) NOT NULL AUTO_INCREMENT,
+  PRIMARY KEY (`cpr_id`),
+  UNIQUE KEY `photo_grouping_unique` (`GroupID`,`PhotoID`)
+) ENGINE=InnoDB AUTO_INCREMENT=202 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Table structure for table `photos_awim`
 --
 
@@ -91,10 +104,8 @@ CREATE TABLE `photos_awim` (
   `RefTripodDirectionMoved` varchar(100) DEFAULT NULL,
   `RefTripod1` float DEFAULT NULL,
   `RefTripod2` float DEFAULT NULL,
-  `BatchID` varchar(100) NOT NULL DEFAULT 'batchnameYYYYMMDD',
   `SiteName` varchar(100) DEFAULT NULL,
   `PointName` varchar(100) DEFAULT NULL,
-  `Tags` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL COMMENT 'JSON array format per ChatGPT suggestion',
   `CamTimeError` int(11) DEFAULT NULL,
   `TZOffset` float DEFAULT NULL,
   `MomentCapture` datetime DEFAULT NULL,
@@ -120,9 +131,10 @@ CREATE TABLE `photos_awim` (
   `RefCelestialObj` varchar(100) DEFAULT NULL,
   `RefPixelXY` varchar(100) DEFAULT NULL,
   `Azimuth` float DEFAULT NULL,
-  `awimTag` longtext DEFAULT NULL,
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  PRIMARY KEY (`id`)
+  `awimTag` text DEFAULT NULL,
+  `photo_id` int(11) NOT NULL AUTO_INCREMENT,
+  `Tags` text CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL COMMENT 'JSON array format per ChatGPT suggestion',
+  PRIMARY KEY (`photo_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=107 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -149,4 +161,4 @@ CREATE TABLE `shoot_recommended` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-02-04  9:43:44
+-- Dump completed on 2026-02-06 12:06:49

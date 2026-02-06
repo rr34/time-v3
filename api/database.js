@@ -15,32 +15,28 @@ const pool = mysql.createPool({
   timezone: 'Z',
 });
 
-// Query photos by tags, supporting include and exclude filters
-export async function getPhotosByTags({ TagsInclude = [], TagsExclude = [] }) {
-  let whereClauses = [];
+export async function getPhotosByGroup({ groupId, groupSlug }) {
+  const useSlug = typeof groupSlug === "string" && groupSlug.trim().length > 0;
+  const useId = Number.isFinite(groupId);
 
-  // Basic sanitization (escaping quotes and %/_) to avoid SQL injection
-  const escapeLike = (tag) =>
-    tag.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/%/g, '\\%').replace(/_/g, '\\_');
-
-  for (const tag of TagsInclude) {
-    const escaped = escapeLike(tag);
-    whereClauses.push(`Tags LIKE '%"${escaped}"%'`);
+  if (!useSlug && !useId) {
+    return [];
   }
 
-  for (const tag of TagsExclude) {
-    const escaped = escapeLike(tag);
-    whereClauses.push(`Tags NOT LIKE '%"${escaped}"%'`);
-  }
-
-  const whereSQL = whereClauses.length ? `WHERE ${whereClauses.join(' AND ')}` : '';
+  const whereClause = useSlug ? "g.GroupSlug = ?" : "g.group_id = ?";
+  const param = useSlug ? groupSlug.trim() : groupId;
 
   const query = `
-    SELECT Basename, awimTag FROM photos_awim
-    ${whereSQL}
+    SELECT p.Basename, p.awimTag
+    FROM photos_awim p
+    JOIN photo_grouping pg ON pg.PhotoID = p.photo_id
+    JOIN groups g ON g.group_id = pg.GroupID
+    WHERE ${whereClause}
+      AND g.GroupType = 'clock'
+    ORDER BY p.photo_id
     LIMIT 100
   `;
 
-  const [rows] = await pool.query(query);
+  const [rows] = await pool.query(query, [param]);
   return rows;
 }

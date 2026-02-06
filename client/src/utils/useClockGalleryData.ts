@@ -6,10 +6,14 @@ interface UseClockGalleryOptions {
   imagesSetOverride?: ImagesSet;
 }
 
+interface GroupQuery {
+  groupSlug?: string | null;
+  groupId?: number | null;
+}
+
 export function useClockGalleryData (
   MomentsArray: string[],
-  TagsInclude: string[],
-  TagsExclude: string[],
+  groupQuery: GroupQuery,
   MagRankAllMax: number,
   LatDecFilter: boolean,
   options: UseClockGalleryOptions = {}
@@ -20,8 +24,9 @@ export function useClockGalleryData (
   const [bodiesInImages, setBodiesInImages] = useState<Record<string, BodiesDict>>({});
   const [loading, setLoading] = useState(true);
 
-  const tagsIncludeKey = TagsInclude.join(',');
-  const tagsExcludeKey = TagsExclude.join(',');
+  const groupSlug = groupQuery.groupSlug ?? null;
+  const groupId = groupQuery.groupId ?? null;
+  const groupKey = groupSlug ? `slug:${groupSlug}` : (groupId ?? "none");
   const momentsArrayKey = MomentsArray.join(',');
   const { enabled = true, imagesSetOverride } = options;
   const imagesSetOverrideKey = imagesSetOverride ? Object.keys(imagesSetOverride).join(',') : '';
@@ -30,6 +35,10 @@ export function useClockGalleryData (
     const fetchClockImageData = async () => {
       try {
         if (!enabled) return;
+        if (!groupSlug && !Number.isFinite(groupId)) {
+          setLoading(false);
+          return;
+        }
         if (!MomentsArray.length) {
           setLoading(false);
           return;
@@ -38,10 +47,13 @@ export function useClockGalleryData (
         let imagesSetLocal: ImagesSet | undefined = imagesSetOverride;
         if (!imagesSetLocal || Object.keys(imagesSetLocal).length === 0) {
           // Step 1: Fetch matching images
+          const body = groupSlug
+            ? { group_slug: groupSlug }
+            : { group_id: groupId };
           const imagesRes = await fetch(`${import.meta.env.VITE_BACKEND_URL}/getimageslist/query`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ TagsInclude, TagsExclude }),
+            body: JSON.stringify(body),
           });
 
           if (!imagesRes.ok) {
@@ -92,7 +104,7 @@ export function useClockGalleryData (
     };
 
     fetchClockImageData();
-  }, [tagsIncludeKey, tagsExcludeKey, momentsArrayKey, enabled, imagesSetOverrideKey]);
+  }, [groupKey, momentsArrayKey, enabled, imagesSetOverrideKey, groupId, groupSlug]);
 
   return { loading, basenamesList, imagesSet, astroData, bodiesInImages};
 }
