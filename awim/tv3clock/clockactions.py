@@ -5,6 +5,7 @@ from core import astromath
 from core import awimlib
 
 
+# todonext: should cache to cache_daily_events
 def get_events(location, elevation_msl, currenttime):
     currenttime = np.datetime64(currenttime)
     sundaily, moondaily = astromath.calculate_astro_risesandsets(location, currenttime, elevation_msl) # todo: cache these results because they take time to calculate.

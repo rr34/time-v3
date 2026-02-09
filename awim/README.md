@@ -1,7 +1,10 @@
 ## todonext
+- cache of astrodata, types:
+	1. sunmoon_details is per location sun and moon to the 1-second detail for clock strings, 24-hour period, so 86,400 moments in time, plus an hour overlap, so 25 hours with overlap.
+	2. astrodata is per location astrodata for sun, moon, planets, stars (350 stars "normally") to 3-minute detail, 24-hour period, so 480 moments in time, plus an hour overlap, so 25 hours with overlap
+- cache of daily events: the cache_daily_events table is for daily events per location, which are a different type of data. Daily events are single moments in time that indicate something happened. The event types are in the EventType enum field. All relate to either the sun or moon. EventBody kinda duplicates information from EventType, but I think helps with using the azimuth / artifae fields so it's clear what the azimuth and artifae refer to.
 - update the UI to divide between interaction and clock mode.
 - More glockenspiels
-- cache
 
 ## 27 January 2026: a year after the previous note! Oh how the time flies.
 - awim API cache astrodata for performance improvement. Do this before upgrading server so you can see improvement / determine if upgrade necessary.

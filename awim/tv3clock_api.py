@@ -35,7 +35,6 @@ def _get_location_and_elevation_from_awim(awim_tag):
 
 @app.post('/getevents')
 async def getevents(request: Request):
-    print('got here')
     try:
         request_dict = await request.json()
     except:

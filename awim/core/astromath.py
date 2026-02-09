@@ -61,6 +61,7 @@ def calculate_astro_risesandsets(earth_latlng, moment_now, elevation=0):
     return sun_daily, moon_daily
 
 
+# I think this will get greatly altered by caching and get its data from cache_daily_events
 def calculate_astro_moonrise_times(earth_latlng, start_time, count=30, elevation=0, gridpts=50):
     """Calculate next N moonrises starting at start_time."""
     clock_astroplan_observer = astroplan.Observer(
@@ -113,6 +114,7 @@ def calculate_astro_moonrise_times(earth_latlng, start_time, count=30, elevation
     return np.array(moonrises, dtype=np.dtype('datetime64[ns]'))
 
 
+# I think this will get greatly altered by caching and get its data from cache_daily_events
 def calculate_astro_sunset_times(earth_latlng, start_day, days=366, elevation=0, gridpts=80):
     """Calculate one sunset per week starting at start_day (UTC midnight)."""
     clock_astroplan_observer = astroplan.Observer(
@@ -309,7 +311,7 @@ def calculate_astro_data(moments, earth_latlng, celestial_objects_dict):
     return response_dict
 
 
-# to display the moon partially illuminated I need the angle it appears to be illuminated.
+# to display the moon partially-illuminated I need the angle at which it appears to be illuminated.
 # return degrees. straight down = sun straight below moon = 0°. (+) angle is CCW = illum up the right side. (-) angle is CW = illum up the left side. This is unfortunately opposite of the svg animation convention but whatever.
 # see diagrams for variable meanings.
 def calculate_astro_moon_brightsidedirection(moon_azalts_deg, sun_azalts_deg):
