@@ -58,6 +58,49 @@ CREATE TABLE `bsc_remarks` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Table structure for table `cache_astrodata`
+--
+
+DROP TABLE IF EXISTS `cache_astrodata`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `cache_astrodata` (
+  `SchemaVersion` smallint(6) NOT NULL,
+  `LocationID` int(11) NOT NULL,
+  `CacheType` enum('sunmoon_details','astrodata') NOT NULL,
+  `ChunkStartUTC` datetime NOT NULL,
+  `StepSeconds` smallint(6) NOT NULL,
+  `MomentsCount` int(11) NOT NULL,
+  `CachedData` longtext DEFAULT NULL,
+  `MomentCreated` datetime NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`LocationID`,`CacheType`,`ChunkStartUTC`,`SchemaVersion`),
+  CONSTRAINT `cache_astrodata_locations_FK` FOREIGN KEY (`LocationID`) REFERENCES `locations` (`loc_id`) ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `cache_daily_events`
+--
+
+DROP TABLE IF EXISTS `cache_daily_events`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `cache_daily_events` (
+  `LocationID` int(11) DEFAULT NULL COMMENT 'NULL for fullmoon and newmoon event types',
+  `EventType` enum('midnight','sunrise','sunset','bmat','bmnt','bmct','noon','eect','eent','eeat','riseplus6deg','setminus6deg','fullmoon','newmoon','moonrise','moonset') NOT NULL,
+  `MomentEvent` datetime NOT NULL,
+  `EventBody` enum('sun','moon') DEFAULT NULL,
+  `EventAzimuth` float DEFAULT NULL,
+  `EventArtifae` float DEFAULT NULL,
+  `EventMoonPhaseAngle` float DEFAULT NULL COMMENT 'NULL for all but fullmoon and newmoon event types',
+  `event_id` int(11) NOT NULL AUTO_INCREMENT,
+  PRIMARY KEY (`event_id`),
+  KEY `cache_daily_events_LocationID_IDX` (`LocationID`,`EventType`,`MomentEvent`) USING BTREE,
+  CONSTRAINT `cache_daily_events_locations_FK` FOREIGN KEY (`LocationID`) REFERENCES `locations` (`loc_id`) ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Table structure for table `groups`
 --
 
@@ -71,6 +114,22 @@ CREATE TABLE `groups` (
   `group_id` int(11) NOT NULL AUTO_INCREMENT,
   PRIMARY KEY (`group_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `locations`
+--
+
+DROP TABLE IF EXISTS `locations`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `locations` (
+  `LocationName` varchar(255) DEFAULT NULL,
+  `CenterLatitude` double DEFAULT NULL,
+  `CenterLongitude` double DEFAULT NULL,
+  `loc_id` int(11) NOT NULL AUTO_INCREMENT,
+  PRIMARY KEY (`loc_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -104,17 +163,20 @@ CREATE TABLE `photos_awim` (
   `RefTripodDirectionMoved` varchar(100) DEFAULT NULL,
   `RefTripod1` float DEFAULT NULL,
   `RefTripod2` float DEFAULT NULL,
+  `LocationID` int(11) DEFAULT NULL,
   `SiteName` varchar(100) DEFAULT NULL,
   `PointName` varchar(100) DEFAULT NULL,
   `CamTimeError` int(11) DEFAULT NULL,
   `TZOffset` float DEFAULT NULL,
   `MomentCapture` datetime DEFAULT NULL,
-  `MomentDB` datetime DEFAULT curtime(),
+  `MomentDB` datetime DEFAULT current_timestamp(),
   `Basename` varchar(100) DEFAULT NULL,
   `Description` text DEFAULT NULL,
   `Orientation` varchar(100) DEFAULT NULL,
   `Tilt` float DEFAULT 0,
-  `LatLong` varchar(100) DEFAULT NULL,
+  `LatLong` varchar(100) DEFAULT NULL COMMENT 'replaced. delete once code updated.',
+  `Latitude` double DEFAULT NULL,
+  `Longitude` double DEFAULT NULL,
   `TerrainElevation` float DEFAULT NULL,
   `PhotoAGL` float DEFAULT NULL,
   `PhotoMSL` float DEFAULT NULL,
@@ -134,7 +196,9 @@ CREATE TABLE `photos_awim` (
   `awimTag` text DEFAULT NULL,
   `photo_id` int(11) NOT NULL AUTO_INCREMENT,
   `Tags` text CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL COMMENT 'JSON array format per ChatGPT suggestion',
-  PRIMARY KEY (`photo_id`)
+  PRIMARY KEY (`photo_id`),
+  KEY `photos_awim_locations_FK` (`LocationID`),
+  CONSTRAINT `photos_awim_locations_FK` FOREIGN KEY (`LocationID`) REFERENCES `locations` (`loc_id`) ON UPDATE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=107 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -161,4 +225,4 @@ CREATE TABLE `shoot_recommended` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-02-06 12:06:49
+-- Dump completed on 2026-02-09 17:58:01
