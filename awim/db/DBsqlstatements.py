@@ -42,6 +42,69 @@ AND g.group_id = ? ;
     return results
 
 
+def get_photos_with_coordinates():
+    results = DBfunctions.sql_execute("""
+SELECT photo_id, Latitude, Longitude
+FROM photos_awim
+WHERE Latitude IS NOT NULL
+AND Longitude IS NOT NULL;
+""", result_type='listdictionaries')
+
+    return results
+
+
+def get_primary_location_center(location_type='town_center'):
+    qms_tuple = (location_type,)
+    results = DBfunctions.sql_execute("""
+SELECT loc_id, CenterLatitude, CenterLongitude
+FROM locations
+WHERE LocationType = ?
+AND CenterLatitude IS NOT NULL
+AND CenterLongitude IS NOT NULL
+ORDER BY loc_id ASC
+LIMIT 1;
+""", qms_tuple, result_type='listdictionaries')
+
+    return results
+
+
+def insert_locations(location_rows):
+    if not location_rows:
+        return
+
+    results = DBfunctions.sql_execute("""
+INSERT INTO locations (LocationName, LocationType, CenterLatitude, CenterLongitude)
+VALUES (?, ?, ?, ?);
+""", location_rows, result_type='updatedb', many=True)
+
+    return results
+
+
+def get_locations_by_name_prefix(name_prefix):
+    qms_tuple = (name_prefix,)
+    results = DBfunctions.sql_execute("""
+SELECT loc_id, LocationName
+FROM locations
+WHERE LocationName LIKE ?
+ORDER BY loc_id ASC;
+""", qms_tuple, result_type='listdictionaries')
+
+    return results
+
+
+def update_photo_locations_with_distance(update_rows):
+    if not update_rows:
+        return
+
+    results = DBfunctions.sql_execute("""
+UPDATE photos_awim
+SET LocationID = ?, DistanceFromCenter = ?
+WHERE photo_id = ?;
+""", update_rows, result_type='updatedb', many=True)
+
+    return results
+
+
 # Duplicate data, but this puts the calculated values in the DB for a table view of how the awim tag values were calculated.
 def update_scratchpad(AWIMtag_dictionary, dev_dict):
     momentcapture = formatters.format_datetime(AWIMtag_dictionary['awim Capture Moment'], 'to string for mysql')

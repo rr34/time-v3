@@ -246,3 +246,143 @@ def display_camera_lens_shape(awim_dictionary):
     ax4.scatter(this_camera.ref_df['xang'], this_camera.ref_df['yang'], this_camera.ref_df['y_px'], s=50, c='red')
 
     pyplot.show()
+
+
+def locations_cluster():
+    max_radius_m = 1000.0
+    town_center_radius_m = 10000.0
+    earth_radius_m = 6371008.8
+
+    photos = DBsqlstatements.get_photos_with_coordinates()
+    if not photos:
+        return
+
+    photo_ids = np.array([row['photo_id'] for row in photos], dtype=np.int64)
+    latitudes = np.array([row['Latitude'] for row in photos], dtype=np.float64)
+    longitudes = np.array([row['Longitude'] for row in photos], dtype=np.float64)
+
+    def haversine_m(lat1, lon1, lat2, lon2):
+        lat1_rad = np.deg2rad(lat1)
+        lon1_rad = np.deg2rad(lon1)
+        lat2_rad = np.deg2rad(lat2)
+        lon2_rad = np.deg2rad(lon2)
+        dlat = lat2_rad - lat1_rad
+        dlon = lon2_rad - lon1_rad
+        a = np.sin(dlat / 2.0) ** 2 + np.cos(lat1_rad) * np.cos(lat2_rad) * np.sin(dlon / 2.0) ** 2
+        return 2.0 * earth_radius_m * np.arctan2(np.sqrt(a), np.sqrt(1.0 - a))
+
+    update_rows_with_distance = []
+    remaining_mask = np.ones(photo_ids.size, dtype=bool)
+
+    town_center_rows = DBsqlstatements.get_primary_location_center('town_center')
+    if town_center_rows:
+        town_center = town_center_rows[0]
+        town_center_lat = float(town_center['CenterLatitude'])
+        town_center_lon = float(town_center['CenterLongitude'])
+        town_center_distances = haversine_m(latitudes, longitudes, town_center_lat, town_center_lon)
+        town_center_mask = town_center_distances <= town_center_radius_m
+        if np.any(town_center_mask):
+            town_center_loc_id = int(town_center['loc_id'])
+            update_rows_with_distance.extend(
+                (town_center_loc_id, float(distance_m), int(photo_id))
+                for photo_id, distance_m in zip(photo_ids[town_center_mask], town_center_distances[town_center_mask])
+            )
+            remaining_mask[town_center_mask] = False
+
+    remaining_indices = np.flatnonzero(remaining_mask)
+    if remaining_indices.size == 0:
+        DBsqlstatements.update_photo_locations_with_distance(update_rows_with_distance)
+        return
+
+    remaining_photo_ids = photo_ids[remaining_indices]
+    remaining_latitudes = latitudes[remaining_indices]
+    remaining_longitudes = longitudes[remaining_indices]
+
+    lat0 = np.deg2rad(np.mean(remaining_latitudes))
+    m_per_deg_lat = 111132.0
+    m_per_deg_lon = 111320.0 * np.cos(lat0)
+    x_coords = remaining_longitudes * m_per_deg_lon
+    y_coords = remaining_latitudes * m_per_deg_lat
+    xy = np.column_stack((x_coords, y_coords))
+
+    def cluster_radius(indices: np.ndarray) -> float:
+        cluster_points = xy[indices]
+        center = cluster_points.mean(axis=0)
+        distances = np.linalg.norm(cluster_points - center, axis=1)
+        return float(distances.max())
+
+    def split_cluster(indices: np.ndarray):
+        if indices.size <= 1:
+            return indices, np.array([], dtype=np.int64)
+
+        cluster_points = xy[indices]
+        center = cluster_points.mean(axis=0)
+        dists = np.linalg.norm(cluster_points - center, axis=1)
+        seed1_idx = int(np.argmax(dists))
+        seed1 = cluster_points[seed1_idx]
+        seed2_idx = int(np.argmax(np.linalg.norm(cluster_points - seed1, axis=1)))
+        seed2 = cluster_points[seed2_idx]
+
+        if seed1_idx == seed2_idx:
+            return indices[:1], indices[1:]
+
+        for _ in range(8):
+            d1 = np.sum((cluster_points - seed1) ** 2, axis=1)
+            d2 = np.sum((cluster_points - seed2) ** 2, axis=1)
+            left_mask = d1 <= d2
+            right_mask = ~left_mask
+            if not left_mask.any() or not right_mask.any():
+                sorted_idx = np.argsort(d1 - d2)
+                half = indices.size // 2
+                left_indices = indices[sorted_idx[:half]]
+                right_indices = indices[sorted_idx[half:]]
+                return left_indices, right_indices
+            seed1 = cluster_points[left_mask].mean(axis=0)
+            seed2 = cluster_points[right_mask].mean(axis=0)
+
+        return indices[left_mask], indices[right_mask]
+
+    pending = [np.arange(remaining_photo_ids.size, dtype=np.int64)]
+    clusters = []
+    while pending:
+        current = pending.pop()
+        if current.size == 0:
+            continue
+        if cluster_radius(current) <= max_radius_m or current.size == 1:
+            clusters.append(current)
+            continue
+        left, right = split_cluster(current)
+        if left.size == 0 or right.size == 0:
+            clusters.append(current)
+            continue
+        pending.append(left)
+        pending.append(right)
+
+    run_tag = datetime.datetime.utcnow().strftime('%Y%m%d%H%M%S%f')
+    location_rows = []
+    cluster_centers = []
+    for cluster_idx, cluster in enumerate(clusters, start=1):
+        center_lat = float(remaining_latitudes[cluster].mean())
+        center_lon = float(remaining_longitudes[cluster].mean())
+        location_name = f'auto_cluster_{run_tag}_{cluster_idx}'
+        location_rows.append((location_name, 'auto_cluster', center_lat, center_lon))
+        cluster_centers.append((location_name, center_lat, center_lon, cluster))
+
+    DBsqlstatements.insert_locations(location_rows)
+
+    inserted_rows = DBsqlstatements.get_locations_by_name_prefix(f'auto_cluster_{run_tag}_%')
+    loc_id_by_name = {row['LocationName']: row['loc_id'] for row in inserted_rows}
+
+    for location_name, center_lat, center_lon, cluster in cluster_centers:
+        loc_id = loc_id_by_name.get(location_name)
+        if loc_id is None:
+            continue
+        cluster_lats = remaining_latitudes[cluster]
+        cluster_lons = remaining_longitudes[cluster]
+        distances = haversine_m(cluster_lats, cluster_lons, center_lat, center_lon)
+        update_rows_with_distance.extend(
+            (int(loc_id), float(distance_m), int(remaining_photo_ids[idx]))
+            for idx, distance_m in zip(cluster, distances)
+        )
+
+    DBsqlstatements.update_photo_locations_with_distance(update_rows_with_distance)
