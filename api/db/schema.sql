@@ -125,11 +125,12 @@ DROP TABLE IF EXISTS `locations`;
 /*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `locations` (
   `LocationName` varchar(255) DEFAULT NULL,
+  `LocationType` enum('town_square','auto_cluster') NOT NULL,
   `CenterLatitude` double DEFAULT NULL,
   `CenterLongitude` double DEFAULT NULL,
   `loc_id` int(11) NOT NULL AUTO_INCREMENT,
   PRIMARY KEY (`loc_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -164,6 +165,7 @@ CREATE TABLE `photos_awim` (
   `RefTripod1` float DEFAULT NULL,
   `RefTripod2` float DEFAULT NULL,
   `LocationID` int(11) DEFAULT NULL,
+  `DistanceFromCenter` float DEFAULT NULL COMMENT 'in meters',
   `SiteName` varchar(100) DEFAULT NULL,
   `PointName` varchar(100) DEFAULT NULL,
   `CamTimeError` int(11) DEFAULT NULL,
@@ -174,7 +176,6 @@ CREATE TABLE `photos_awim` (
   `Description` text DEFAULT NULL,
   `Orientation` varchar(100) DEFAULT NULL,
   `Tilt` float DEFAULT 0,
-  `LatLong` varchar(100) DEFAULT NULL COMMENT 'replaced. delete once code updated.',
   `Latitude` double DEFAULT NULL,
   `Longitude` double DEFAULT NULL,
   `TerrainElevation` float DEFAULT NULL,
@@ -225,4 +226,4 @@ CREATE TABLE `shoot_recommended` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-02-09 17:58:01
+-- Dump completed on 2026-02-10 10:01:19
