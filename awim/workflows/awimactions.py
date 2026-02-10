@@ -249,8 +249,8 @@ def display_camera_lens_shape(awim_dictionary):
 
 
 def locations_cluster():
-    max_radius_m = 1000.0
-    town_center_radius_m = 10000.0
+    auto_cluster_radius_m = 1000.0
+    town_square_radius_m = 10000.0
     earth_radius_m = 6371008.8
 
     photos = DBsqlstatements.get_photos_with_coordinates()
@@ -274,20 +274,60 @@ def locations_cluster():
     update_rows_with_distance = []
     remaining_mask = np.ones(photo_ids.size, dtype=bool)
 
-    town_center_rows = DBsqlstatements.get_primary_location_center('town_center')
-    if town_center_rows:
-        town_center = town_center_rows[0]
-        town_center_lat = float(town_center['CenterLatitude'])
-        town_center_lon = float(town_center['CenterLongitude'])
-        town_center_distances = haversine_m(latitudes, longitudes, town_center_lat, town_center_lon)
-        town_center_mask = town_center_distances <= town_center_radius_m
-        if np.any(town_center_mask):
-            town_center_loc_id = int(town_center['loc_id'])
+    town_square_rows = DBsqlstatements.get_location_centers('town_square')
+    if town_square_rows:
+        town_square_ids = np.array([int(row['loc_id']) for row in town_square_rows], dtype=np.int64)
+        town_square_lats = np.array([float(row['CenterLatitude']) for row in town_square_rows], dtype=np.float64)
+        town_square_lons = np.array([float(row['CenterLongitude']) for row in town_square_rows], dtype=np.float64)
+        town_square_distances_matrix = haversine_m(
+            latitudes[:, np.newaxis],
+            longitudes[:, np.newaxis],
+            town_square_lats[np.newaxis, :],
+            town_square_lons[np.newaxis, :],
+        )
+        nearest_town_square_index = np.argmin(town_square_distances_matrix, axis=1)
+        nearest_town_square_distance = town_square_distances_matrix[np.arange(photo_ids.size), nearest_town_square_index]
+        town_square_mask = nearest_town_square_distance <= town_square_radius_m
+        if np.any(town_square_mask):
             update_rows_with_distance.extend(
-                (town_center_loc_id, float(distance_m), int(photo_id))
-                for photo_id, distance_m in zip(photo_ids[town_center_mask], town_center_distances[town_center_mask])
+                (int(town_square_ids[loc_idx]), float(distance_m), int(photo_id))
+                for photo_id, loc_idx, distance_m in zip(
+                    photo_ids[town_square_mask],
+                    nearest_town_square_index[town_square_mask],
+                    nearest_town_square_distance[town_square_mask],
+                )
             )
-            remaining_mask[town_center_mask] = False
+            remaining_mask[town_square_mask] = False
+
+    auto_cluster_rows = DBsqlstatements.get_location_centers('auto_cluster')
+    if auto_cluster_rows:
+        remaining_indices = np.flatnonzero(remaining_mask)
+        if remaining_indices.size > 0:
+            auto_cluster_ids = np.array([int(row['loc_id']) for row in auto_cluster_rows], dtype=np.int64)
+            auto_cluster_lats = np.array([float(row['CenterLatitude']) for row in auto_cluster_rows], dtype=np.float64)
+            auto_cluster_lons = np.array([float(row['CenterLongitude']) for row in auto_cluster_rows], dtype=np.float64)
+            remaining_lats = latitudes[remaining_indices]
+            remaining_lons = longitudes[remaining_indices]
+            auto_cluster_distances_matrix = haversine_m(
+                remaining_lats[:, np.newaxis],
+                remaining_lons[:, np.newaxis],
+                auto_cluster_lats[np.newaxis, :],
+                auto_cluster_lons[np.newaxis, :],
+            )
+            nearest_auto_cluster_index = np.argmin(auto_cluster_distances_matrix, axis=1)
+            nearest_auto_cluster_distance = auto_cluster_distances_matrix[np.arange(remaining_indices.size), nearest_auto_cluster_index]
+            auto_cluster_mask = nearest_auto_cluster_distance <= auto_cluster_radius_m
+            if np.any(auto_cluster_mask):
+                matched_photo_indices = remaining_indices[auto_cluster_mask]
+                update_rows_with_distance.extend(
+                    (int(auto_cluster_ids[loc_idx]), float(distance_m), int(photo_id))
+                    for photo_id, loc_idx, distance_m in zip(
+                        photo_ids[matched_photo_indices],
+                        nearest_auto_cluster_index[auto_cluster_mask],
+                        nearest_auto_cluster_distance[auto_cluster_mask],
+                    )
+                )
+                remaining_mask[matched_photo_indices] = False
 
     remaining_indices = np.flatnonzero(remaining_mask)
     if remaining_indices.size == 0:
@@ -348,7 +388,7 @@ def locations_cluster():
         current = pending.pop()
         if current.size == 0:
             continue
-        if cluster_radius(current) <= max_radius_m or current.size == 1:
+        if cluster_radius(current) <= auto_cluster_radius_m or current.size == 1:
             clusters.append(current)
             continue
         left, right = split_cluster(current)

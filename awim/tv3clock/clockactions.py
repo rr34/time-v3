@@ -8,7 +8,7 @@ from core import awimlib
 # todonext: should cache to cache_daily_events
 def get_events(location, elevation_msl, currenttime):
     currenttime = np.datetime64(currenttime)
-    sundaily, moondaily = astromath.calculate_astro_risesandsets(location, currenttime, elevation_msl) # todo: cache these results because they take time to calculate.
+    sundaily, moondaily = astromath.calculate_astro_risesandsets(location, currenttime, elevation_msl)
 
     justsundict = {'sun': {'type': 'sun', 'ReadableName': 'Sun'}}
     sundata = astromath.calculate_astro_data(sundaily, location, justsundict)['sun']
@@ -36,6 +36,7 @@ def get_events(location, elevation_msl, currenttime):
     return response_dict
 
 
+# should cache to cache_astrodata
 def get_astrodata(location, momentsarray, requestlist, MagRankAllMax, LatDec_filter):
     momentsarray = np.array([np.datetime64(moment) for moment in momentsarray])
     bodies_astro_dict = {}

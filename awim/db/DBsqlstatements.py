@@ -53,7 +53,7 @@ AND Longitude IS NOT NULL;
     return results
 
 
-def get_primary_location_center(location_type='town_center'):
+def get_primary_location_center(location_type='town_square'):
     qms_tuple = (location_type,)
     results = DBfunctions.sql_execute("""
 SELECT loc_id, CenterLatitude, CenterLongitude
@@ -68,6 +68,27 @@ LIMIT 1;
     return results
 
 
+def get_location_centers(location_type=None):
+    if location_type is None:
+        results = DBfunctions.sql_execute("""
+SELECT loc_id, LocationType, CenterLatitude, CenterLongitude
+FROM locations
+WHERE CenterLatitude IS NOT NULL
+AND CenterLongitude IS NOT NULL;
+""", result_type='listdictionaries')
+    else:
+        qms_tuple = (location_type,)
+        results = DBfunctions.sql_execute("""
+SELECT loc_id, LocationType, CenterLatitude, CenterLongitude
+FROM locations
+WHERE LocationType = ?
+AND CenterLatitude IS NOT NULL
+AND CenterLongitude IS NOT NULL;
+""", qms_tuple, result_type='listdictionaries')
+
+    return results
+
+
 def insert_locations(location_rows):
     if not location_rows:
         return
@@ -76,6 +97,26 @@ def insert_locations(location_rows):
 INSERT INTO locations (LocationName, LocationType, CenterLatitude, CenterLongitude)
 VALUES (?, ?, ?, ?);
 """, location_rows, result_type='updatedb', many=True)
+
+    return results
+
+
+def get_cache_locations_with_photo_counts():
+    results = DBfunctions.sql_execute("""
+SELECT
+    l.loc_id,
+    l.LocationName,
+    l.LocationType,
+    l.CenterLatitude,
+    l.CenterLongitude,
+    COUNT(p.photo_id) AS PhotoCount
+FROM locations l
+LEFT JOIN photos_awim p ON p.LocationID = l.loc_id
+WHERE l.CenterLatitude IS NOT NULL
+AND l.CenterLongitude IS NOT NULL
+GROUP BY l.loc_id, l.LocationName, l.LocationType, l.CenterLatitude, l.CenterLongitude
+ORDER BY l.loc_id ASC;
+""", result_type='listdictionaries')
 
     return results
 
@@ -101,6 +142,59 @@ UPDATE photos_awim
 SET LocationID = ?, DistanceFromCenter = ?
 WHERE photo_id = ?;
 """, update_rows, result_type='updatedb', many=True)
+
+    return results
+
+
+def get_daily_events_max_moment(location_id):
+    qms_tuple = (location_id,)
+    results = DBfunctions.sql_execute("""
+SELECT MAX(MomentEvent)
+FROM cache_daily_events
+WHERE LocationID = ?;
+""", qms_tuple, result_type='listsinglefield')
+
+    return results[0] if results else None
+
+
+def get_existing_daily_event_keys(location_id, start_moment, end_moment):
+    qms_tuple = (location_id, start_moment, end_moment)
+    results = DBfunctions.sql_execute("""
+SELECT EventType, MomentEvent
+FROM cache_daily_events
+WHERE LocationID = ?
+AND MomentEvent >= ?
+AND MomentEvent < ?;
+""", qms_tuple, result_type='listtuples')
+
+    return results
+
+
+def insert_cache_daily_events(event_rows):
+    if not event_rows:
+        return
+
+    results = DBfunctions.sql_execute("""
+INSERT INTO cache_daily_events
+(LocationID, EventType, MomentEvent, EventBody, EventAzimuth, EventArtifae, EventMoonPhaseAngle)
+VALUES (?, ?, ?, ?, ?, ?, ?);
+""", event_rows, result_type='updatedb', many=True)
+
+    return results
+
+
+def upsert_cache_astrodata(schema_version, location_id, cache_type, chunk_start_utc, step_seconds, moments_count, cached_data_json):
+    qms_tuple = (schema_version, location_id, cache_type, chunk_start_utc, step_seconds, moments_count, cached_data_json)
+    results = DBfunctions.sql_execute("""
+INSERT INTO cache_astrodata
+(SchemaVersion, LocationID, CacheType, ChunkStartUTC, StepSeconds, MomentsCount, CachedData)
+VALUES (?, ?, ?, ?, ?, ?, ?)
+ON DUPLICATE KEY UPDATE
+    StepSeconds = VALUES(StepSeconds),
+    MomentsCount = VALUES(MomentsCount),
+    CachedData = VALUES(CachedData),
+    MomentCreated = CURRENT_TIMESTAMP();
+""", qms_tuple, result_type='updatedb')
 
     return results
 

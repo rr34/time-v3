@@ -3,3 +3,5 @@ __pycache__/
 working/
 
 *Zone.Identifier
+
+cache_logs/

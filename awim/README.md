@@ -1,8 +1,16 @@
-## todonext
-- cache of astrodata, types:
-	1. sunmoon_details is per location sun and moon to the 1-second detail for clock strings, 24-hour period, so 86,400 moments in time, plus an hour overlap, so 25 hours with overlap.
-	2. astrodata is per location astrodata for sun, moon, planets, stars (350 stars "normally") to 3-minute detail, 24-hour period, so 480 moments in time, plus an hour overlap, so 25 hours with overlap
-- cache of daily events: the cache_daily_events table is for daily events per location, which are a different type of data. Daily events are single moments in time that indicate something happened. The event types are in the EventType enum field. All relate to either the sun or moon. EventBody kinda duplicates information from EventType, but I think helps with using the azimuth / artifae fields so it's clear what the azimuth and artifae refer to.
+# Cache Generation Plan
+- I want the cache to run nightly. Initially I want it to run at midnight somewhere west coast USA based on a longitude time zone relative to UTC, starting UTC-8 for simplicity. This means caching for a 24-hour period.
+- first, run locations_cluster to update the locations that have to be cached. locations cluster should not add locations unless necessary for new photos outside 1km from an existing auto_cluster or 10km from an existing town_center
+- for town_center locations with no associated photos, the following caches are needed:
+	- cache of daily events to the cache_daily_events table for a whole year plus a month, so let's do 400 days from today. For new locations, daily events for the whole 400 days have to be generated. For locations that already have daily events generated, only extend when the cache has fallen under 366 days. This way, daily events get calculated in bulk of at least 30 days at a time. The list of daily events is in the enum field of cache_daily_events.
+	- Note: use the astroplan default gridpoints value of 150 for all daily events calculations.
+	- cache of sunmoon_details is sun and moon to the 1-second detail for clock strings, 24-hour period, so 86,400 moments in time, plus an hour + overlap, so 25 or 26 hours with overlap. I think 26 hours to account for an hour of overlap plus an hour to generate the cache.
+- for locations represented in photos_awim, daily events, sunmoon_details, and astrodata will be generated. This will add some daily events, some sunmoon_details, and astrodata for all.
+	- astrodata for sun, moon, planets, stars (350 stars "normally") to 3-minute detail, 24-hour period, so 480 moments in time, plus an hour overlap, so 25 or 26 hours with overlap.
+	- Note: the 350 stars value is currently set in app.tsx MagRankAllMaxParam then passed to awim. For caching, let's just start with this value hard-coded.
+	- Note: there is a new cache_logs directory where I would like to log performance data for each cache run.
+
+
 - update the UI to divide between interaction and clock mode.
 - More glockenspiels
 
