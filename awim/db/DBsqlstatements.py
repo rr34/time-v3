@@ -151,7 +151,31 @@ def get_daily_events_max_moment(location_id):
     results = DBfunctions.sql_execute("""
 SELECT MAX(MomentEvent)
 FROM cache_daily_events
-WHERE LocationID = ?;
+WHERE LocationID = ?
+AND EventType NOT IN ('newmoon', 'fullmoon');
+""", qms_tuple, result_type='listsinglefield')
+
+    return results[0] if results else None
+
+
+def get_global_newfullmoon_max_moment():
+    results = DBfunctions.sql_execute("""
+SELECT MAX(MomentEvent)
+FROM cache_daily_events
+WHERE LocationID IS NULL
+AND EventType IN ('newmoon', 'fullmoon');
+""", result_type='listsinglefield')
+
+    return results[0] if results else None
+
+
+def get_location_newfullmoon_max_moment(location_id):
+    qms_tuple = (location_id,)
+    results = DBfunctions.sql_execute("""
+SELECT MAX(MomentEvent)
+FROM cache_daily_events
+WHERE LocationID = ?
+AND EventType IN ('newmoon', 'fullmoon');
 """, qms_tuple, result_type='listsinglefield')
 
     return results[0] if results else None
@@ -170,6 +194,49 @@ AND MomentEvent < ?;
     return results
 
 
+def get_existing_location_newfullmoon_keys(location_id, start_moment, end_moment):
+    qms_tuple = (location_id, start_moment, end_moment)
+    results = DBfunctions.sql_execute("""
+SELECT EventType, MomentEvent
+FROM cache_daily_events
+WHERE LocationID = ?
+AND EventType IN ('newmoon', 'fullmoon')
+AND MomentEvent >= ?
+AND MomentEvent < ?;
+""", qms_tuple, result_type='listtuples')
+
+    return results
+
+
+def get_existing_global_newfullmoon_keys(start_moment, end_moment):
+    qms_tuple = (start_moment, end_moment)
+    results = DBfunctions.sql_execute("""
+SELECT EventType, MomentEvent
+FROM cache_daily_events
+WHERE LocationID IS NULL
+AND EventType IN ('newmoon', 'fullmoon')
+AND MomentEvent >= ?
+AND MomentEvent < ?;
+""", qms_tuple, result_type='listtuples')
+
+    return results
+
+
+def get_global_newfullmoon_rows(start_moment, end_moment):
+    qms_tuple = (start_moment, end_moment)
+    results = DBfunctions.sql_execute("""
+SELECT EventType, MomentEvent, EventBody, EventMoonPhaseAngle
+FROM cache_daily_events
+WHERE LocationID IS NULL
+AND EventType IN ('newmoon', 'fullmoon')
+AND MomentEvent >= ?
+AND MomentEvent < ?
+ORDER BY MomentEvent ASC;
+""", qms_tuple, result_type='listtuples')
+
+    return results
+
+
 def insert_cache_daily_events(event_rows):
     if not event_rows:
         return
@@ -179,6 +246,59 @@ INSERT INTO cache_daily_events
 (LocationID, EventType, MomentEvent, EventBody, EventAzimuth, EventArtifae, EventMoonPhaseAngle)
 VALUES (?, ?, ?, ?, ?, ?, ?);
 """, event_rows, result_type='updatedb', many=True)
+
+    return results
+
+
+def get_global_newfullmoon_missing_fields():
+    results = DBfunctions.sql_execute("""
+SELECT event_id, EventType, EventBody, MomentEvent
+FROM cache_daily_events
+WHERE LocationID IS NULL
+AND EventType IN ('newmoon', 'fullmoon')
+AND (EventAzimuth IS NULL OR EventArtifae IS NULL OR EventMoonPhaseAngle IS NULL)
+ORDER BY MomentEvent ASC, event_id ASC;
+""", result_type='listdictionaries')
+
+    return results
+
+
+def get_daily_events_missing_azart(location_id):
+    qms_tuple = (location_id,)
+    results = DBfunctions.sql_execute("""
+SELECT event_id, EventBody, MomentEvent
+FROM cache_daily_events
+WHERE LocationID = ?
+AND EventBody IN ('sun', 'moon')
+AND (EventAzimuth IS NULL OR EventArtifae IS NULL)
+ORDER BY MomentEvent ASC, event_id ASC;
+""", qms_tuple, result_type='listdictionaries')
+
+    return results
+
+
+def update_daily_events_azart_phase(update_rows):
+    if not update_rows:
+        return
+
+    results = DBfunctions.sql_execute("""
+UPDATE cache_daily_events
+SET EventAzimuth = ?, EventArtifae = ?, EventMoonPhaseAngle = ?
+WHERE event_id = ?;
+""", update_rows, result_type='updatedb', many=True)
+
+    return results
+
+
+def update_daily_events_azart(update_rows):
+    if not update_rows:
+        return
+
+    results = DBfunctions.sql_execute("""
+UPDATE cache_daily_events
+SET EventAzimuth = ?, EventArtifae = ?
+WHERE event_id = ?;
+""", update_rows, result_type='updatedb', many=True)
 
     return results
 

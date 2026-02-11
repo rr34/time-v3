@@ -68,16 +68,23 @@ def run_nightly_cache(utc_offset_hours=-8, throttle_seconds=0.15):
         )
 
         now_utc_naive = now_utc.replace(tzinfo=None)
+        cache_jobs.cache_global_newfullmoon_events(now_utc_naive, logger=logger)
+        cache_jobs.cache_global_newfullmoon_details(logger=logger)
+
         for location in town_square_without_photos:
             cache_jobs.cache_daily_events_for_location(location, now_utc_naive, logger=logger)
+            cache_jobs.cache_location_newfullmoon_events_for_location(location, now_utc_naive, logger=logger)
             cache_jobs.cache_sunmoon_details_for_location(location, window_start_utc, window_end_utc, logger=logger)
+            cache_jobs.cache_daily_event_azart_for_location(location, logger=logger)
             if throttle_seconds > 0:
                 time.sleep(throttle_seconds)
 
         for location in represented_in_photos:
             cache_jobs.cache_daily_events_for_location(location, now_utc_naive, logger=logger)
+            cache_jobs.cache_location_newfullmoon_events_for_location(location, now_utc_naive, logger=logger)
             cache_jobs.cache_sunmoon_details_for_location(location, window_start_utc, window_end_utc, logger=logger)
             cache_jobs.cache_astrodata_for_location(location, window_start_utc, window_end_utc, logger=logger)
+            cache_jobs.cache_daily_event_azart_for_location(location, logger=logger)
             if throttle_seconds > 0:
                 time.sleep(throttle_seconds)
 
