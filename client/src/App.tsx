@@ -16,6 +16,7 @@ function App() {
   const [showGlockenspielPicker, setShowGlockenspielPicker] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [gsCurrentIndex, setGsCurrentIndex] = useState(0);
+  const [glockenspielRestartKey, setGlockenspielRestartKey] = useState(0);
 
   type GlockenspielType = 'moonrise_month' | 'sunset_year';
   const [glockenspielType, setGlockenspielType] = useState<GlockenspielType>('moonrise_month');
@@ -257,6 +258,11 @@ function App() {
 
   const activeBasenamesList = selectedScreen === 'glockenspiel' ? gsBasenamesList : basenamesList;
   const setActiveIndex = selectedScreen === 'glockenspiel' ? setGsCurrentIndex : setCurrentIndex;
+  const canRestartGlockenspiel = selectedScreen === 'glockenspiel'
+    && !glockenspielLoading
+    && !glockenspielError
+    && glockenspielMoments.length > 0
+    && gsBasenamesList.length > 0;
 
   return (
     <>
@@ -326,6 +332,15 @@ function App() {
             ))}
           </div>
         )}
+        {canRestartGlockenspiel && (
+          <button
+            type="button"
+            className="restart-glockenspiel-button"
+            onClick={() => setGlockenspielRestartKey((key) => key + 1)}
+          >
+            Restart
+          </button>
+        )}
         <button
           onClick={() => {
             if (!activeBasenamesList.length) return;
@@ -353,12 +368,13 @@ function App() {
               : selectedScreen === 'glockenspiel'
                 ? (
                     glockenspielLoading
-                      ? <p>Loading Glockenspielen config...</p>
+                      ? <p>Loading glockenspiel config...</p>
                       : glockenspielError
-                        ? <p>Glockenspielen error: {glockenspielError}</p>
+                        ? <p>Glockenspiel error: {glockenspielError}</p>
                         : (!glockenspielMoments.length || !gsBasenamesList.length)
-                          ? <p>No Glockenspielen data yet.</p>
+                          ? <p>No glockenspiel data yet.</p>
                           : <ClockGallery
+                              key={`glockenspiel-${glockenspielRestartKey}`}
                               loading={gsLoading}
                               MomentsArray={glockenspielMoments}
                               basenamesList={gsBasenamesList}
