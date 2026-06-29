@@ -3,7 +3,9 @@ __pycache__/
 working/
 
 *Zone.Identifier
-
 cache_logs/
 
 text.*
+
+runstuff.py
+py*env*/
