@@ -73,18 +73,26 @@ app.use("/clockimages", (req, res, next) => {
 
 // POST route to query photos by group_slug or group_id
 app.post('/getimageslist/query', async (req, res) => {
-  const { group_id: groupIdRaw, group_slug: groupSlugRaw } = req.body ?? {};
+  const { group_id: groupIdRaw, group_slug: groupSlugRaw, group_type: groupTypeRaw } = req.body ?? {};
   const groupId = Number(groupIdRaw);
   const groupSlug = typeof groupSlugRaw === "string" ? groupSlugRaw.trim() : "";
+  const groupType = typeof groupTypeRaw === "string" && groupTypeRaw.trim()
+    ? groupTypeRaw.trim()
+    : "clock";
 
   if (!groupSlug && !Number.isFinite(groupId)) {
     return res.status(400).json({ error: "group_slug or group_id is required" });
+  }
+
+  if (!["clock", "batch", "glockenspiel"].includes(groupType)) {
+    return res.status(400).json({ error: "group_type must be clock, batch, or glockenspiel" });
   }
 
   try {
     const photos = await getPhotosByGroup({
       groupId: Number.isFinite(groupId) ? groupId : null,
       groupSlug: groupSlug || null,
+      groupType,
     });
 
     // Transform array into object keyed by Basename

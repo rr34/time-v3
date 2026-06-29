@@ -15,9 +15,12 @@ const pool = mysql.createPool({
   timezone: 'Z',
 });
 
-export async function getPhotosByGroup({ groupId, groupSlug }) {
+export async function getPhotosByGroup({ groupId, groupSlug, groupType = "clock" }) {
   const useSlug = typeof groupSlug === "string" && groupSlug.trim().length > 0;
   const useId = Number.isFinite(groupId);
+  const normalizedGroupType = typeof groupType === "string" && groupType.trim()
+    ? groupType.trim()
+    : "clock";
 
   if (!useSlug && !useId) {
     return [];
@@ -29,14 +32,14 @@ export async function getPhotosByGroup({ groupId, groupSlug }) {
   const query = `
     SELECT p.Basename, p.awimTag
     FROM photos_awim p
-    JOIN photo_grouping pg ON pg.PhotoID = p.photo_id
-    JOIN groups g ON g.group_id = pg.GroupID
+    JOIN photos_groups_join pg ON pg.PhotoID = p.photo_id
+    JOIN photos_groups g ON g.group_id = pg.GroupID
     WHERE ${whereClause}
-      AND g.GroupType = 'clock'
+      AND g.GroupType = ?
     ORDER BY p.photo_id
     LIMIT 100
   `;
 
-  const [rows] = await pool.query(query, [param]);
+  const [rows] = await pool.query(query, [param, normalizedGroupType]);
   return rows;
 }

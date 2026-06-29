@@ -13,6 +13,7 @@ function App() {
   
   const [showPanel, setShowPanel] = useState(true);
   const [selectedScreen, setSelectedScreen] = useState<'screen' | 'strings' | 'glockenspiel'>('strings');
+  const [showGlockenspielPicker, setShowGlockenspielPicker] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [gsCurrentIndex, setGsCurrentIndex] = useState(0);
 
@@ -60,6 +61,14 @@ function App() {
     moonrise_month: { frameDuration: 2.0, GSTitle: "Next 30 Moonrises" },
     sunset_year: { frameDuration: 0.7, GSTitle: "Sunset Each Day for a Year" },
   } as const;
+  const glockenspielOptions: Array<{
+    type: GlockenspielType;
+    label: string;
+    detail: string;
+  }> = [
+    { type: "moonrise_month", label: "Moonrise Month", detail: "Next 30 moonrises (+2 hours)" },
+    { type: "sunset_year", label: "Sunset Year", detail: "Sunset (30 minutes prior) every day for a year, 366 frames." },
+  ];
   const gsFrameDuration = glockenspielParams[glockenspielType].frameDuration;
   const addHours = useMemo(() => (
     addHoursParam ? Number(addHoursParam) : 0.0),
@@ -161,7 +170,7 @@ function App() {
         setGlockenspielLoading(true);
         setGlockenspielError(null);
 
-        const body = groupSlug ? { group_slug: groupSlug } : { group_id: groupId };
+        const body = { group_slug: glockenspielType, group_type: "glockenspiel" };
         const imagesRes = await fetch(`${import.meta.env.VITE_BACKEND_URL}/getimageslist/query`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -223,7 +232,7 @@ function App() {
     return () => {
       cancelled = true;
     };
-  }, [selectedScreen, groupId, groupSlug, glockenspielType, nowDaily]);
+  }, [selectedScreen, glockenspielType, nowDaily]);
 
   const { loading, basenamesList, imagesSet, astroData, bodiesInImages } = useClockGalleryData(
     momentsarray_animation,
@@ -272,7 +281,10 @@ function App() {
             type="radio"
             value="strings"
             checked={selectedScreen === 'strings'}
-            onChange={() => setSelectedScreen('strings')}
+            onChange={() => {
+              setSelectedScreen('strings');
+              setShowGlockenspielPicker(false);
+            }}
           />
           Clock Strings
         </label>
@@ -281,32 +293,38 @@ function App() {
             type="radio"
             value="screen"
             checked={selectedScreen === 'screen'}
-            onChange={() => setSelectedScreen('screen')}
+            onChange={() => {
+              setSelectedScreen('screen');
+              setShowGlockenspielPicker(false);
+            }}
           />
           Clock Gallery
         </label>
-        <label>
-          <input
-            type="radio"
-            value="glockenspiel"
-            checked={selectedScreen === 'glockenspiel'}
-            onChange={() => setSelectedScreen('glockenspiel')}
-          />
-          Glockenspiel
-        </label>
-        {selectedScreen === 'glockenspiel' && (
-          <>
-            <label>
-              Glockenspiel:
-              <select
-                value={glockenspielType}
-                onChange={(e) => setGlockenspielType(e.target.value as GlockenspielType)}
+        <button
+          type="button"
+          className={`panel-mode-button ${selectedScreen === 'glockenspiel' ? 'is-active' : ''}`}
+          onClick={() => setShowGlockenspielPicker((isOpen) => !isOpen)}
+        >
+          Glockenspielen
+        </button>
+        {showGlockenspielPicker && (
+          <div className="glockenspiel-picker">
+            {glockenspielOptions.map((option) => (
+              <button
+                key={option.type}
+                type="button"
+                className={`glockenspiel-option ${selectedScreen === 'glockenspiel' && glockenspielType === option.type ? 'is-active' : ''}`}
+                onClick={() => {
+                  setGlockenspielType(option.type);
+                  setSelectedScreen('glockenspiel');
+                  setShowGlockenspielPicker(false);
+                }}
               >
-                <option value="moonrise_month">Moonrise Month (rise + 2h)</option>
-                <option value="sunset_year">Sunset Year (daily, 366 frames, sunset - 30m)</option>
-              </select>
-            </label>
-          </>
+                <span>{option.label}</span>
+                <small>{option.detail}</small>
+              </button>
+            ))}
+          </div>
         )}
         <button
           onClick={() => {
@@ -335,11 +353,11 @@ function App() {
               : selectedScreen === 'glockenspiel'
                 ? (
                     glockenspielLoading
-                      ? <p>Loading glockenspiel config...</p>
+                      ? <p>Loading Glockenspielen config...</p>
                       : glockenspielError
-                        ? <p>Glockenspiel error: {glockenspielError}</p>
+                        ? <p>Glockenspielen error: {glockenspielError}</p>
                         : (!glockenspielMoments.length || !gsBasenamesList.length)
-                          ? <p>No glockenspiel data yet.</p>
+                          ? <p>No Glockenspielen data yet.</p>
                           : <ClockGallery
                               loading={gsLoading}
                               MomentsArray={glockenspielMoments}

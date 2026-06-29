@@ -20,3 +20,5 @@ Cache Generation Notes (awim):
 - Keep SQL centralized in `DBsqlstatements` where practical.
 - Do not edit `astromath.py` for cache work; duplicate/modify logic in `astromath_cache.py`.
 - Cache logging should write performance/run details to the `cache_logs` directory.
+
+- artifae is the angular distance above / below the horizon throughout this project. Artifae is an arabic word for angle, like azimuth.

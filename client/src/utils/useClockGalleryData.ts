@@ -64,10 +64,11 @@ export function useClockGalleryData (
           imagesSetLocal = await imagesRes.json(); // local variable
         }
 
-        setImagesSet(imagesSetLocal);
-        setBasenamesList(Object.keys(imagesSetLocal));
+        const resolvedImagesSet = imagesSetLocal ?? {};
+        setImagesSet(resolvedImagesSet);
+        setBasenamesList(Object.keys(resolvedImagesSet));
 
-        if (Object.keys(imagesSetLocal).length === 0) {
+        if (Object.keys(resolvedImagesSet).length === 0) {
           setAstroData({});
           setBodiesInImages({});
           setLoading(false);
@@ -79,7 +80,7 @@ export function useClockGalleryData (
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            awims_dict: imagesSetLocal, // use local variable, not state
+            awims_dict: resolvedImagesSet, // use local variable, not state
             momentsarray: MomentsArray,
             requestlist: ["stars", "sun", "moon", "planets"],
             MagRankAllMax: MagRankAllMax,
