@@ -121,6 +121,60 @@ ORDER BY l.loc_id ASC;
     return results
 
 
+def get_cached_daily_events(location_id, start_moment, end_moment, event_types=None):
+    params = [location_id, start_moment, end_moment]
+    event_type_clause = ""
+    if event_types:
+        placeholders = ", ".join(["?"] * len(event_types))
+        event_type_clause = f"AND EventType IN ({placeholders})"
+        params.extend(event_types)
+
+    results = DBfunctions.sql_execute(f"""
+SELECT
+    event_id,
+    LocationID,
+    EventType,
+    MomentEvent,
+    EventBody,
+    EventAzimuth,
+    EventArtifae,
+    EventMoonPhaseAngle
+FROM cache_daily_events
+WHERE LocationID = ?
+AND MomentEvent >= ?
+AND MomentEvent < ?
+{event_type_clause}
+ORDER BY MomentEvent ASC, event_id ASC;
+""", tuple(params), result_type='listdictionaries')
+
+    return results
+
+
+def get_cached_astrodata_chunk(location_id, cache_type, start_moment, end_moment, schema_version=1):
+    qms_tuple = (location_id, cache_type, schema_version, start_moment, end_moment)
+    results = DBfunctions.sql_execute("""
+SELECT
+    SchemaVersion,
+    LocationID,
+    CacheType,
+    ChunkStartUTC,
+    StepSeconds,
+    MomentsCount,
+    CachedData,
+    MomentCreated
+FROM cache_astrodata
+WHERE LocationID = ?
+AND CacheType = ?
+AND SchemaVersion = ?
+AND ChunkStartUTC <= ?
+AND DATE_ADD(ChunkStartUTC, INTERVAL (StepSeconds * MomentsCount) SECOND) > ?
+ORDER BY ChunkStartUTC DESC
+LIMIT 1;
+""", qms_tuple, result_type='listdictionaries')
+
+    return results[0] if results else None
+
+
 def get_locations_by_name_prefix(name_prefix):
     qms_tuple = (name_prefix,)
     results = DBfunctions.sql_execute("""
@@ -156,6 +210,23 @@ AND EventType NOT IN ('newmoon', 'fullmoon');
 """, qms_tuple, result_type='listsinglefield')
 
     return results[0] if results else None
+
+
+def get_daily_events_max_moments_by_event_type(location_id, event_types):
+    if not event_types:
+        return []
+
+    placeholders = ", ".join(["?"] * len(event_types))
+    qms_tuple = tuple([location_id] + list(event_types))
+    results = DBfunctions.sql_execute(f"""
+SELECT EventType, MAX(MomentEvent) AS MaxMomentEvent
+FROM cache_daily_events
+WHERE LocationID = ?
+AND EventType IN ({placeholders})
+GROUP BY EventType;
+""", qms_tuple, result_type='listdictionaries')
+
+    return results
 
 
 def get_global_newfullmoon_max_moment():

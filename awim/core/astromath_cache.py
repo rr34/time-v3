@@ -6,7 +6,8 @@ from astropy.time import Time
 import astroplan
 
 DAILY_EVENT_DUPLICATE_TOLERANCE_SECONDS = 240
-NO_EVENT_SEED_ADVANCE_DAYS = 182
+NO_EVENT_SEED_ADVANCE_DAYS = 1
+AFTER_EVENT_SEED_ADVANCE_HOURS = 12
 MAX_ITERATION_PADDING_DAYS = 8
 NEWFULL_SEED_STEP_DAYS = 7
 
@@ -290,20 +291,10 @@ def _generate_event_type_rows(
 ):
     tolerance_seconds = max(int(dedupe_tolerance_seconds), 0)
     tolerance64 = np.timedelta64(tolerance_seconds, 's')
-    one_second64 = np.timedelta64(1, 's')
-
-    previous64 = _get_event_time64(
-        observer=observer,
-        method_name=method_name,
-        seed64=window_start64 - one_second64,
-        gridpts=gridpts,
-        which='previous',
-        horizon=horizon,
-    )
-    seed64 = window_start64 if previous64 is None else previous64 + one_second64
-
-    days_span = int((window_end64 - window_start64) / np.timedelta64(1, 'D'))
-    max_iterations = max(64, days_span + MAX_ITERATION_PADDING_DAYS)
+    after_event_advance64 = np.timedelta64(AFTER_EVENT_SEED_ADVANCE_HOURS, 'h')
+    seed64 = window_start64
+    days_span = int((window_end64 - window_start64) / np.timedelta64(1, 'D')) + 1
+    max_iterations = max(64, days_span * 3 + MAX_ITERATION_PADDING_DAYS)
     last_kept64 = None
 
     for _ in range(max_iterations):
@@ -315,6 +306,7 @@ def _generate_event_type_rows(
             which='next',
             horizon=horizon,
         )
+
         if event64 is None:
             seed64 = seed64 + np.timedelta64(NO_EVENT_SEED_ADVANCE_DAYS, 'D')
             if seed64 >= window_end64:
@@ -329,12 +321,16 @@ def _generate_event_type_rows(
 
         if last_kept64 is not None and tolerance_seconds > 0:
             if np.abs(event64 - last_kept64) <= tolerance64:
-                seed64 = last_kept64 + tolerance64 + one_second64
+                seed64 = event64 + after_event_advance64
                 continue
+
+        if last_kept64 is not None and event64 <= last_kept64:
+            seed64 = last_kept64 + after_event_advance64
+            continue
 
         _append_row(rows, location_id, event_type, event64, event_body)
         last_kept64 = event64
-        seed64 = event64 + one_second64
+        seed64 = event64 + after_event_advance64
 
 
 # ----- Daily Event Generation -----

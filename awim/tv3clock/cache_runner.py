@@ -2,6 +2,12 @@ from datetime import datetime, timezone
 from pathlib import Path
 import os
 import time
+from dotenv import load_dotenv
+
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+load_dotenv(REPO_ROOT / '.env')
+
 from workflows.awimactions import locations_cluster
 from tv3clock import cache_jobs
 from tv3clock import cache_windows
@@ -33,8 +39,7 @@ def _release_lock(lock_fd, lock_path=LOCK_FILE_PATH):
 
 # ----- Nightly Orchestration -----
 def run_nightly_cache(utc_offset_hours=-8, throttle_seconds=0.15):
-    repo_root = Path(__file__).resolve().parents[1]
-    logger = CacheRunLogger(repo_root=repo_root, run_name='nightly_cache')
+    logger = CacheRunLogger(repo_root=REPO_ROOT, run_name='nightly_cache')
     lock_fd = _acquire_lock()
     if lock_fd is None:
         logger.log('run_skipped', reason='lock_exists')

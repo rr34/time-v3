@@ -11,6 +11,7 @@ from core import formatters
 SCHEMA_VERSION = 1
 ASTRODATA_REQUEST_LIST = ['sun', 'moon', 'planets', 'stars']
 DEFAULT_STARS_MAG_RANK_ALL_MAX = 350
+DAILY_EVENT_TYPES = [spec['event_type'] for spec in astromath_cache.EVENT_SPECS]
 
 
 # ----- Location Selection -----
@@ -82,18 +83,27 @@ def _has_event_within_tolerance(sorted_event_times, moment_dt, tolerance_seconds
 
 
 def get_daily_event_extension_window(location_id, now_utc, target_days=400, min_days_remaining=366):
-    max_moment = DBsqlstatements.get_daily_events_max_moment(location_id)
     target_end_day = (now_utc + timedelta(days=target_days)).date()
+    backfill_start_day = now_utc.date() - timedelta(days=1)
 
-    if max_moment is None:
-        return now_utc.date(), target_end_day
+    max_rows = DBsqlstatements.get_daily_events_max_moments_by_event_type(location_id, DAILY_EVENT_TYPES)
+    max_by_event_type = {
+        row['EventType']: _parse_db_datetime(row['MaxMomentEvent'])
+        for row in max_rows
+        if row.get('MaxMomentEvent') is not None
+    }
 
-    max_moment_dt = _parse_db_datetime(max_moment)
-    days_remaining = (max_moment_dt - now_utc).total_seconds() / 86400.0
+    if len(max_by_event_type) < len(DAILY_EVENT_TYPES):
+        return backfill_start_day, target_end_day
+
+    earliest_max_moment = min(max_by_event_type.values())
+    days_remaining = (earliest_max_moment - now_utc).total_seconds() / 86400.0
     if days_remaining >= min_days_remaining:
         return None, None
 
-    start_day = (max_moment_dt + timedelta(days=1)).date()
+    start_day = (earliest_max_moment + timedelta(days=1)).date()
+    if start_day > target_end_day:
+        start_day = backfill_start_day
     end_day = target_end_day
     if end_day <= start_day:
         end_day = start_day + timedelta(days=30)
@@ -306,6 +316,7 @@ def cache_global_newfullmoon_details(logger=None):
         requestlist=['moon'],
         MagRankAllMax=DEFAULT_STARS_MAG_RANK_ALL_MAX,
         LatDec_filter=latitude,
+        use_cache=False,
     )
     moon_data = bodies_astro_dict['moon']
     moment_index = {moment: idx for idx, moment in enumerate(unique_moments)}
@@ -432,6 +443,7 @@ def cache_daily_event_azart_for_location(location, logger=None):
             requestlist=[event_body],
             MagRankAllMax=DEFAULT_STARS_MAG_RANK_ALL_MAX,
             LatDec_filter=location['latitude'],
+            use_cache=False,
         )
         azimuths = bodies_astro_dict[event_body]['azimuths']
         artifaes = bodies_astro_dict[event_body]['artifaes']
@@ -468,6 +480,7 @@ def cache_sunmoon_details_for_location(location, window_start_utc, window_end_ut
         [location['latitude'], location['longitude']],
         elevation_msl=0,
         nowmoments_clockstrings=moments,
+        use_cache=False,
     )
     payload = json.dumps(details, separators=(',', ':'))
     DBsqlstatements.upsert_cache_astrodata(
@@ -494,6 +507,7 @@ def cache_astrodata_for_location(location, window_start_utc, window_end_utc, log
         requestlist=ASTRODATA_REQUEST_LIST,
         MagRankAllMax=DEFAULT_STARS_MAG_RANK_ALL_MAX,
         LatDec_filter=location['latitude'],
+        use_cache=False,
     )
     payload = json.dumps(astro_dict_lists, separators=(',', ':'))
     DBsqlstatements.upsert_cache_astrodata(
