@@ -2,7 +2,7 @@ AWIM is part of this monorepo under `awim/`. Its FastAPI entry point is
 `awim/tv3clock_api.py`, and its clock/cache modules live under `awim/tv3clock/`.
 
 General:
-- Keep changes scoped to the requested repo root (`/home/nate/code/time-v3-astroclock4`) unless explicitly asked.
+- Keep changes scoped to this repository root unless explicitly asked.
 - Prefer public URLs with `clock` (GroupSlug). `group_id` is fallback-only.
 - Tags are legacy; do not add new tag-based queries.
 - `groups` table uses `group_id` as PK; `GroupSlug` is for public URLs.
