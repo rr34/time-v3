@@ -1,0 +1,13 @@
+__pycache__/
+.env
+working/
+
+*Zone.Identifier
+cache_logs/
+
+text.*
+
+runstuff.py
+py*env*/
+
+.vs/
