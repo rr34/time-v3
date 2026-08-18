@@ -9,3 +9,5 @@ text.*
 
 runstuff.py
 py*env*/
+
+.vs/
