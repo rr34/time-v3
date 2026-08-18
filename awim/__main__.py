@@ -115,7 +115,7 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument('task', help='Task name, or "list" / "recipes".')
     parser.add_argument(
         '--root',
-        help='Root path for file-based tasks (default: AWIM repo directory).',
+        help='Root path for file-based tasks (default: the monorepo awim directory).',
     )
     parser.add_argument(
         '--group-id',

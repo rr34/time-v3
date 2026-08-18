@@ -5,9 +5,8 @@ This file is the canonical list of CLI tasks for AWIM. Each task operates on fil
 Command pattern:
 `python -m awim <task> [--root PATH] [--group-id ID]`
 
-Note:
-- The simplest way to run these is from the AWIM directory itself (so the package is on the Python path).
-- Example: `cd /home/nate/code/awim` then `python -m awim list`.
+Run these commands from the Time V3 repository root so Python can resolve the
+`awim` package. For example, run `python -m awim list`.
 
 Common commands:
 - `python -m awim list` prints the task list.
@@ -23,5 +22,5 @@ Tasks:
 - `db-update` — Run database constellation name updates.
 
 Notes:
-- `--root` changes the working directory used by file-based tasks. Default is the AWIM repo directory.
+- `--root` changes the working directory used by file-based tasks. The default is the monorepo's `awim/` directory.
 - All tasks run synchronously in-process and assume local files are prepared.

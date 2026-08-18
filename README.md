@@ -1,4 +1,64 @@
-# TODOnext, to deploy to a raspberry pi in Razor's Edge
+# Time V3
+
+Time V3 is an astronomical clock and photographic sky-mapping project. The
+web clock displays astronomical data and overlays the sun, moon, planets, and
+stars on calibrated photographs. AWIM (Astro Wide Image Mapper) is the Python
+calculation and photo-metadata engine that makes those mappings possible.
+
+This monorepo keeps the application and calculation code together while
+retaining separate runtime services:
+
+- `client/` — React and TypeScript clock interface. Vite builds it as static
+  files for production.
+- `api/` — Node/Express public API, photo metadata access, and AWIM proxy.
+- `awim/` — Python calculations, FastAPI service, cache generation, and photo
+  metadata workflows.
+- `api/db/schema.sql` — current shared MariaDB schema reference.
+
+## Local commands
+
+Each service keeps its own environment file: `client/.env`, `api/.env`, and
+`awim/.env`. These files are ignored by Git.
+
+```bash
+# Client
+cd client
+npm install
+npm run dev
+
+# Node API
+cd api
+npm install
+npm run dev
+
+# AWIM API (with the Python environment activated)
+cd awim
+python -m uvicorn tv3clock_api:app --reload
+```
+
+Create the AWIM environment once with:
+
+```bash
+python3 -m venv awim/.venv
+awim/.venv/bin/pip install -r awim/requirements.txt
+```
+
+From the repository root, list the AWIM photo-workflow commands with:
+
+```bash
+python -m awim list
+```
+
+Run the nightly cache manually from the AWIM directory with:
+
+```bash
+cd awim
+python -m tv3clock.cache_runner
+```
+
+## Project notes
+
+### TODOnext, to deploy to a raspberry pi in Razor's Edge
 - enable dummy locations in DB for clock strings only around the world - today!
 - use the photo location for the clock location? done already?
 - Label views with E, W, S, N and center azimuth / artifae.

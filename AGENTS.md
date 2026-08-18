@@ -1,4 +1,5 @@
-Awim code lives in `/home/nate/code/awim` (separate repo in the multi-root workspace). Look there for `tv3clock_api.py` and other awim services.
+AWIM is part of this monorepo under `awim/`. Its FastAPI entry point is
+`awim/tv3clock_api.py`, and its clock/cache modules live under `awim/tv3clock/`.
 
 General:
 - Keep changes scoped to the requested repo root (`/home/nate/code/time-v3-astroclock4`) unless explicitly asked.
@@ -7,7 +8,7 @@ General:
 - `groups` table uses `group_id` as PK; `GroupSlug` is for public URLs.
 
 Cache Generation Notes (awim):
-- Cache code is currently being added under `/home/nate/code/awim/tv3clock/` (e.g., `cache_runner.py`, `cache_jobs.py`, `cache_windows.py`, `cache_logging.py`).
+- Cache code lives under `awim/tv3clock/` (e.g., `cache_runner.py`, `cache_jobs.py`, `cache_windows.py`, `cache_logging.py`).
 - Generate cache first; do not switch read paths to consume cache yet.
 - Use `LocationType='town_square'` (not `town_center`).
 - Nightly run target is midnight at UTC-8; compute a 24-hour cache window with overlap (26 hours total processing window).
